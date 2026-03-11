@@ -4,32 +4,29 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 17
+      - name: Create APK Folder
+        run: mkdir apk
 
-      - name: Give permission
-        run: chmod +x gradlew
+      - name: Copy Website Files
+        run: |
+          cp -r html apk/
+          cp -r css apk/
+          cp -r js apk/
 
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      - name: Zip Files
+        run: zip -r school-app.zip apk
 
-      - name: Upload APK
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: School-App
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: school-app
+          path: school-app.zip
