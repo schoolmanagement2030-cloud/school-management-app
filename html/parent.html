@@ -1,24 +1,54 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
-<title>Parent Panel</title>
+<title>Principal Dashboard</title>
 
 <link rel="stylesheet" href="../css/style.css">
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+}
+
+.title{
+font-size:28px;
+margin-top:20px;
+}
+
+button{
+display:block;
+width:200px;
+margin:10px auto;
+padding:12px;
+font-size:16px;
+cursor:pointer;
+}
+
+</style>
 
 </head>
 
 <body>
 
-<h1>Parent Panel</h1>
+<h1 class="title">Principal Dashboard</h1>
 
-<button>Bus Location</button>
+<button onclick="openStudents()">Students</button>
 
-<button>Homework</button>
+<button onclick="openTeachers()">Teachers</button>
 
-<button>Messages</button>
+<button onclick="openBus()">Bus Tracking</button>
 
-<button>Student Details</button>
+<button onclick="openExpenses()">Expenses</button>
+
+<button onclick="openMessages()">Messages</button>
+
+<button onclick="logout()">Logout</button>
+
+<script src="../js/principal.js"></script>
 
 </body>
 
