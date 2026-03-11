@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Website Package
 
 on:
   push:
@@ -13,17 +13,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Create APK Folder
-        run: mkdir apk
+      - name: Create Folder
+        run: mkdir build
 
-      - name: Copy Website Files
+      - name: Copy Files
         run: |
-          cp -r html apk/
-          cp -r css apk/
-          cp -r js apk/
+          cp -r html build/
+          cp -r css build/
+          cp -r js build/
 
-      - name: Zip Files
-        run: zip -r school-app.zip apk
+      - name: Create Zip
+        run: zip -r school-app.zip build
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
