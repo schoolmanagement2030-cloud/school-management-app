@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create Folder
         run: mkdir build
@@ -26,8 +26,7 @@ jobs:
         run: zip -r school-app.zip build
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: school-app
           path: school-app.zip
-
