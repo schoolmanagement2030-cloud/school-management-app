@@ -1,23 +1,15 @@
 function principal(){
-
-alert("Principal Login Page");
-
+window.location.href = "principal.html";
 }
 
 function teacher(){
-
-alert("Teacher Login Page");
-
+window.location.href = "teacher.html";
 }
 
 function driver(){
-
-alert("Driver Login Page");
-
+window.location.href = "driver.html";
 }
 
 function parent(){
-
-alert("Parent Login Page");
-
+window.location.href = "parent.html";
 }
