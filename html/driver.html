@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <title>Driver Panel</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="../css/style.css">
 
@@ -10,13 +13,23 @@
 
 <body>
 
-<h1>Driver Panel</h1>
+<div class="header">
+Driver Panel
+</div>
 
-<button>Start Duty</button>
+<div class="card">
 
-<button>Stop Duty</button>
+<button onclick="startDuty()">Start Duty</button>
 
-<button>Bus Location</button>
+<button onclick="stopDuty()">Stop Duty</button>
+
+<button onclick="openMap()">Bus Location</button>
+
+<p id="status"></p>
+
+</div>
+
+<script type="module" src="../js/driver.js"></script>
 
 </body>
 
