@@ -1,68 +1,50 @@
-async function hashPassword(password){
+import { auth, db } from "./firebase.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const encoder = new TextEncoder();
-const data = encoder.encode(password);
-
-const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-const hashArray = Array.from(new Uint8Array(hashBuffer));
-
-const hashHex = hashArray.map(b => b.toString(16).padStart(2,"0")).join("");
-
-return hashHex;
-
-}
-
-
-
-async function login(){
+window.login = async function () {
 
 let mobile = document.getElementById("mobile").value;
 let password = document.getElementById("password").value;
 
-if(!mobile || !password){
-alert("Enter Mobile and Password");
-return;
+try {
+
+let email = mobile + "@schoolsphere.com";
+
+const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+const uid = userCredential.user.uid;
+
+// Get Role
+const docRef = doc(db, "users", uid);
+const docSnap = await getDoc(docRef);
+
+if (docSnap.exists()) {
+
+let role = docSnap.data().role;
+
+if(role === "principal"){
+window.location.href = "principal.html";
 }
 
-let hash = await hashPassword(password);
+if(role === "teacher"){
+window.location.href = "teacher.html";
+}
 
-db.collection("users")
-.where("mobile","==",mobile)
-.where("passwordHash","==",hash)
-.get()
-.then((querySnapshot)=>{
+if(role === "driver"){
+window.location.href = "driver.html";
+}
 
-if(querySnapshot.empty){
-
-alert("Invalid Login");
-
-return;
+if(role === "parent"){
+window.location.href = "parent.html";
+}
 
 }
 
-querySnapshot.forEach((doc)=>{
+} catch (error) {
 
-let user = doc.data();
+alert("Login Failed : " + error.message);
 
-if(user.role=="principal"){
-window.location.href="principal.html";
 }
-
-if(user.role=="teacher"){
-window.location.href="teacher.html";
-}
-
-if(user.role=="driver"){
-window.location.href="driver.html";
-}
-
-if(user.role=="parent"){
-window.location.href="parent.html";
-}
-
-})
-
-})
 
 }
