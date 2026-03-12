@@ -9,6 +9,37 @@
 
 <link rel="stylesheet" href="../css/style.css">
 
+<style>
+
+.title{
+font-size:26px;
+margin-top:15px;
+text-align:center;
+}
+
+button{
+display:block;
+width:220px;
+margin:10px auto;
+padding:12px;
+font-size:16px;
+cursor:pointer;
+}
+
+.alert{
+background:red;
+color:white;
+}
+
+.messages{
+margin:20px;
+background:white;
+padding:10px;
+border-radius:10px;
+}
+
+</style>
+
 </head>
 
 <body>
@@ -17,15 +48,29 @@
 Driver Panel
 </div>
 
+<h2 class="title">Bus Duty</h2>
+
 <div class="card">
 
-<button onclick="startDuty()">Start Duty</button>
+<button onclick="startDuty()">On Duty Today</button>
 
-<button onclick="stopDuty()">Stop Duty</button>
+<button onclick="stopDuty()">Off Duty Today</button>
 
-<button onclick="openMap()">Bus Location</button>
+<button class="alert" onclick="sendAlert()">🚨 Emergency Alert</button>
+
+<button onclick="logout()">Logout</button>
 
 <p id="status"></p>
+
+</div>
+
+<div class="messages">
+
+<h3>Messages</h3>
+
+<div id="messageList">
+No Messages
+</div>
 
 </div>
 
