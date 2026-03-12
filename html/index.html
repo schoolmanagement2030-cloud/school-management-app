@@ -2,23 +2,28 @@
 <html>
 
 <head>
-<title>School Management App</title>
+
+<title>SchoolSphere Login</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="stylesheet" href="../css/style.css">
+
 </head>
 
 <body>
 
-<h1 class="title">School Management System</h1>
+<div class="header">
+SchoolSphere Login
+</div>
 
-<button onclick="principal()">Principal Login</button>
+<input id="mobile" placeholder="Mobile Number">
 
-<button onclick="teacher()">Teacher Login</button>
+<input id="password" type="password" placeholder="Password">
 
-<button onclick="driver()">Driver Login</button>
+<button onclick="login()">Login</button>
 
-<button onclick="parent()">Parent Login</button>
-
-<script src="../js/app.js"></script>
+<script src="../js/auth.js"></script>
 
 </body>
 
