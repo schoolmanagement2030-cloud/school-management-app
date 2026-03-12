@@ -1,15 +1,17 @@
+// Navigation Functions
+
 function principal(){
-window.location.href = "principal.html";
+window.location.href = "../html/principal.html";
 }
 
 function teacher(){
-window.location.href = "teacher.html";
+window.location.href = "../html/teacher.html";
 }
 
 function driver(){
-window.location.href = "driver.html";
+window.location.href = "../html/driver.html";
 }
 
 function parent(){
-window.location.href = "parent.html";
+window.location.href = "../html/parent.html";
 }
