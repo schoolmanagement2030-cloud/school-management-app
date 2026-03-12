@@ -1,10 +1,31 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <title>Principal Dashboard</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="stylesheet" href="../css/style.css">
+
+<style>
+
+.title{
+font-size:28px;
+margin-top:20px;
+}
+
+button{
+display:block;
+width:220px;
+margin:10px auto;
+padding:12px;
+font-size:16px;
+cursor:pointer;
+}
+
+</style>
 
 </head>
 
@@ -12,11 +33,15 @@
 
 <h1 class="title">Principal Dashboard</h1>
 
-<button onclick="openStudents()">Students</button>
+<button onclick="openStudents()">Manage Students</button>
 
-<button onclick="openTeachers()">Teachers</button>
+<button onclick="openTeachers()">Manage Teachers</button>
 
-<button onclick="openBus()">Bus Tracking</button>
+<button onclick="openDrivers()">Manage Drivers</button>
+
+<button onclick="openParents()">Manage Parents</button>
+
+<button onclick="openBus()">Bus Routes</button>
 
 <button onclick="openExpenses()">Expenses</button>
 
@@ -24,7 +49,7 @@
 
 <button onclick="logout()">Logout</button>
 
-<script src="../js/principal.js"></script>
+<script type="module" src="../js/principal.js"></script>
 
 </body>
 
