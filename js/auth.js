@@ -1,5 +1,3 @@
-// Secure Password Hash
-
 async function hashPassword(password){
 
 const encoder = new TextEncoder();
@@ -16,35 +14,55 @@ return hashHex;
 }
 
 
-// Login System
 
 async function login(){
 
 let mobile = document.getElementById("mobile").value;
 let password = document.getElementById("password").value;
 
-if(mobile === "" || password === ""){
+if(!mobile || !password){
 alert("Enter Mobile and Password");
 return;
 }
 
 let hash = await hashPassword(password);
 
+db.collection("users")
+.where("mobile","==",mobile)
+.where("passwordHash","==",hash)
+.get()
+.then((querySnapshot)=>{
 
-// Example secure user
-
-let storedMobile = "9999999999";
-let storedHash = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459f8b8e5e8b1e8c2d";
-
-
-if(mobile === storedMobile && hash === storedHash){
-
-window.location.href = "principal.html";
-
-}else{
+if(querySnapshot.empty){
 
 alert("Invalid Login");
 
+return;
+
 }
+
+querySnapshot.forEach((doc)=>{
+
+let user = doc.data();
+
+if(user.role=="principal"){
+window.location.href="principal.html";
+}
+
+if(user.role=="teacher"){
+window.location.href="teacher.html";
+}
+
+if(user.role=="driver"){
+window.location.href="driver.html";
+}
+
+if(user.role=="parent"){
+window.location.href="parent.html";
+}
+
+})
+
+})
 
 }
