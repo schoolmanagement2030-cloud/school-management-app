@@ -9,12 +9,16 @@
 
 <link rel="stylesheet" href="../css/style.css">
 
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
 </head>
 
 <body>
 
 <div class="header">
-SchoolSphere Secure Login
+SchoolSphere Login
 </div>
 
 <input id="mobile" placeholder="Mobile Number">
@@ -22,6 +26,8 @@ SchoolSphere Secure Login
 <input id="password" type="password" placeholder="Password">
 
 <button onclick="login()">Login</button>
+
+<script src="../js/firebase.js"></script>
 
 <script src="../js/auth.js"></script>
 
