@@ -1,11 +1,14 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SchoolSphere</title><style>
+<title>SchoolSphere</title>
+
+<style>
 
 body{
 font-family:Arial;
-background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%);
+background:linear-gradient(135deg,#eef2f3,#dfe9f3);
 color:#333;
 text-align:center;
 margin:0;
@@ -39,47 +42,121 @@ font-size:16px;
 
 button{
 padding:12px 40px;
-background:linear-gradient(45deg,#ff6b6b,#ff8c00);
+background:linear-gradient(45deg,#4CAF50,#2ecc71);
 border:none;
 border-radius:25px;
 color:white;
 font-size:16px;
 cursor:pointer;
-box-shadow:0 5px 15px rgba(255,107,107,0.4);
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
 }
 
 button:hover{
 opacity:0.9;
 }
 
-</style></head><body><div class="app-name">
-SchoolSphere
-</div><h2>School Registration</h2><div class="box"><input id="school" placeholder="School Name"><input id="address" placeholder="School Address"><input id="principal" placeholder="Principal Name"><input id="mobile" placeholder="Principal Mobile"><input id="password" type="password" placeholder="Password"><br><button onclick="register()">Register</button>
+/* success popup */
 
-</div><script>
+.popup{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.4);
+justify-content:center;
+align-items:center;
+}
+
+.popup-box{
+background:white;
+padding:30px;
+border-radius:12px;
+text-align:center;
+}
+
+.popup-box button{
+margin-top:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app-name">
+SchoolSphere
+</div>
+
+<h2>School Registration</h2>
+
+<div class="box">
+
+<input id="school" placeholder="School Name">
+
+<input id="address" placeholder="School Address">
+
+<input id="principal" placeholder="Principal Name">
+
+<input id="mobile" placeholder="Principal Mobile">
+
+<input id="password" type="password" placeholder="Password">
+
+<br>
+
+<button onclick="register()">Register</button>
+
+</div>
+
+
+<!-- Success Popup -->
+
+<div class="popup" id="successPopup">
+
+<div class="popup-box">
+
+<h3>Registration Successful 🎉</h3>
+
+<p>Your school has been registered.</p>
+
+<button onclick="goLogin()">Go to Login</button>
+
+</div>
+
+</div>
+
+
+<script>
 
 function register(){
 
-localStorage.setItem("schoolName",
-document.getElementById("school").value);
+let school = document.getElementById("school").value;
+let address = document.getElementById("address").value;
+let principal = document.getElementById("principal").value;
+let mobile = document.getElementById("mobile").value;
+let password = document.getElementById("password").value;
 
-localStorage.setItem("schoolAddress",
-document.getElementById("address").value);
+if(school=="" || address=="" || principal=="" || mobile=="" || password==""){
+alert("Please fill all fields");
+return;
+}
 
-localStorage.setItem("principalName",
-document.getElementById("principal").value);
+localStorage.setItem("schoolName",school);
+localStorage.setItem("schoolAddress",address);
+localStorage.setItem("principalName",principal);
+localStorage.setItem("principalMobile",mobile);
+localStorage.setItem("principalPass",password);
 
-localStorage.setItem("principalMobile",
-document.getElementById("mobile").value);
-
-localStorage.setItem("principalPass",
-document.getElementById("password").value);
-
-alert("Registration Successful");
-
-window.location.href="login.html";
+document.getElementById("successPopup").style.display="flex";
 
 }
 
-</script></body>
+function goLogin(){
+window.location.href="login.html";
+}
+
+</script>
+
+</body>
 </html>
