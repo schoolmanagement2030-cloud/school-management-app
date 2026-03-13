@@ -17,13 +17,13 @@ jobs:
       with:
         node-version: 20
 
-    - name: Setup Java 17
+    # यहाँ हमने Java 21 कर दिया है जो आपका प्रोजेक्ट मांग रहा है
+    - name: Setup Java 21
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: '17'
+        java-version: '21'
 
-    # स्टेप: गायब package.json फाइल को खुद बनाना
     - name: Initialize Project
       run: |
         npm init -y
@@ -32,7 +32,7 @@ jobs:
 
     - name: Add Android Platform
       run: |
-        npx cap add android
+        npx cap add android || echo "Android already exists"
         npx cap copy
 
     - name: Build APK
@@ -46,4 +46,3 @@ jobs:
       with:
         name: school-app-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
-        
