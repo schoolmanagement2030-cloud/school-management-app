@@ -34,10 +34,10 @@ jobs:
         npx cap add android || echo "Android exists"
         npx cap copy
 
+    # यहाँ हमने आपके resolutionStrategy वाले कोड को फाइल में जोड़ा है
     - name: Fix Kotlin Duplicate Issues
       run: |
-        # यह स्टेप आपके दिए हुए exclude वाले कोड को build.gradle में जोड़ देगा
-        sed -i '/dependencies {/a \    constraints {\n        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.22") {\n            because("kotlin-stdlib-jdk7 and jdk8 are merged into stdlib since 1.8.0")\n        }\n    }' android/app/build.gradle
+        echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
 
     - name: Build APK
       run: |
