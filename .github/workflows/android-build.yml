@@ -34,14 +34,16 @@ jobs:
         npx cap add android || echo "Android exists"
         npx cap copy
 
+    - name: Fix Kotlin Duplicate Issues
+      run: |
+        # यह स्टेप आपके दिए हुए exclude वाले कोड को build.gradle में जोड़ देगा
+        sed -i '/dependencies {/a \    constraints {\n        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.22") {\n            because("kotlin-stdlib-jdk7 and jdk8 are merged into stdlib since 1.8.0")\n        }\n    }' android/app/build.gradle
+
     - name: Build APK
       run: |
         cd android
-        # डुप्लिकेट एरर फिक्स करने के लिए सेटिंग्स
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
-        
-        # यहाँ हमने Gradle को डुप्लिकेट फाइल्स नजरअंदाज करने को कहा है
         chmod +x gradlew
         ./gradlew assembleDebug -x lint --no-daemon -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true
         
