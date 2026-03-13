@@ -9,37 +9,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Setup Node
       uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: 20  # लेटेस्ट और स्टेबल वर्जन
 
-    - name: Install Capacitor
+    # यह स्टेप बहुत जरूरी है, इसके बिना Android बिल्ड नहीं बनेगा
+    - name: Setup Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Install Dependencies
       run: |
-        npm init -y
+        npm install
         npm install @capacitor/core @capacitor/cli @capacitor/android
 
-    - name: Init Capacitor
+    - name: Sync Capacitor
       run: |
-        npx cap init schoolapp com.school.app --web-dir=html
-
-    - name: Add Android platform
-      run: |
-        npx cap add android
-
-    - name: Copy web files
-      run: |
-        npx cap copy
+        # अगर android फोल्डर पहले से है तो sync करें, वरना add करें
+        npx cap sync android || npx cap add android
 
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew clean assembleDebug  # clean जोड़ने से पुरानी एरर वाली फाइल्स हट जाएंगी
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
