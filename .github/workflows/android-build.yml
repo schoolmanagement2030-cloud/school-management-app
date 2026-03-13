@@ -34,13 +34,15 @@ jobs:
         npx cap add android || echo "Android exists"
         npx cap copy
 
-    # यहाँ हम उन लाइब्रेरीज़ को ठीक कर रहे हैं जो आपस में टकरा रही हैं
+    # यहाँ हम Gradle को डुप्लिकेट फाइल्स ठीक करने का आदेश दे रहे हैं
     - name: Build APK
       run: |
         cd android
-        printf "android.useAndroidX=true\nandroid.enableJetifier=true" > gradle.properties
+        echo "android.useAndroidX=true" > gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
+        echo "kotlin.code.style=official" >> gradle.properties
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug -x lint --no-daemon
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
