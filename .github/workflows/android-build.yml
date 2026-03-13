@@ -1,4 +1,4 @@
-name: Build Website Package
+name: Build Android APK
 
 on:
   push:
@@ -10,23 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Create Folder
-        run: mkdir build
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-      - name: Copy Files
+      - name: Install Capacitor
         run: |
-          cp -r html build/
-          cp -r css build/
-          cp -r js build/
+          npm install
+          npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Create Zip
-        run: zip -r school-app.zip build
+      - name: Create Android Project
+        run: |
+          npx cap add android
+          npx cap copy
 
-      - name: Upload Artifact
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: school-app
-          path: school-app.zip
+          name: school-management-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
