@@ -15,33 +15,37 @@ jobs:
     - name: Setup Node
       uses: actions/setup-node@v4
       with:
-        node-version: 20  # लेटेस्ट और स्टेबल वर्जन
+        node-version: 20
 
-    # यह स्टेप बहुत जरूरी है, इसके बिना Android बिल्ड नहीं बनेगा
+    # स्टेप 1: Java सेटअप (यहीं गड़बड़ थी, अब ठीक है)
     - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
+    # स्टेप 2: प्रोजेक्ट सेटअप
     - name: Install Dependencies
       run: |
         npm install
         npm install @capacitor/core @capacitor/cli @capacitor/android
 
+    # स्टेप 3: Android फोल्डर सिंक करना
     - name: Sync Capacitor
       run: |
-        # अगर android फोल्डर पहले से है तो sync करें, वरना add करें
         npx cap sync android || npx cap add android
 
+    # स्टेप 4: APK बनाना (पुराने एरर को हटाते हुए)
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew clean assembleDebug  # clean जोड़ने से पुरानी एरर वाली फाइल्स हट जाएंगी
+        ./gradlew clean assembleDebug
 
+    # स्टेप 5: बनी हुई APK को सेव करना ताकि आप डाउनलोड कर सकें
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: school-app-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        
