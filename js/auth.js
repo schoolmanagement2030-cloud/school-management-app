@@ -1,43 +1,81 @@
 import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { doc, getDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 window.login = async function () {
 
-let mobile = document.getElementById("mobile").value;
-let password = document.getElementById("password").value;
+let mobile = document.getElementById("mobile").value.trim();
+let password = document.getElementById("password").value.trim();
+
+if(mobile === "" || password === ""){
+alert("Enter Mobile and Password");
+return;
+}
+
+// Mobile → Email convert
+let email = mobile + "@schoolsphere.com";
 
 try {
-
-let email = mobile + "@schoolsphere.com";
 
 const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
 const uid = userCredential.user.uid;
 
-// Get Role
+// Firestore user
 const docRef = doc(db, "users", uid);
 const docSnap = await getDoc(docRef);
 
 if (docSnap.exists()) {
 
-let role = docSnap.data().role;
+let data = docSnap.data();
+let role = data.role;
 
+// Device Lock System
+let device = navigator.userAgent;
+
+if(data.device && data.device !== device){
+
+alert("This account is locked to another device. Contact Principal.");
+return;
+
+}
+
+// Save device if first login
+if(!data.device){
+await updateDoc(docRef,{
+device: device
+});
+}
+
+// Redirect by role
 if(role === "principal"){
 window.location.href = "principal.html";
 }
 
-if(role === "teacher"){
+else if(role === "teacher"){
 window.location.href = "teacher.html";
 }
 
-if(role === "driver"){
+else if(role === "driver"){
 window.location.href = "driver.html";
 }
 
-if(role === "parent"){
+else if(role === "parent"){
 window.location.href = "parent.html";
 }
+
+else{
+alert("User role not found");
+}
+
+}else{
+
+alert("User data not found");
 
 }
 
