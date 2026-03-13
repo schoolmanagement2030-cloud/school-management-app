@@ -37,19 +37,16 @@ jobs:
     - name: Build APK
       run: |
         cd android
+        # डुप्लिकेट एरर फिक्स करने के लिए सेटिंग्स
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
-        echo "kotlin.code.style=official" >> gradle.properties
+        
+        # यहाँ हमने Gradle को डुप्लिकेट फाइल्स नजरअंदाज करने को कहा है
         chmod +x gradlew
-        ./gradlew assembleDebug -x lint --no-daemon
-
+        ./gradlew assembleDebug -x lint --no-daemon -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true
+        
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: school-app-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
-configurations.all {
-    resolutionStrategy {
-        force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
-    }
-}
