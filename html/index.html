@@ -1,36 +1,151 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="hi">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchoolSphere Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-<title>SchoolSphere Login</title>
+        body {
+            /* राजस्थान की शाम जैसा प्यारा ग्रेडिएंट */
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        /* पीछे घूमने वाले दो गोले (Decoration) */
+        .circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(#ff0080, #ff8c00);
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: -1;
+            animation: move 10s infinite alternate;
+        }
+        .circle-2 {
+            bottom: 10%;
+            right: 15%;
+            background: linear-gradient(#00d2ff, #3a7bd5);
+            animation-delay: -5s;
+        }
 
-<link rel="stylesheet" href="../css/style.css">
+        @keyframes move {
+            from { transform: translate(-50px, -50px); }
+            to { transform: translate(50px, 50px); }
+        }
 
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); /* कांच जैसा इफेक्ट */
+            padding: 40px;
+            border-radius: 20px;
+            width: 350px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            outline: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: 0.3s;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #fff;
+            color: #302b63;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            background: #00d2ff;
+            color: white;
+        }
+
+        .footer-text {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-SchoolSphere Login
-</div>
+    <div class="circle"></div>
+    <div class="circle circle-2"></div>
 
-<div class="login-box">
+    <div class="login-box">
+        <h2>SchoolSphere</h2>
+        <div class="input-group">
+            <input type="text" placeholder="मोबाइल नंबर">
+        </div>
+        <div class="input-group">
+            <input type="password" placeholder="पासवर्ड">
+        </div>
+        <button onclick="handleLogin()">लॉगिन करें</button>
+        <p class="footer-text">Vikash Agency द्वारा सुरक्षित</p>
+    </div>
 
-<input id="mobile" type="tel" placeholder="Mobile Number">
-
-<input id="password" type="password" placeholder="Password">
-
-<button onclick="login()">Login</button>
-
-<p id="error" style="color:red;"></p>
-
-</div>
-
-<script type="module" src="../js/auth.js"></script>
+    <script>
+        function handleLogin() {
+            alert("विकास भाई, डिज़ाइन सेट हो गया है! अब इसमें डेटाबेस जोड़ते हैं।");
+        }
+    </script>
 
 </body>
-
 </html>
