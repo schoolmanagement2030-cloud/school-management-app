@@ -10,7 +10,7 @@ jobs:
 
     steps:
 
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Setup Node
@@ -20,15 +20,18 @@ jobs:
 
     - name: Install Capacitor
       run: |
-        npm install -g @capacitor/cli
-        npm install @capacitor/core @capacitor/android
+        npm init -y
+        npm install @capacitor/core @capacitor/cli @capacitor/android
 
-    - name: Create Android App
+    - name: Init Capacitor
       run: |
-        npx cap init schoolapp com.school.app
+        npx cap init schoolapp com.school.app --web-dir=html
+
+    - name: Add Android platform
+      run: |
         npx cap add android
 
-    - name: Copy Web Files
+    - name: Copy web files
       run: |
         npx cap copy
 
