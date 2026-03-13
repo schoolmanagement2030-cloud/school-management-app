@@ -1,9 +1,50 @@
-navigator.geolocation.watchPosition(function(position){
+import { db } from "./firebase.js";
 
-var lat = position.coords.latitude;
+import { doc, setDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-var lon = position.coords.longitude;
+let watchId = null;
 
-console.log("Driver Location:",lat,lon);
+
+// Start GPS
+window.startDuty = function(){
+
+if(navigator.geolocation){
+
+watchId = navigator.geolocation.watchPosition(async function(position){
+
+let lat = position.coords.latitude;
+let lng = position.coords.longitude;
+
+console.log("Driver Location:",lat,lng);
+
+// Firebase update
+await setDoc(doc(db,"bus","location"),{
+
+lat: lat,
+lng: lng,
+time: new Date().toISOString()
 
 });
+
+});
+
+document.getElementById("status").innerText="Duty Started";
+
+}
+
+};
+
+
+// Stop GPS
+window.stopDuty = function(){
+
+if(watchId!==null){
+
+navigator.geolocation.clearWatch(watchId);
+
+}
+
+document.getElementById("status").innerText="Duty Stopped";
+
+};
