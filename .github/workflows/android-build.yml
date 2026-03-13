@@ -48,3 +48,8 @@ jobs:
       with:
         name: school-app-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
+configurations.all {
+    resolutionStrategy {
+        force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+    }
+}
