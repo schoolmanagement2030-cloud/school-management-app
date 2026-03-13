@@ -1,151 +1,100 @@
-<!DOCTYPE html>
-<html lang="hi">
+<!DOCTYPE html><html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SchoolSphere Login</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolSphere Login</title><style>
 
-        body {
-            /* राजस्थान की शाम जैसा प्यारा ग्रेडिएंट */
-            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
 
-        /* पीछे घूमने वाले दो गोले (Decoration) */
-        .circle {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(#ff0080, #ff8c00);
-            border-radius: 50%;
-            filter: blur(50px);
-            z-index: -1;
-            animation: move 10s infinite alternate;
-        }
-        .circle-2 {
-            bottom: 10%;
-            right: 15%;
-            background: linear-gradient(#00d2ff, #3a7bd5);
-            animation-delay: -5s;
-        }
+body{
+background:linear-gradient(135deg,#141e30,#243b55);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
 
-        @keyframes move {
-            from { transform: translate(-50px, -50px); }
-            to { transform: translate(50px, 50px); }
-        }
+.login-box{
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(10px);
+padding:30px;
+border-radius:15px;
+width:90%;
+max-width:350px;
+text-align:center;
+color:white;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
 
-        .login-box {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px); /* कांच जैसा इफेक्ट */
-            padding: 40px;
-            border-radius: 20px;
-            width: 350px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
-            color: white;
-        }
+h2{
+margin-bottom:25px;
+font-size:28px;
+}
 
-        h2 {
-            font-size: 28px;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            background: linear-gradient(to right, #fff, #aaa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:25px;
+border:none;
+outline:none;
+background:rgba(255,255,255,0.2);
+color:white;
+}
 
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+input::placeholder{
+color:#ddd;
+}
 
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            outline: none;
-            border-radius: 30px;
-            color: white;
-            font-size: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: 0.3s;
-        }
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:25px;
+background:#00c6ff;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
 
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
+button:hover{
+background:#0072ff;
+}
 
-        input:focus {
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
+.footer{
+margin-top:15px;
+font-size:12px;
+opacity:0.7;
+}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            background: #fff;
-            color: #302b63;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+</style></head><body><div class="login-box"><h2>SchoolSphere</h2><input id="mobile" type="text" placeholder="मोबाइल नंबर"><input id="password" type="password" placeholder="पासवर्ड"><button onclick="login()">लॉगिन करें</button>
 
-        button:hover {
-            transform: translateY(-3px);
-            background: #00d2ff;
-            color: white;
-        }
+<div class="footer">
+SchoolSphere System
+</div></div><script>
 
-        .footer-text {
-            margin-top: 20px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
+function login(){
 
-    </style>
-</head>
-<body>
+let mobile=document.getElementById("mobile").value;
+let pass=document.getElementById("password").value;
 
-    <div class="circle"></div>
-    <div class="circle circle-2"></div>
+if(mobile=="9784499059" && pass=="1234"){
 
-    <div class="login-box">
-        <h2>SchoolSphere</h2>
-        <div class="input-group">
-            <input type="text" placeholder="मोबाइल नंबर">
-        </div>
-        <div class="input-group">
-            <input type="password" placeholder="पासवर्ड">
-        </div>
-        <button onclick="handleLogin()">लॉगिन करें</button>
-        <p class="footer-text">Vikash Agency द्वारा सुरक्षित</p>
-    </div>
+window.location.href="dashboard.html";
 
-    <script>
-        function handleLogin() {
-            alert("विकास भाई, डिज़ाइन सेट हो गया है! अब इसमें डेटाबेस जोड़ते हैं।");
-        }
-    </script>
+}else{
 
-</body>
+alert("गलत मोबाइल नंबर या पासवर्ड");
+
+}
+
+}
+
+</script></body>
 </html>
