@@ -17,32 +17,30 @@ jobs:
       with:
         node-version: 20
 
-    # स्टेप 1: Java सेटअप (यहीं गड़बड़ थी, अब ठीक है)
     - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    # स्टेप 2: प्रोजेक्ट सेटअप
-    - name: Install Dependencies
+    # स्टेप: गायब package.json फाइल को खुद बनाना
+    - name: Initialize Project
       run: |
-        npm install
+        npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
+        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
 
-    # स्टेप 3: Android फोल्डर सिंक करना
-    - name: Sync Capacitor
+    - name: Add Android Platform
       run: |
-        npx cap sync android || npx cap add android
+        npx cap add android
+        npx cap copy
 
-    # स्टेप 4: APK बनाना (पुराने एरर को हटाते हुए)
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew clean assembleDebug
+        ./gradlew assembleDebug
 
-    # स्टेप 5: बनी हुई APK को सेव करना ताकि आप डाउनलोड कर सकें
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
