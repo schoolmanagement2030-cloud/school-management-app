@@ -34,10 +34,16 @@ jobs:
         npx cap add android || echo "Android exists"
         npx cap copy
 
-    # यहाँ हमने डुप्लिकेट एरर को फिक्स करने के लिए सेटिंग डाली है
+    # यहाँ हम उन लाइब्रेरीज़ को ठीक कर रहे हैं जो आपस में टकरा रही हैं
     - name: Build APK
       run: |
         cd android
+        printf "android.useAndroidX=true\nandroid.enableJetifier=true" > gradle.properties
         chmod +x gradlew
-        ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true
-
+        ./gradlew assembleDebug --no-daemon
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: school-app-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
