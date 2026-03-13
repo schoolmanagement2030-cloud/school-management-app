@@ -1,0 +1,68 @@
+<!DOCTYPE html><html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SchoolSphere Login</title><style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#141e30,#243b55);
+color:white;
+text-align:center;
+margin:0;
+}
+
+.app-name{
+font-size:34px;
+margin-top:20px;
+font-weight:bold;
+}
+
+.login-box{
+margin-top:60px;
+}
+
+input{
+width:85%;
+padding:12px;
+margin:10px;
+border:none;
+border-radius:20px;
+}
+
+button{
+padding:12px 40px;
+background:#0072ff;
+border:none;
+border-radius:20px;
+color:white;
+font-size:16px;
+}
+
+</style></head><body><div class="app-name">
+SchoolSphere
+</div><h2>Principal Login</h2><div class="login-box"><input id="mobile" placeholder="Principal Mobile"><input id="password" type="password" placeholder="Password"><br><button onclick="login()">Login</button>
+
+</div><script>
+
+function login(){
+
+let mobile=document.getElementById("mobile").value;
+let pass=document.getElementById("password").value;
+
+let savedMobile=localStorage.getItem("principalMobile");
+let savedPass=localStorage.getItem("principalPass");
+
+if(mobile==savedMobile && pass==savedPass){
+
+alert("Login Successful");
+
+}else{
+
+alert("गलत मोबाइल नंबर या पासवर्ड");
+
+}
+
+}
+
+</script></body>
+</html>
