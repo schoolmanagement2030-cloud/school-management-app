@@ -5,16 +5,21 @@
 
 body{
 font-family:Arial;
-background:linear-gradient(135deg,#141e30,#243b55);
-color:white;
+background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%);
+color:#333;
 text-align:center;
 margin:0;
 }
 
 .app-name{
 font-size:34px;
-margin-top:20px;
+margin-top:30px;
 font-weight:bold;
+color:#2c5364;
+}
+
+h2{
+color:#444;
 }
 
 .box{
@@ -26,16 +31,25 @@ width:85%;
 padding:12px;
 margin:10px;
 border:none;
-border-radius:20px;
+border-radius:25px;
+background:white;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+font-size:16px;
 }
 
 button{
 padding:12px 40px;
-background:#0072ff;
+background:linear-gradient(45deg,#ff6b6b,#ff8c00);
 border:none;
-border-radius:20px;
+border-radius:25px;
 color:white;
 font-size:16px;
+cursor:pointer;
+box-shadow:0 5px 15px rgba(255,107,107,0.4);
+}
+
+button:hover{
+opacity:0.9;
 }
 
 </style></head><body><div class="app-name">
@@ -62,6 +76,8 @@ localStorage.setItem("principalPass",
 document.getElementById("password").value);
 
 alert("Registration Successful");
+
+window.location.href="login.html";
 
 }
 
