@@ -47,6 +47,8 @@ box-shadow:0 4px 10px rgba(0,0,0,0.1);
 font-size:18px;
 }
 
+/* Menu */
+
 .menu button{
 margin:10px;
 padding:12px 25px;
@@ -62,9 +64,44 @@ cursor:pointer;
 background:#2980b9;
 }
 
+.register{
+background:#27ae60;
+}
+
+.login{
+background:#8e44ad;
+}
+
 .logout{
 margin-top:30px;
 background:#e74c3c;
+}
+
+/* Popup */
+
+.popup{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+}
+
+.popup-box{
+background:white;
+padding:25px;
+border-radius:10px;
+text-align:center;
+}
+
+.popup-box input{
+width:90%;
+padding:10px;
+margin:8px;
 }
 
 </style>
@@ -83,36 +120,23 @@ background:#e74c3c;
 
 <h2>Super Admin Dashboard</h2>
 
-<div class="card">
-Total Students : 0
-</div>
-
-<div class="card">
-Total Teachers : 0
-</div>
-
-<div class="card">
-Total Drivers : 0
-</div>
-
-<div class="card">
-School Balance : ₹0
-</div>
+<div class="card">Total Students : 0</div>
+<div class="card">Total Teachers : 0</div>
+<div class="card">Total Drivers : 0</div>
+<div class="card">School Balance : ₹0</div>
 
 <div class="menu">
 
+<button class="register" onclick="openRegister()">Register School</button>
+
+<button class="login" onclick="openLogin()">School Login</button>
+
 <button>Principal Management</button>
-
 <button>Student Management</button>
-
 <button>Teacher Management</button>
-
 <button>Driver Management</button>
-
 <button>Fees & Accounts</button>
-
 <button>Reports</button>
-
 <button>Notifications</button>
 
 </div>
@@ -121,10 +145,113 @@ School Balance : ₹0
 
 </div>
 
+
+<!-- Register Popup -->
+
+<div class="popup" id="registerPopup">
+
+<div class="popup-box">
+
+<h3>Register School</h3>
+
+<input id="school" placeholder="School Name">
+
+<input id="principal" placeholder="Principal Name">
+
+<input id="mobile" placeholder="Mobile">
+
+<input id="password" type="password" placeholder="Password">
+
+<br>
+
+<button onclick="registerSchool()">Register</button>
+
+<button onclick="closePopup()">Cancel</button>
+
+</div>
+
+</div>
+
+
+<!-- Login Popup -->
+
+<div class="popup" id="loginPopup">
+
+<div class="popup-box">
+
+<h3>School Login</h3>
+
+<input id="loginMobile" placeholder="Mobile">
+
+<input id="loginPassword" type="password" placeholder="Password">
+
+<br>
+
+<button onclick="loginSchool()">Login</button>
+
+<button onclick="closePopup()">Cancel</button>
+
+</div>
+
+</div>
+
+
 <script>
 
 function logout(){
 window.location.href="index.html";
+}
+
+function openRegister(){
+document.getElementById("registerPopup").style.display="flex";
+}
+
+function openLogin(){
+document.getElementById("loginPopup").style.display="flex";
+}
+
+function closePopup(){
+document.getElementById("registerPopup").style.display="none";
+document.getElementById("loginPopup").style.display="none";
+}
+
+function registerSchool(){
+
+let school=document.getElementById("school").value;
+let principal=document.getElementById("principal").value;
+let mobile=document.getElementById("mobile").value;
+let password=document.getElementById("password").value;
+
+localStorage.setItem("schoolName",school);
+localStorage.setItem("principalName",principal);
+localStorage.setItem("mobile",mobile);
+localStorage.setItem("password",password);
+
+alert("School Registered Successfully");
+
+closePopup();
+}
+
+function loginSchool(){
+
+let mobile=document.getElementById("loginMobile").value;
+let password=document.getElementById("loginPassword").value;
+
+let savedMobile=localStorage.getItem("mobile");
+let savedPass=localStorage.getItem("password");
+
+if(mobile==savedMobile && password==savedPass){
+
+alert("Login Successful");
+
+window.location.href="dashboard.html";
+
+}else{
+
+alert("Wrong Mobile or Password");
+
+}
+
 }
 
 </script>
