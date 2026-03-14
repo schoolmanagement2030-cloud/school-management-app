@@ -1,97 +1,133 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
-<title>Super Admin Dashboard</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Admin Panel</title>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
-background:#eef2f3;
-text-align:center;
-margin:0;
+background:#f4f6f9;
 }
 
-h1{
+/* Header */
+
+.header{
 background:#2c5364;
+padding:20px;
+text-align:center;
 color:white;
-padding:15px;
-margin:0;
 }
 
-button{
+.app-name{
+font-size:32px;
+font-weight:bold;
+color:gold;
+}
 
-display:block;
-width:250px;
-margin:12px auto;
-padding:14px;
-font-size:16px;
+.tagline{
+font-size:14px;
+}
+
+/* Dashboard */
+
+.dashboard{
+padding:20px;
+text-align:center;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:15px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+font-size:18px;
+}
+
+.menu button{
+margin:10px;
+padding:12px 25px;
 border:none;
 border-radius:25px;
-background:#4CAF50;
+background:#3498db;
 color:white;
+font-size:16px;
 cursor:pointer;
+}
 
+.menu button:hover{
+background:#2980b9;
+}
+
+.logout{
+margin-top:30px;
+background:#e74c3c;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<h1>Super Admin Panel</h1>
+<div class="header">
 
-<button onclick="openSchools()">Schools</button>
+<div class="app-name">SchoolSphere</div>
+<div class="tagline">School Management App</div>
 
-<button onclick="openPrincipals()">Principals</button>
+</div>
 
-<button onclick="openStudents()">Students</button>
+<div class="dashboard">
 
-<button onclick="openFees()">Fees Report</button>
+<h2>Super Admin Dashboard</h2>
 
-<button onclick="openExpenses()">Expenses</button>
+<div class="card">
+Total Students : 0
+</div>
 
-<button onclick="openReports()">Reports</button>
+<div class="card">
+Total Teachers : 0
+</div>
 
-<button onclick="backup()">Backup</button>
+<div class="card">
+Total Drivers : 0
+</div>
+
+<div class="card">
+School Balance : ₹0
+</div>
+
+<div class="menu">
+
+<button>Principal Management</button>
+
+<button>Student Management</button>
+
+<button>Teacher Management</button>
+
+<button>Driver Management</button>
+
+<button>Fees & Accounts</button>
+
+<button>Reports</button>
+
+<button>Notifications</button>
+
+</div>
+
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
 
 <script>
 
-function openSchools(){
-alert("Schools List");
-}
-
-function openPrincipals(){
-alert("Principals List");
-}
-
-function openStudents(){
-alert("Students List");
-}
-
-function openFees(){
-alert("Fees Report");
-}
-
-function openExpenses(){
-alert("Expenses Report");
-}
-
-function openReports(){
-alert("Full School Report");
-}
-
-function backup(){
-alert("Backup Download");
+function logout(){
+window.location.href="index.html";
 }
 
 </script>
 
 </body>
-
 </html>
