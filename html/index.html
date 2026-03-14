@@ -7,93 +7,59 @@
 <style>
 
 body{
+margin:0;
 font-family:Arial;
 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
+color:white;
 text-align:center;
-margin:0;
 }
 
 /* App Name */
 
 .app-name{
-font-size:36px;
-margin-top:30px;
+font-size:40px;
+margin-top:40px;
 font-weight:bold;
 color:gold;
 }
 
 .tagline{
 font-size:16px;
-margin-top:5px;
+margin-bottom:40px;
 color:#ddd;
 }
 
-/* Title */
+/* Role Box */
 
-h2{
-color:white;
-margin-top:20px;
-}
-
-/* Form Box */
-
-.box{
-margin-top:30px;
-}
-
-input{
+.role-box{
 width:85%;
-padding:12px;
-margin:10px;
-border:none;
-border-radius:25px;
-background:white;
-box-shadow:0 3px 10px rgba(0,0,0,0.2);
-font-size:16px;
+margin:auto;
 }
 
-/* Button */
+/* Role Buttons */
 
-button{
-padding:12px 40px;
-background:linear-gradient(45deg,#f1c40f,#f39c12);
-border:none;
-border-radius:25px;
-color:black;
-font-size:16px;
+.role{
+background:white;
+color:#333;
+padding:15px;
+margin:15px 0;
+border-radius:30px;
+font-size:18px;
 cursor:pointer;
 box-shadow:0 5px 15px rgba(0,0,0,0.3);
+transition:0.3s;
 }
 
-button:hover{
-opacity:0.9;
+.role:hover{
+transform:scale(1.05);
 }
 
-/* success popup */
+/* Footer */
 
-.popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-justify-content:center;
-align-items:center;
-}
-
-.popup-box{
-background:white;
-padding:30px;
-border-radius:12px;
-text-align:center;
-color:black;
-}
-
-.popup-box button{
-margin-top:15px;
+.footer{
+margin-top:40px;
+font-size:12px;
+color:#bbb;
 }
 
 </style>
@@ -109,71 +75,44 @@ SchoolSphere
 School Management App
 </div>
 
-<h2>School Registration</h2>
+<div class="role-box">
 
-<div class="box">
+<div class="role" onclick="owner()">👑 Owner / Super Admin</div>
 
-<input id="school" placeholder="School Name">
+<div class="role" onclick="principal()">🏫 Principal</div>
 
-<input id="address" placeholder="School Address">
+<div class="role" onclick="teacher()">👨‍🏫 Teacher</div>
 
-<input id="principal" placeholder="Principal Name">
+<div class="role" onclick="driver()">🚌 Driver</div>
 
-<input id="mobile" placeholder="Principal Mobile">
-
-<input id="password" type="password" placeholder="Password">
-
-<br>
-
-<button onclick="register()">Register</button>
+<div class="role" onclick="parent()">👨‍👩‍👧 Parent</div>
 
 </div>
 
-
-<!-- Success Popup -->
-
-<div class="popup" id="successPopup">
-
-<div class="popup-box">
-
-<h3>Registration Successful 🎉</h3>
-
-<p>Your school has been registered.</p>
-
-<button onclick="goLogin()">Go to Login</button>
-
+<div class="footer">
+© SchoolSphere ERP
 </div>
-
-</div>
-
 
 <script>
 
-function register(){
-
-let school = document.getElementById("school").value;
-let address = document.getElementById("address").value;
-let principal = document.getElementById("principal").value;
-let mobile = document.getElementById("mobile").value;
-let password = document.getElementById("password").value;
-
-if(school=="" || address=="" || principal=="" || mobile=="" || password==""){
-alert("Please fill all fields");
-return;
+function owner(){
+window.location.href="superadmin.html";
 }
 
-localStorage.setItem("schoolName",school);
-localStorage.setItem("schoolAddress",address);
-localStorage.setItem("principalName",principal);
-localStorage.setItem("principalMobile",mobile);
-localStorage.setItem("principalPass",password);
-
-document.getElementById("successPopup").style.display="flex";
-
+function principal(){
+window.location.href="principal.html";
 }
 
-function goLogin(){
-window.location.href="login.html";
+function teacher(){
+window.location.href="teacher.html";
+}
+
+function driver(){
+window.location.href="driver.html";
+}
+
+function parent(){
+window.location.href="parent.html";
 }
 
 </script>
