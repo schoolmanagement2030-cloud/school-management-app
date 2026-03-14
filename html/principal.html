@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>Principal Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
+<!DOCTYPE html><html><head><title>Principal Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
 
 body{
 font-family:Arial;
@@ -18,14 +9,22 @@ margin:0;
 
 .title{
 font-size:30px;
-margin-top:20px;
+margin-top:40px;
 color:#2c5364;
 }
 
-.school{
-font-size:18px;
-color:#555;
-margin-bottom:20px;
+.login-box{
+margin-top:40px;
+}
+
+input{
+display:block;
+width:260px;
+margin:12px auto;
+padding:14px;
+font-size:16px;
+border-radius:25px;
+border:1px solid #ccc;
 }
 
 button{
@@ -46,73 +45,28 @@ button:hover{
 opacity:0.9;
 }
 
-</style>
+</style></head><body><h1 class="title">Principal Login</h1><div class="login-box"><input id="mobile" placeholder="Principal Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
 
-</head>
+</div><script>
 
-<body>
+function login(){
 
-<h1 class="title">Principal Dashboard</h1>
+let mobile=document.getElementById("mobile").value;
+let password=document.getElementById("password").value;
 
-<div class="school" id="schoolName"></div>
+let savedMobile=localStorage.getItem("principalMobile");
+let savedPass=localStorage.getItem("principalPass");
 
-<button onclick="openStudents()">Manage Students</button>
+if(mobile==savedMobile && password==savedPass){
 
-<button onclick="openTeachers()">Manage Teachers</button>
+window.location.href="principal-dashboard.html";
 
-<button onclick="openDrivers()">Manage Drivers</button>
+}else{
 
-<button onclick="openParents()">Manage Parents</button>
+alert("Wrong Mobile or Password");
 
-<button onclick="openBus()">Bus Routes</button>
-
-<button onclick="openExpenses()">Expenses</button>
-
-<button onclick="openMessages()">Messages</button>
-
-<button onclick="logout()">Logout</button>
-
-
-<script>
-
-document.getElementById("schoolName").innerText =
-"School : " + localStorage.getItem("schoolName");
-
-
-function openStudents(){
-alert("Students section coming soon");
 }
 
-function openTeachers(){
-window.location.href="teacher.html";
 }
 
-function openDrivers(){
-window.location.href="driver.html";
-}
-
-function openParents(){
-window.location.href="parent.html";
-}
-
-function openBus(){
-window.location.href="bus-map.html";
-}
-
-function openExpenses(){
-alert("Expenses section coming soon");
-}
-
-function openMessages(){
-alert("Messages section coming soon");
-}
-
-function logout(){
-window.location.href="login.html";
-}
-
-</script>
-
-</body>
-
-</html>
+</script></body></html>
