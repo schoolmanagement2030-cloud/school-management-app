@@ -3,7 +3,6 @@
 
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>SchoolSphere Login</title>
 
 <style>
@@ -116,7 +115,7 @@ SchoolSphere
 
 <h3>Login Successful 🎉</h3>
 
-<p>Welcome Principal</p>
+<p id="welcomeText">Welcome Principal</p>
 
 <button onclick="goDashboard()">Continue</button>
 
@@ -134,8 +133,14 @@ let pass=document.getElementById("password").value;
 
 let savedMobile=localStorage.getItem("principalMobile");
 let savedPass=localStorage.getItem("principalPass");
+let principalName=localStorage.getItem("principalName");
 
 if(mobile==savedMobile && pass==savedPass){
+
+localStorage.setItem("principalLoggedIn","true");
+
+document.getElementById("welcomeText").innerText =
+"Welcome " + principalName;
 
 document.getElementById("loginPopup").style.display="flex";
 
