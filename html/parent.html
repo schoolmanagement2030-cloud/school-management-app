@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>Parent Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
+<!DOCTYPE html><html><head><title>Parent Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
 
 body{
 font-family:Arial;
@@ -18,15 +9,23 @@ margin:0;
 
 .header{
 font-size:30px;
-margin-top:20px;
+margin-top:40px;
 color:#2c5364;
 font-weight:bold;
 }
 
-.title{
-font-size:22px;
-margin-top:10px;
-color:#444;
+.login-box{
+margin-top:40px;
+}
+
+input{
+display:block;
+width:260px;
+margin:12px auto;
+padding:14px;
+font-size:16px;
+border-radius:25px;
+border:1px solid #ccc;
 }
 
 button{
@@ -47,60 +46,30 @@ button:hover{
 opacity:0.9;
 }
 
-#status{
-margin-top:10px;
-font-weight:bold;
-color:#333;
+</style></head><body><div class="header">
+Parent Login
+</div><div class="login-box"><input id="mobile" placeholder="Parent Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
+
+</div><script>
+
+function login(){
+
+let mobile=document.getElementById("mobile").value;
+let password=document.getElementById("password").value;
+
+let savedMobile=localStorage.getItem("parentMobile");
+let savedPass=localStorage.getItem("parentPass");
+
+if(mobile==savedMobile && password==savedPass){
+
+window.location.href="parent-dashboard.html";
+
+}else{
+
+alert("Wrong Mobile or Password");
+
 }
 
-</style>
-
-</head>
-
-<body>
-
-<div class="header">
-Parent Dashboard
-</div>
-
-<h2 class="title">Student Panel</h2>
-
-<button onclick="openStudent()">Student Details</button>
-
-<button onclick="openAttendance()">Attendance</button>
-
-<button onclick="openBus()">Bus Tracking</button>
-
-<button onclick="openMessages()">Messages</button>
-
-<button onclick="logout()">Logout</button>
-
-<p id="status"></p>
-
-<script>
-
-function openStudent(){
-document.getElementById("status").innerText="Student details coming soon";
 }
 
-function openAttendance(){
-document.getElementById("status").innerText="Attendance feature coming soon";
-}
-
-function openBus(){
-window.location.href="bus-map.html";
-}
-
-function openMessages(){
-document.getElementById("status").innerText="No new messages";
-}
-
-function logout(){
-window.location.href="login.html";
-}
-
-</script>
-
-</body>
-
-</html>
+</script></body></html>
