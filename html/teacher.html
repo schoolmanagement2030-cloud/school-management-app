@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>Teacher Panel</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
+<!DOCTYPE html><html><head><title>Teacher Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
 
 body{
 font-family:Arial;
@@ -18,8 +9,22 @@ margin:0;
 
 .title{
 font-size:30px;
-margin-top:20px;
+margin-top:40px;
 color:#2c5364;
+}
+
+.login-box{
+margin-top:40px;
+}
+
+input{
+display:block;
+width:260px;
+margin:12px auto;
+padding:14px;
+font-size:16px;
+border-radius:25px;
+border:1px solid #ccc;
 }
 
 button{
@@ -40,44 +45,28 @@ button:hover{
 opacity:0.9;
 }
 
-</style>
+</style></head><body><h1 class="title">Teacher Login</h1><div class="login-box"><input id="mobile" placeholder="Teacher Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
 
-</head>
+</div><script>
 
-<body>
+function login(){
 
-<h1 class="title">Teacher Panel</h1>
+let mobile=document.getElementById("mobile").value;
+let password=document.getElementById("password").value;
 
-<button onclick="markAttendance()">Mark Attendance</button>
+let savedMobile=localStorage.getItem("teacherMobile");
+let savedPass=localStorage.getItem("teacherPass");
 
-<button onclick="viewStudents()">View Students</button>
+if(mobile==savedMobile && password==savedPass){
 
-<button onclick="sendMessage()">Send Message</button>
+window.location.href="teacher-dashboard.html";
 
-<button onclick="logout()">Logout</button>
+}else{
 
-<p id="status"></p>
+alert("Wrong Mobile or Password");
 
-<script>
-
-function markAttendance(){
-document.getElementById("status").innerText="Attendance marked successfully";
 }
 
-function viewStudents(){
-alert("Student list coming soon");
 }
 
-function sendMessage(){
-alert("Message feature coming soon");
-}
-
-function logout(){
-window.location.href="login.html";
-}
-
-</script>
-
-</body>
-
-</html>
+</script></body></html>
