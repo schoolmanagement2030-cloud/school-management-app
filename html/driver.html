@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-<title>Driver Panel</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
+<!DOCTYPE html><html><head><title>Driver Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
 
 body{
 font-family:Arial;
@@ -18,19 +9,23 @@ text-align:center;
 
 .header{
 font-size:30px;
-margin-top:20px;
+margin-top:40px;
 color:#2c5364;
 font-weight:bold;
 }
 
-.title{
-font-size:22px;
-margin-top:10px;
-color:#444;
+.login-box{
+margin-top:40px;
 }
 
-.card{
-margin-top:20px;
+input{
+display:block;
+width:260px;
+margin:12px auto;
+padding:14px;
+font-size:16px;
+border-radius:25px;
+border:1px solid #ccc;
 }
 
 button{
@@ -51,80 +46,30 @@ button:hover{
 opacity:0.9;
 }
 
-.alert{
-background:linear-gradient(45deg,#ff4b2b,#ff416c);
+</style></head><body><div class="header">
+Driver Login
+</div><div class="login-box"><input id="mobile" placeholder="Driver Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
+
+</div><script>
+
+function login(){
+
+let mobile=document.getElementById("mobile").value;
+let password=document.getElementById("password").value;
+
+let savedMobile=localStorage.getItem("driverMobile");
+let savedPass=localStorage.getItem("driverPass");
+
+if(mobile==savedMobile && password==savedPass){
+
+window.location.href="driver-dashboard.html";
+
+}else{
+
+alert("Wrong Mobile or Password");
+
 }
 
-.messages{
-margin:20px;
-background:white;
-padding:15px;
-border-radius:12px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 
-#status{
-margin-top:10px;
-font-weight:bold;
-color:#333;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="header">
-Driver Panel
-</div>
-
-<h2 class="title">Bus Duty</h2>
-
-<div class="card">
-
-<button onclick="startDuty()">On Duty Today</button>
-
-<button onclick="stopDuty()">Off Duty Today</button>
-
-<button class="alert" onclick="sendAlert()">🚨 Emergency Alert</button>
-
-<button onclick="logout()">Logout</button>
-
-<p id="status"></p>
-
-</div>
-
-<div class="messages">
-
-<h3>Messages</h3>
-
-<div id="messageList">
-No Messages
-</div>
-
-</div>
-
-<script>
-
-function startDuty(){
-document.getElementById("status").innerText="Driver is On Duty";
-}
-
-function stopDuty(){
-document.getElementById("status").innerText="Driver is Off Duty";
-}
-
-function sendAlert(){
-alert("Emergency alert sent to school!");
-}
-
-function logout(){
-window.location.href="login.html";
-}
-
-</script>
-
-</body>
-
-</html>
+</script></body></html>
