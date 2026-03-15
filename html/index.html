@@ -1,6 +1,10 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+<html>
+<head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SchoolSphere</title><style>
+<title>SchoolSphere</title>
+
+<style>
 
 body{
 margin:0;
@@ -33,7 +37,7 @@ width:85%;
 margin:auto;
 }
 
-/* Base Role Button */
+/* Role Button */
 
 .role{
 padding:16px;
@@ -80,33 +84,60 @@ font-size:12px;
 color:#bbb;
 }
 
-</style></head><body><div class="app-name">
+</style>
+</head>
+
+<body>
+
+<div class="app-name">
 SchoolSphere
-</div><div class="tagline">
-School Management App
-</div><div class="role-box"><div class="role owner" onclick="owner()">👑 Owner / Super Admin</div><div class="role principal" onclick="principal()">🏫 Principal</div><div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div><div class="role driver" onclick="driver()">🚌 Driver</div><div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div></div><div class="footer">
-© SchoolSphere ERP
-</div><script>
+</div>
+
+<div class="tagline">
+Smart School Management System
+</div>
+
+<div class="role-box">
+
+<div class="role owner" onclick="owner()">👑 Owner / Super Admin</div>
+
+<div class="role principal" onclick="principal()">🏫 Principal</div>
+
+<div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div>
+
+<div class="role driver" onclick="driver()">🚌 Driver</div>
+
+<div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div>
+
+</div>
+
+<div class="footer">
+© 2026 SchoolSphere ERP
+</div>
+
+<script>
 
 function owner(){
-window.location.href="owner-login.html";
+window.location.href="superadmin.html";
 }
 
 function principal(){
-window.location.href="principal-login.html";
+window.location.href="principal.html";
 }
 
 function teacher(){
-window.location.href="teacher-login.html";
+window.location.href="teacher.html";
 }
 
 function driver(){
-window.location.href="driver-login.html";
+window.location.href="driver.html";
 }
 
 function parent(){
-window.location.href="parent-login.html";
+window.location.href="parent.html";
 }
 
-</script></body>
+</script>
+
+</body>
 </html>
