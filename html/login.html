@@ -1,164 +1,114 @@
-<!DOCTYPE html>
-<html>
-
-<head>
+<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SchoolSphere Login</title>
-
-<style>
+<title>SchoolSphere</title><style>
 
 body{
-font-family:Arial;
-background:linear-gradient(135deg,#eef2f3,#dfe9f3);
-color:#333;
-text-align:center;
 margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+text-align:center;
 }
+
+/* App Name */
 
 .app-name{
-font-size:34px;
-margin-top:30px;
+font-size:40px;
+margin-top:40px;
 font-weight:bold;
-color:#2c5364;
+color:gold;
+letter-spacing:1px;
 }
 
-h2{
-color:#444;
+.tagline{
+font-size:16px;
+margin-bottom:40px;
+color:#ddd;
 }
 
-.login-box{
-margin-top:50px;
-}
+/* Role Box */
 
-input{
+.role-box{
 width:85%;
-padding:12px;
-margin:10px;
-border:none;
-border-radius:25px;
-background:white;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
-font-size:16px;
+margin:auto;
 }
 
-button{
-padding:12px 40px;
-background:linear-gradient(45deg,#4CAF50,#2ecc71);
-border:none;
-border-radius:25px;
-color:white;
-font-size:16px;
+/* Base Role Button */
+
+.role{
+padding:16px;
+margin:15px 0;
+border-radius:30px;
+font-size:18px;
 cursor:pointer;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
+color:white;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+transition:0.3s;
 }
 
-button:hover{
-opacity:0.9;
+.role:hover{
+transform:scale(1.05);
 }
 
-/* popup */
+/* Role Colors */
 
-.popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.4);
-justify-content:center;
-align-items:center;
+.owner{
+background:linear-gradient(to right,#6a11cb,#2575fc);
 }
 
-.popup-box{
-background:white;
-padding:30px;
-border-radius:12px;
-text-align:center;
-color:#333;
+.principal{
+background:linear-gradient(to right,#2575fc,#4facfe);
 }
 
-.popup-box button{
-margin-top:15px;
+.teacher{
+background:linear-gradient(to right,#11998e,#38ef7d);
 }
 
-</style>
+.driver{
+background:linear-gradient(to right,#f2994a,#f2c94c);
+}
 
-</head>
+.parent{
+background:linear-gradient(to right,#ff5f6d,#ffc371);
+}
 
-<body>
+/* Footer */
 
-<div class="app-name">
+.footer{
+margin-top:40px;
+font-size:12px;
+color:#bbb;
+}
+
+</style></head><body><div class="app-name">
 SchoolSphere
-</div>
+</div><div class="tagline">
+School Management App
+</div><div class="role-box"><div class="role owner" onclick="owner()">👑 Owner / Super Admin</div><div class="role principal" onclick="principal()">🏫 Principal</div><div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div><div class="role driver" onclick="driver()">🚌 Driver</div><div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div></div><div class="footer">
+© SchoolSphere ERP
+</div><script>
 
-<h2>Principal Login</h2>
+/* Navigation fixed according to your project files */
 
-<div class="login-box">
-
-<input id="mobile" placeholder="Principal Mobile">
-
-<input id="password" type="password" placeholder="Password">
-
-<br>
-
-<button onclick="login()">Login</button>
-
-</div>
-
-
-<!-- success popup -->
-
-<div class="popup" id="loginPopup">
-
-<div class="popup-box">
-
-<h3>Login Successful 🎉</h3>
-
-<p id="welcomeText">Welcome Principal</p>
-
-<button onclick="goDashboard()">Continue</button>
-
-</div>
-
-</div>
-
-
-<script>
-
-function login(){
-
-let mobile=document.getElementById("mobile").value;
-let pass=document.getElementById("password").value;
-
-let savedMobile=localStorage.getItem("principalMobile");
-let savedPass=localStorage.getItem("principalPass");
-let principalName=localStorage.getItem("principalName");
-
-if(mobile==savedMobile && pass==savedPass){
-
-localStorage.setItem("principalLoggedIn","true");
-
-document.getElementById("welcomeText").innerText =
-"Welcome " + principalName;
-
-document.getElementById("loginPopup").style.display="flex";
-
-}else{
-
-alert("गलत मोबाइल नंबर या पासवर्ड");
-
+function owner(){
+window.location.href="superadmin.html";
 }
 
-}
-
-function goDashboard(){
-
+function principal(){
 window.location.href="principal.html";
-
 }
 
-</script>
+function teacher(){
+window.location.href="teacher.html";
+}
 
-</body>
+function driver(){
+window.location.href="driver.html";
+}
+
+function parent(){
+window.location.href="parent.html";
+}
+
+</script></body>
 </html>
