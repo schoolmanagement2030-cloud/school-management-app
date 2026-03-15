@@ -1,164 +1,112 @@
-<!DOCTYPE html><html><head><title>SchoolSphere</title><meta name="viewport" content="width=device-width, initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"><style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Poppins',sans-serif;
-}
+<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SchoolSphere</title><style>
 
 body{
-
-height:100vh;
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-justify-content:center;
-
+margin:0;
+font-family:Arial;
 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-
 color:white;
-
 text-align:center;
-
 }
 
-.title{
+/* App Name */
 
-font-size:42px;
-
-font-weight:700;
-
-color:#FFD700;
-
-letter-spacing:2px;
-
-}
-
-.subtitle{
-
-margin-top:6px;
-
-font-size:18px;
-
-opacity:0.8;
-
-}
-
-.container{
-
+.app-name{
+font-size:40px;
 margin-top:40px;
-
-width:90%;
-
-max-width:420px;
-
-display:grid;
-
-grid-template-columns:1fr 1fr;
-
-grid-gap:18px;
-
+font-weight:bold;
+color:gold;
+letter-spacing:1px;
 }
 
-.card{
+.tagline{
+font-size:16px;
+margin-bottom:40px;
+color:#ddd;
+}
 
-padding:22px;
+/* Role Box */
 
-border-radius:18px;
+.role-box{
+width:85%;
+margin:auto;
+}
 
-color:white;
+/* Base Role Button */
 
+.role{
+padding:16px;
+margin:15px 0;
+border-radius:30px;
 font-size:18px;
-
-font-weight:600;
-
 cursor:pointer;
-
-backdrop-filter:blur(10px);
-
-border:1px solid rgba(255,255,255,0.3);
-
-box-shadow:0 10px 25px rgba(0,0,0,0.25);
-
+color:white;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
 transition:0.3s;
-
 }
 
-.card:hover{
-
+.role:hover{
 transform:scale(1.05);
-
 }
+
+/* Role Colors */
 
 .owner{
-
-grid-column:1/3;
-
 background:linear-gradient(to right,#6a11cb,#2575fc);
-
 }
 
 .principal{
-
 background:linear-gradient(to right,#2575fc,#4facfe);
-
 }
 
 .teacher{
-
 background:linear-gradient(to right,#11998e,#38ef7d);
-
 }
 
 .driver{
-
 background:linear-gradient(to right,#f2994a,#f2c94c);
-
 }
 
 .parent{
-
 background:linear-gradient(to right,#ff5f6d,#ffc371);
-
 }
+
+/* Footer */
 
 .footer{
-
-position:absolute;
-
-bottom:15px;
-
-font-size:14px;
-
-opacity:0.7;
-
+margin-top:40px;
+font-size:12px;
+color:#bbb;
 }
 
-</style></head><body><div class="title">SchoolSphere</div><div class="subtitle">School Management App</div><div class="container"><div class="card owner" onclick="openOwner()">👑 Owner / Super Admin</div><div class="card principal" onclick="openPrincipal()">🏫 Principal</div><div class="card teacher" onclick="openTeacher()">👩‍🏫 Teacher</div><div class="card driver" onclick="openDriver()">🚌 Driver</div><div class="card parent" onclick="openParent()">👪 Parent</div></div><div class="footer">© SchoolSphere ERP</div><script>
+</style></head><body><div class="app-name">
+SchoolSphere
+</div><div class="tagline">
+School Management App
+</div><div class="role-box"><div class="role owner" onclick="owner()">👑 Owner / Super Admin</div><div class="role principal" onclick="principal()">🏫 Principal</div><div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div><div class="role driver" onclick="driver()">🚌 Driver</div><div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div></div><div class="footer">
+© SchoolSphere ERP
+</div><script>
 
-function openOwner(){
+function owner(){
 window.location.href="owner-login.html";
 }
 
-function openPrincipal(){
+function principal(){
 window.location.href="principal-login.html";
 }
 
-function openTeacher(){
+function teacher(){
 window.location.href="teacher-login.html";
 }
 
-function openDriver(){
+function driver(){
 window.location.href="driver-login.html";
 }
 
-function openParent(){
+function parent(){
 window.location.href="parent-login.html";
 }
 
-</script></body></html>
+</script></body>
+</html>
