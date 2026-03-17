@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accountant Panel - SchoolSphere</title>
+    <title>Accountant Dashboard - SchoolSphere</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -11,154 +11,207 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <style>
-        :root { --primary: #2c3e50; --secondary: #e67e22; --success: #27ae60; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; font-size: 22px; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        
-        .container { padding: 15px; max-width: 1200px; margin: auto; }
-        
-        /* Stats Cards */
-        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid var(--secondary); }
-        .stat-card h4 { margin: 0; color: #7f8c8d; font-size: 14px; }
-        .stat-card p { margin: 10px 0 0; font-size: 20px; font-weight: bold; color: var(--primary); }
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --success: #27ae60;
+            --sidebar-width: 260px;
+        }
 
-        /* Bus Tracking Section */
-        .bus-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        #map { height: 250px; width: 100%; border-radius: 10px; margin-top: 15px; border: 1px solid #ddd; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-        /* Forms & Buttons */
-        .action-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-main { background: var(--success); color: white; border: none; padding: 15px; width: 100%; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-main:hover { background: #219150; transform: translateY(-2px); }
+        /* --- Desktop Sidebar Layout --- */
+        .wrapper {
+            display: flex;
+            flex: 1;
+        }
 
-        .alert-box { background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 10px; border-left: 5px solid #ffeeba; }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            display: none; /* Mobile par chhupa rahega */
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --- Cards & Grid --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            border-top: 5px solid var(--accent);
+        }
+
+        .data-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        /* --- Form Elements --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-print {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #map { height: 350px; border-radius: 12px; margin-top: 15px; }
+
+        /* --- Responsive Queries (Computer vs Mobile) --- */
+        @media (min-width: 768px) {
+            .sidebar { display: block; } /* Computer par sidebar dikhega */
+            .btn-print { width: auto; }   /* Computer par button chhota ho jayega */
+            .header { margin-left: 20px; border-radius: 10px; margin-top: 10px; }
+        }
+
+        @media (max-width: 767px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .main-content { padding: 10px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="header">SchoolSphere Accountant Panel</div>
-
-<div class="container">
-    
-    <div class="bus-box">
-        <h3>Live Bus Tracker & Fuel Audit</h3>
-        <div class="grid-stats">
-            <div class="stat-card">
-                <h4>कुल दूरी (Map)</h4>
-                <p id="liveKm">0.00 KM</p>
-            </div>
-            <div class="stat-card">
-                <h4>अनुमानित डीजल</h4>
-                <p id="expectedFuel">0.00 Ltr</p>
-            </div>
-        </div>
-        <div id="map"></div>
-        <div class="alert-box">
-            <strong>नोट:</strong> अगर ड्राइवर का डीजल बिल ऊपर दिए गए "अनुमानित डीजल" से ज्यादा है, तो कृपया जांच करें।
-        </div>
+<div class="wrapper">
+    <div class="sidebar">
+        <h2 style="color: gold;">SchoolSphere</h2>
+        <hr>
+        <p>📊 Dashboard</p>
+        <p>💰 Fees Collection</p>
+        <p>🚌 Transport Audit</p>
+        <p>📄 Salary Slips</p>
+        <p>📉 Expenses</p>
     </div>
 
-    <div class="action-card">
-        <h3>Staff Salary & Voucher</h3>
-        <input type="text" id="staffName" placeholder="Staff Name (नाम)">
-        <select id="staffRole">
-            <option value="Bus Driver">Bus Driver (ड्राइवर)</option>
-            <option value="Bus Conductor">Conductor (कंडक्टर)</option>
-            <option value="Teacher">Teacher (टीचर)</option>
-            <option value="Sweeper">Sweeper (सफाई कर्मचारी)</option>
-            <option value="Warden">Warden (वॉर्डन)</option>
-        </select>
-        <input type="number" id="salaryAmt" placeholder="Salary Amount (₹)">
-        <input type="text" id="busNo" placeholder="Bus Number (यदि ड्राइवर है)">
-        
-        <button class="btn-main" onclick="generateSalarySlip()">Generate & Print Slip</button>
-    </div>
+    <div class="main-content">
+        <div class="header">
+            <h2 style="margin:0; color: #2c3e50;">Accountant Portal</h2>
+            <div id="schoolDisplay" style="font-weight: bold; color: var(--accent);">School Name</div>
+        </div>
 
+        <br>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>आज की कुल दूरी</h4>
+                <p id="liveKm" style="font-size: 24px; color: var(--primary);">0.00 KM</p>
+            </div>
+            <div class="stat-card">
+                <h4>अनुमानित डीजल खर्च</h4>
+                <p id="expectedFuel" style="font-size: 24px; color: var(--primary);">0.00 Ltr</p>
+            </div>
+            <div class="stat-card">
+                <h4>कुल फीस जमा</h4>
+                <p style="font-size: 24px; color: var(--success);">₹ 0.00</p>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h3>Live Bus Monitoring (Fuel Audit)</h3>
+            <div id="map"></div>
+        </div>
+
+        <div class="data-section">
+            <h3>Staff Salary & Expenses (सैलरी रसीद)</h3>
+            <div class="form-grid">
+                <input type="text" id="staffName" placeholder="Staff Name">
+                <select id="staffRole">
+                    <option value="Driver">Bus Driver</option>
+                    <option value="Conductor">Conductor</option>
+                    <option value="Teacher">Teacher</option>
+                    <option value="Sweeper">Sweeper</option>
+                </select>
+                <input type="number" id="amt" placeholder="Amount (₹)">
+                <input type="text" id="busId" placeholder="Bus Number">
+            </div>
+            <button class="btn-print" onclick="generateSlip()">Print Salary Voucher (PDF)</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- 1. Map & Tracking Logic (Leaflet - Free) ---
+    // School Name from LocalStorage
+    document.getElementById("schoolDisplay").innerText = localStorage.getItem("schoolName") || "Official Panel";
+
+    // Map Setup
     var map = L.map('map').setView([26.8467, 80.9462], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var marker = L.marker([26.8467, 80.9462]).addTo(map);
 
-    let totalKm = 0;
-    let lastPos = null;
-    let average = 5.0; // बस की फिक्स एवरेज
-
-    // सिम्युलेटेड या रियल ट्रैकिंग (Firebase के साथ जोड़ें)
-    function updateTracking(lat, lng) {
-        let currentPos = L.latLng(lat, lng);
-        if (lastPos) {
-            let d = lastPos.distanceTo(currentPos) / 1000;
-            if (d > 0.01) totalKm += d;
-        }
-        lastPos = currentPos;
-        
-        let fuel = totalKm / average;
-        
-        document.getElementById("liveKm").innerText = totalKm.toFixed(2) + " KM";
-        document.getElementById("expectedFuel").innerText = fuel.toFixed(2) + " Ltr";
-        
-        marker.setLatLng([lat, lng]);
-        map.setView([lat, lng], 15);
-    }
-
-    // --- 2. PDF Salary Slip Generator ---
-    function generateSalarySlip() {
+    function generateSlip() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         let name = document.getElementById("staffName").value;
         let role = document.getElementById("staffRole").value;
-        let amt = document.getElementById("salaryAmt").value;
-        let bus = document.getElementById("busNo").value;
-        let school = localStorage.getItem("schoolName") || "SchoolSphere Academy";
+        let amount = document.getElementById("amt").value;
 
-        if(!name || !amt) { alert("Please fill details"); return; }
+        if(!name || !amount) { alert("Details bhariye!"); return; }
 
-        // Design
-        doc.setFillColor(44, 62, 80);
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.text(school, 105, 20, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text("Salary Payment Voucher", 105, 30, { align: 'center' });
-
-        // Data Table
-        doc.autoTable({
-            startY: 50,
-            head: [['Description', 'Details']],
-            body: [
-                ['Staff Name', name],
-                ['Designation', role],
-                ['Bus Number', bus || 'N/A'],
-                ['Paid Amount', 'Rs. ' + amt],
-                ['Date', new Date().toLocaleDateString()],
-                ['Payment Mode', 'Cash/Transfer']
-            ],
-            theme: 'striped'
-        });
-
-        doc.setTextColor(0,0,0);
-        doc.text("Accountant Signature", 150, 150);
-        doc.line(145, 145, 195, 145);
-
-        doc.save(`${name}_Salary_Slip.pdf`);
-        alert("Slip Downloaded Successfully!");
+        doc.setFontSize(20);
+        doc.text("Salary Slip - " + (localStorage.getItem("schoolName") || "SchoolSphere"), 20, 20);
+        doc.setFontSize(14);
+        doc.text("Name: " + name, 20, 40);
+        doc.text("Role: " + role, 20, 50);
+        doc.text("Amount: Rs. " + amount, 20, 60);
+        doc.text("Date: " + new Date().toLocaleDateString(), 20, 70);
+        
+        doc.save(name + "_slip.pdf");
     }
-
-    // टेस्ट के लिए: हर 3 सेकंड में लोकेशन अपडेट (इसे Firebase के onSnapshot में डालें)
-    // setInterval(() => {
-    //    updateTracking(26.8467 + (Math.random()*0.01), 80.9462 + (Math.random()*0.01));
-    // }, 3000);
-
 </script>
 
 </body>
 </html>
-
