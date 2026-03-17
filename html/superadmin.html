@@ -1,111 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Owner / Super Admin Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Master Control - SchoolSphere</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { margin: 0; font-family: Arial; background: #f4f6f9; }
-        .header { background: #2c5364; padding: 20px; text-align: center; color: white; }
-        .app-name { font-size: 32px; font-weight: bold; color: gold; }
-        .tagline { font-size: 14px; }
+        :root { --owner-bg: #1a1c2c; --gold: #ffd700; --card-bg: #ffffff; --text: #2d3436; }
+        body { margin:0; font-family: 'Segoe UI', sans-serif; background:#f0f3f7; color: var(--text); }
+        
+        .nav { background: var(--owner-bg); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .nav .logo { font-size: 24px; font-weight: bold; color: var(--gold); }
+        
+        .container { padding: 15px; max-width: 1100px; margin: auto; }
 
-        .login-box {
-            width: 90%;
-            max-width: 400px;
-            margin: 50px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+        /* --- Financial & Activity Stats --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-bottom: 5px solid var(--gold); transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card i { font-size: 28px; color: var(--owner-bg); margin-bottom: 10px; }
+        .stat-card h4 { margin: 5px 0; color: #636e72; font-size: 14px; text-transform: uppercase; }
+        .stat-card p { margin: 0; font-size: 22px; font-weight: bold; color: var(--owner-bg); }
 
-        .login-box h2 { margin-bottom: 20px; color: #2c5364; }
-        .login-box input {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            outline: none;
-        }
+        /* --- Section Box --- */
+        .section { background: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        h3 { border-left: 6px solid var(--gold); padding-left: 15px; margin-bottom: 20px; color: var(--owner-bg); font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
 
-        .login-box button {
-            width: 95%;
-            padding: 12px;
-            border: none;
-            border-radius: 25px;
-            background: #3498db;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px 0;
-        }
+        /* --- Smart Notice Board (Owner's Voice) --- */
+        .notice-box { background: #fff9e6; border: 1px solid #ffeaa7; padding: 20px; border-radius: 15px; }
+        textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 15px; resize: none; box-sizing: border-box; }
+        .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .chip-label { background: white; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; font-size: 13px; cursor: pointer; display: flex; align-items: center; }
+        .chip-label input { margin-right: 8px; }
+        .btn-broadcast { background: var(--owner-bg); color: var(--gold); border: none; padding: 15px; width: 100%; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 16px; letter-spacing: 1px; }
 
-        .register-btn { background: #27ae60 !important; }
-        .login-box button:hover { opacity: 0.9; }
+        /* --- Tables (Audit Logs) --- */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 600px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #f1f2f6; }
+        th { background: #f8f9fa; color: #2d3436; font-weight: 600; }
+        .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .pill-green { background: #dff9fb; color: #2ecc71; }
+
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="app-name">SchoolSphere</div>
-    <div class="tagline">School Management App</div>
+<div class="nav">
+    <div class="logo">👑 SchoolSphere Owner</div>
+    <div style="font-size: 14px;"><i class="fas fa-school"></i> <span id="schoolTitle">My School</span></div>
 </div>
 
-<div class="login-box">
-    <h2>Super Admin / Owner</h2>
-    
-    <input id="schoolName" placeholder="School Name (For Registration)">
-    <input id="mobile" type="tel" placeholder="Mobile Number">
-    <input id="password" type="password" placeholder="Password">
-    
-    <button onclick="login()">Login</button>
-    <button class="register-btn" onclick="register()">Register School</button>
+<div class="container">
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fas fa-wallet"></i>
+            <h4>आज की कुल फीस</h4>
+            <p id="totalFees">₹ 0.00</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-gas-pump"></i>
+            <h4>डीजल खर्च (Audit)</h4>
+            <p style="color: #e74c3c;">₹ 0.00</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-chart-line"></i>
+            <h4>नेट प्रॉफिट</h4>
+            <p style="color: #27ae60;">₹ 0.00</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-user-check"></i>
+            <h4>स्टाफ हाज़िरी</h4>
+            <p>24/25</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3><i class="fas fa-bullhorn"></i> Master Notice Board</h3>
+        <div class="notice-box">
+            <textarea id="ownerMsg" placeholder="ओनर का आदेश: यहाँ टाइप करें जो पूरी स्कूल की हर ऐप पर भेजना है..."></textarea>
+            
+            <div class="chips">
+                <label class="chip-label"><input type="checkbox" class="target" value="Principal"> प्रिंसिपल्स</label>
+                <label class="chip-label"><input type="checkbox" class="target" value="Teachers"> टीचर्स</label>
+                <label class="chip-label"><input type="checkbox" class="target" value="Drivers"> ड्राइवर्स</label>
+                <label class="chip-label"><input type="checkbox" class="target" value="Parents"> पेरेंट्स</label>
+                <label class="chip-label" style="border-color: var(--gold);"><input type="checkbox" id="selectAll"> सबको एक साथ (All)</label>
+            </div>
+            
+            <button class="btn-broadcast" onclick="sendBroadcast()">📢 आदेश जारी करें (Broadcast Now)</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3><i class="fas fa-bus"></i> बस और डीजल ऑडिट रिपोर्ट</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>बस नंबर</th>
+                        <th>ड्राइवर</th>
+                        <th>आज की दूरी</th>
+                        <th>डीजल (Ltr)</th>
+                        <th>स्टेटस</th>
+                    </tr>
+                </thead>
+                <tbody id="busLogs">
+                    <tr>
+                        <td>UP32-AW-5001</td>
+                        <td>राकेश सिंह</td>
+                        <td>52 KM</td>
+                        <td>9.5 Ltr</td>
+                        <td><span class="status-pill pill-green">On Track</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3><i class="fas fa-clipboard-list"></i> स्कूल वर्क लॉग (आज क्या हुआ?)</h3>
+        <div id="workReports" style="line-height: 1.8; color: #555;">
+            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> अकाउंटेंट: आज 14 बच्चों की फीस जमा हुई।</p>
+            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> टीचर: कक्षा 12 का सिलेबस समय पर पूरा।</p>
+            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> ट्रांसपोर्ट: बस 5001 की सर्विसिंग पूरी हुई।</p>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // रजिस्ट्रेशन फंक्शन
-    function register() {
-        let school = document.getElementById("schoolName").value;
-        let mobile = document.getElementById("mobile").value;
-        let password = document.getElementById("password").value;
+    // ओनर का नाम और स्कूल सेट करना
+    document.getElementById("schoolTitle").innerText = localStorage.getItem("schoolName") || "Official School";
 
-        if (school == "" || mobile == "" || password == "") {
-            alert("कृपया स्कूल का नाम, मोबाइल और पासवर्ड तीनों भरें।");
-        } else {
-            // डेटा को सेव करना
-            localStorage.setItem("schoolName", school);
-            localStorage.setItem("ownerMobile", mobile);
-            localStorage.setItem("ownerPassword", password);
-
-            alert("बधाई हो! " + school + " सफलतापूवर्क रजिस्टर हो गया है।");
-            
-            // रजिस्ट्रेशन के बाद इनपुट साफ़ करना
-            document.getElementById("schoolName").value = "";
+    // सबको चुनने का लॉजिक
+    document.getElementById("selectAll").onclick = function() {
+        let checkboxes = document.querySelectorAll('.target');
+        for (let checkbox of checkboxes) {
+            checkbox.checked = this.checked;
         }
     }
 
-    // लॉगिन फंक्शन
-    function login() {
-        let mobile = document.getElementById("mobile").value;
-        let password = document.getElementById("password").value;
+    // ब्रॉडकास्ट नोटिस
+    function sendBroadcast() {
+        let msg = document.getElementById("ownerMsg").value;
+        let selected = [];
+        document.querySelectorAll('.target:checked').forEach(c => selected.push(c.value));
 
-        let savedMobile = localStorage.getItem("ownerMobile");
-        let savedPass = localStorage.getItem("ownerPassword");
+        if(!msg) { alert("कृपया संदेश लिखें!"); return; }
+        if(selected.length == 0) { alert("किसे भेजना है? कम से कम एक चुनें।"); return; }
 
-        if (mobile == "" || password == "") {
-            alert("लॉगिन करने के लिए मोबाइल और पासवर्ड भरें।");
-            return;
-        }
-
-        if (mobile === savedMobile && password === savedPass) {
-            alert("लॉगिन सफल! स्वागत है " + localStorage.getItem("schoolName"));
-            window.location.href = "superadmin.html";
-        } else {
-            alert("गलत मोबाइल नंबर या पासवर्ड! कृपया पहले रजिस्टर करें।");
-        }
+        alert("ओनर का नोटिस भेजा गया!\nलक्ष्य: " + selected.join(", ") + "\nसंदेश: " + msg);
+        document.getElementById("ownerMsg").value = "";
     }
+
+    // डेमो डेटा लोड करना
+    function loadOwnerData() {
+        document.getElementById("totalFees").innerText = "₹ 1,25,800";
+    }
+    loadOwnerData();
 </script>
 
 </body>
