@@ -12,16 +12,19 @@ font-family:Arial;
 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
 text-align:center;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+justify-content: center;
 }
 
 /* App Name */
-
 .app-name{
 font-size:40px;
-margin-top:40px;
 font-weight:bold;
 color:gold;
 letter-spacing:1px;
+margin-bottom: 5px;
 }
 
 .tagline{
@@ -31,14 +34,13 @@ color:#ddd;
 }
 
 /* Role Box */
-
 .role-box{
 width:85%;
+max-width: 400px;
 margin:auto;
 }
 
-/* Role Button */
-
+/* Role Button - UI Consistency */
 .role{
 padding:16px;
 margin:15px 0;
@@ -48,20 +50,30 @@ cursor:pointer;
 color:white;
 box-shadow:0 5px 15px rgba(0,0,0,0.3);
 transition:0.3s;
+text-decoration: none;
+display: block;
+border: none;
+width: 100%;
+font-weight: bold;
 }
 
 .role:hover{
 transform:scale(1.05);
+filter: brightness(1.1);
 }
 
-/* Role Colors */
-
+/* Role Colors - Waisa hi gradient jaisa baki files mein hai */
 .owner{
 background:linear-gradient(to right,#6a11cb,#2575fc);
 }
 
 .principal{
 background:linear-gradient(to right,#2575fc,#4facfe);
+}
+
+/* Accountant Button - UI bilkul baki buttons jaisa */
+.accountant{
+background:linear-gradient(to right, #f2994a, #f2c94c);
 }
 
 .teacher{
@@ -77,11 +89,21 @@ background:linear-gradient(to right,#ff5f6d,#ffc371);
 }
 
 /* Footer */
-
 .footer{
 margin-top:40px;
 font-size:12px;
 color:#bbb;
+padding-bottom: 20px;
+}
+
+/* Computer Screen Compatibility */
+@media (min-width: 768px) {
+    .role-box {
+        max-width: 600px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
 }
 
 </style>
@@ -103,6 +125,8 @@ Smart School Management System
 
 <div class="role principal" onclick="principal()">🏫 Principal</div>
 
+<div class="role accountant" onclick="accountant()">💰 Accountant</div>
+
 <div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div>
 
 <div class="role driver" onclick="driver()">🚌 Driver</div>
@@ -123,6 +147,10 @@ window.location.href="superadmin.html";
 
 function principal(){
 window.location.href="principal.html";
+}
+
+function accountant(){
+window.location.href="accountant.html";
 }
 
 function teacher(){
