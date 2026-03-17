@@ -1,84 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>School Registration</title>
+<button onclick="login()">Login</button>
+<button class="register-btn" onclick="goToRegister()">Register School</button>
 
-<style>
-
-body{
-font-family:Arial;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
-text-align:center;
-margin:0;
+<script>
+// रजिस्टर पेज पर भेजने के लिए
+function goToRegister(){
+    window.location.href = "register.html"; 
 }
 
-.app-name{
-font-size:36px;
-margin-top:30px;
-font-weight:bold;
-color:gold;
+function login(){
+    let mobile = document.getElementById("mobile").value;
+    let password = document.getElementById("password").value;
+
+    // लोकल स्टोरेज से डेटा चेक करना
+    let savedMobile = localStorage.getItem("ownerMobile");
+    let savedPass = localStorage.getItem("ownerPassword");
+
+    if(mobile === savedMobile && password === savedPass && mobile !== null){
+        alert("लॉगिन सफल रहा!");
+        window.location.href = "superadmin.html";
+    } else {
+        alert("गलत मोबाइल नंबर या पासवर्ड। कृपया पहले रजिस्टर करें।");
+    }
 }
-
-.tagline{
-font-size:16px;
-margin-top:5px;
-color:#ddd;
-}
-
-.box{
-margin-top:30px;
-}
-
-input{
-width:85%;
-padding:12px;
-margin:10px;
-border:none;
-border-radius:25px;
-background:white;
-box-shadow:0 3px 10px rgba(0,0,0,0.2);
-font-size:16px;
-}
-
-button{
-padding:12px 40px;
-background:linear-gradient(45deg,#f1c40f,#f39c12);
-border:none;
-border-radius:25px;
-color:black;
-font-size:16px;
-cursor:pointer;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="app-name">SchoolSphere</div>
-<div class="tagline">School Management App</div>
-
-<h2>School Registration</h2>
-
-<div class="box">
-
-<input placeholder="School Name">
-
-<input placeholder="School Address">
-
-<input placeholder="Principal Name">
-
-<input placeholder="Principal Mobile">
-
-<input type="password" placeholder="Password">
-
-<br><br>
-
-<button>Register School</button>
-
-</div>
-
-</body>
-</html>
+</script>
