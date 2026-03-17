@@ -1,37 +1,57 @@
-name: Build Release APK
+name: Build Android APK
 
 on:
   push:
-    branches:
-      - main  # या आपके ब्रांच का जो भी नाम हो
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '12.x'
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x.x' # जो वर्शन आप इस्तेमाल कर रहे हैं
+    - name: Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '21'
 
-      - name: Get dependencies
-        run: flutter pub get
+    - name: Initialize Project
+      run: |
+        npm init -y
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        # यहाँ 'html' फोल्डर पक्का होना चाहिए, वरना एरर आएगा
+        mkdir -p html
+        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
 
-      - name: Build APK
-        run: flutter build apk --release --no-tree-shake-icons
+    - name: Add Android Platform
+      run: |
+        npx cap add android || echo "Android exists"
+        npx cap copy
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+    - name: Fix Kotlin Duplicate Issues
+      run: |
+        # यह लाइन बहुत ज़रूरी है duplicate class एरर को रोकने के लिए
+        echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
+
+    - name: Build APK
+      run: |
+        cd android
+        echo "android.useAndroidX=true" > gradle.properties
+        echo "android.enableJetifier=true" >> gradle.properties
+        chmod +x gradlew
+        # यहाँ 'assembleDebug' की जगह 'assembleRelease' करना होगा अगर आप फाइनल ऐप चाहते हैं
+        ./gradlew assembleDebug -x lint --no-daemon 
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: school-app-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
