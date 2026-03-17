@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SchoolSphere Printing System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        .print-card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            background: #fff;
+        }
+        button {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="print-card">
+    <h2>स्टाफ सैलरी और रिपोर्ट प्रिंटर</h2>
+    <p>यहाँ से आप ड्राइवर, स्वीपर, वॉर्डन और टीचर्स की रसीद निकाल सकते हैं।</p>
+    
+    <input type="text" id="staffName" placeholder="Staff Name">
+    <select id="staffRole">
+        <option value="Bus Driver">Bus Driver</option>
+        <option value="Bus Conductor">Bus Conductor</option>
+        <option value="Teacher">Teacher</option>
+        <option value="Sweeper">Sweeper</option>
+        <option value="Hostel Warden">Hostel Warden</option>
+    </select>
+    <input type="number" id="salaryAmount" placeholder="Amount (Salary)">
+    
+    <br><br>
+    <button onclick="printSalarySlip()">Salary Slip (PDF) निकालें</button>
+</div>
+
+<script>
+function printSalarySlip() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    let sName = document.getElementById("staffName").value;
+    let sRole = document.getElementById("staffRole").value;
+    let sAmount = document.getElementById("salaryAmount").value;
+    let schoolName = localStorage.getItem("schoolName") || "SchoolSphere App";
+
+    // PDF का डिजाइन
+    doc.setFillColor(44, 83, 100);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text(schoolName, 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text("Official Salary Certificate", 105, 30, { align: 'center' });
+
+    // डेटा टेबल
+    doc.setTextColor(0, 0, 0);
+    doc.autoTable({
+        startY: 50,
+        head: [['Detail', 'Information']],
+        body: [
+            ['Employee Name', sName],
+            ['Designation (Post)', sRole],
+            ['Salary Amount', 'Rs. ' + sAmount],
+            ['Payment Date', new Date().toLocaleDateString()],
+            ['Status', 'Paid Successfully']
+        ],
+    });
+
+    // हस्ताक्षर (Signature)
+    doc.text("Principal/Owner Signature", 150, 150);
+    doc.line(145, 145, 195, 145);
+
+    // फाइल सेव करना
+    doc.save(sName + "_Salary_Slip.pdf");
+    alert(sRole + " की सैलरी स्लिप डाउनलोड हो गई है!");
+}
+</script>
+
+</body>
+</html>
