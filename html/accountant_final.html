@@ -27,6 +27,27 @@
             min-height: 100vh;
         }
 
+        /* --- ब्लॉक स्क्रीन स्टाइल (Service Suspended) --- */
+        #blockScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: white;
+            z-index: 100000;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .block-card {
+            background: #fff5f5;
+            border: 2px solid #feb2b2;
+            display: inline-block;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
         /* --- Desktop Sidebar Layout --- */
         .wrapper {
             display: flex;
@@ -38,7 +59,7 @@
             background: var(--primary);
             color: white;
             padding: 20px;
-            display: none; /* Mobile par chhupa rahega */
+            display: none; 
         }
 
         .main-content {
@@ -56,7 +77,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* --- Cards & Grid --- */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -81,7 +101,6 @@
             margin-bottom: 25px;
         }
 
-        /* --- Form Elements --- */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -112,10 +131,9 @@
 
         #map { height: 350px; border-radius: 12px; margin-top: 15px; }
 
-        /* --- Responsive Queries (Computer vs Mobile) --- */
         @media (min-width: 768px) {
-            .sidebar { display: block; } /* Computer par sidebar dikhega */
-            .btn-print { width: auto; }   /* Computer par button chhota ho jayega */
+            .sidebar { display: block; }
+            .btn-print { width: auto; }
             .header { margin-left: 20px; border-radius: 10px; margin-top: 10px; }
         }
 
@@ -127,7 +145,21 @@
 </head>
 <body>
 
-<div class="wrapper">
+<div id="blockScreen">
+    <div class="block-card">
+        <h1 style="color: #c53030; font-size: 36px;">सेवा निलंबित (Suspended)</h1>
+        <p style="font-size: 18px; color: #4a5568;">सॉफ्टवेयर की समय सीमा समाप्त हो गई है।</p>
+        <hr>
+        <div style="margin-top: 20px;">
+            <p style="margin: 0; color: #718096;">संपर्क करें (Admin):</p>
+            <h2 style="color: #2d3748; margin: 10px 0;">विकास (SchoolSphere)</h2>
+            <h2 style="color: #2b6cb0;">📞 +91 [आपका नंबर यहाँ लिखें]</h2>
+        </div>
+        <p style="font-size: 12px; color: #a0aec0; margin-top: 20px;">भुगतान के बाद सेवा तुरंत बहाल कर दी जाएगी।</p>
+    </div>
+</div>
+
+<div class="wrapper" id="mainWrapper">
     <div class="sidebar">
         <h2 style="color: gold;">SchoolSphere</h2>
         <hr>
@@ -185,6 +217,17 @@
 </div>
 
 <script>
+    // --- ब्लॉक सिस्टम का लॉजिक ---
+    function checkStatus() {
+        let status = localStorage.getItem("school_status_001"); 
+        if (status === "blocked") {
+            document.getElementById("blockScreen").style.display = "block";
+            document.getElementById("mainWrapper").style.display = "none";
+        }
+    }
+    // पेज लोड होते ही चेक करें
+    window.onload = checkStatus;
+
     // School Name from LocalStorage
     document.getElementById("schoolDisplay").innerText = localStorage.getItem("schoolName") || "Official Panel";
 
