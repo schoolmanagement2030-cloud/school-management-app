@@ -1,72 +1,246 @@
-<!DOCTYPE html><html><head><title>Principal Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+<!<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>प्रिंसिपल डैशबोर्ड - SchoolSphere</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --accent: #e67e22;
+            --bg: #f4f7f6;
+        }
 
-body{
-font-family:Arial;
-background:linear-gradient(135deg,#eef2f3,#dfe9f3);
-text-align:center;
-margin:0;
-}
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+        }
 
-.title{
-font-size:30px;
-margin-top:40px;
-color:#2c5364;
-}
+        /* टॉप हेडर */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-.login-box{
-margin-top:40px;
-}
+        .container { padding: 15px; max-width: 800px; margin: auto; }
 
-input{
-display:block;
-width:260px;
-margin:12px auto;
-padding:14px;
-font-size:16px;
-border-radius:25px;
-border:1px solid #ccc;
-}
+        /* स्टेटस कार्ड्स */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-button{
-display:block;
-width:240px;
-margin:12px auto;
-padding:14px;
-font-size:16px;
-cursor:pointer;
-border:none;
-border-radius:25px;
-background:linear-gradient(45deg,#4CAF50,#2ecc71);
-color:white;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-}
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
 
-button:hover{
-opacity:0.9;
-}
+        .card i { font-size: 24px; color: var(--accent); margin-bottom: 5px; }
+        .card h4 { margin: 5px 0; color: #7f8c8d; font-size: 14px; }
+        .card p { margin: 0; font-size: 18px; font-weight: bold; color: var(--primary); }
 
-</style></head><body><h1 class="title">Principal Login</h1><div class="login-box"><input id="mobile" placeholder="Principal Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
+        /* फॉर्म और लिस्ट सेक्शन */
+        .section-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
 
-</div><script>
+        h3 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: var(--primary); }
 
-function login(){
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
 
-let mobile=document.getElementById("mobile").value;
-let password=document.getElementById("password").value;
+        .btn-add {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-let savedMobile=localStorage.getItem("principalMobile");
-let savedPass=localStorage.getItem("principalPass");
+        /* स्टाफ टेबल */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; }
 
-if(mobile==savedMobile && password==savedPass){
+        .btn-action {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-block { background: #e74c3c; }
+        .btn-reset { background: #f39c12; }
 
-window.location.href="principal-dashboard.html";
+        /* सर्विस ब्लॉक स्क्रीन */
+        #blockOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: white;
+            z-index: 1000;
+            text-align: center;
+            padding-top: 100px;
+        }
+    </style>
+</head>
+<body>
 
-}else{
+<div id="blockOverlay">
+    <h1 style="color:red;">सेवा बंद है!</h1>
+    <p>एडमिन या मालिक द्वारा आपकी आईडी ब्लॉक की गई है।</p>
+    <div style="border:2px dashed orange; padding:20px; margin:20px; display:inline-block;">
+        <h2>📞 संपर्क: विकास (Admin)</h2>
+    </div>
+</div>
 
-alert("Wrong Mobile or Password");
+<div class="header">
+    <h2>प्रिंसिपल डैशबोर्ड</h2>
+</div>
 
-}
+<div class="container">
+    
+    <div class="stats-grid">
+        <div class="card" onclick="window.location.href='bus-tracking.html'">
+            <i class="fas fa-bus"></i>
+            <h4>बसें लाइव</h4>
+            <p>3 चालू</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-users"></i>
+            <h4>कुल स्टाफ</h4>
+            <p id="staffCount">0</p>
+        </div>
+    </div>
 
-}
+    <div class="section-box">
+        <h3>नया स्टाफ आईडी बनाएँ</h3>
+        <input type="text" id="sName" placeholder="पूरा नाम">
+        <select id="sRole">
+            <option value="Teacher">👨‍🏫 टीचर</option>
+            <option value="Driver">🚌 ड्राइवर</option>
+            <option value="Accountant">💰 अकाउंटेंट</option>
+        </select>
+        <input type="number" id="sPhone" placeholder="मोबाइल नंबर (Login ID)">
+        <input type="password" id="sPass" placeholder="पासवर्ड सेट करें">
+        <button class="btn-add" onclick="addStaff()">आईडी जेनरेट करें</button>
+    </div>
 
-</script></body></html>
+    <div class="section-box">
+        <h3>स्टाफ कंट्रोल (Manage Staff)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>नाम</th>
+                    <th>पद</th>
+                    <th>एक्शन</th>
+                </tr>
+            </thead>
+            <tbody id="staffTable">
+                </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    // ब्लॉक चेक (विकास या मालिक द्वारा)
+    function checkPrincipalStatus() {
+        let isBlocked = localStorage.getItem("principal_blocked") === "true";
+        if (isBlocked) {
+            document.getElementById("blockOverlay").style.display = "block";
+            document.body.style.overflow = "hidden";
+        }
+    }
+    window.onload = checkPrincipalStatus;
+
+    // स्टाफ जोड़ने का फंक्शन
+    function addStaff() {
+        let name = document.getElementById("sName").value;
+        let role = document.getElementById("sRole").value;
+        let phone = document.getElementById("sPhone").value;
+        let pass = document.getElementById("sPass").value;
+
+        if(!name || !phone || !pass) { alert("पूरी जानकारी भरें!"); return; }
+
+        let staffObj = { name, role, phone, pass, deviceId: null, status: 'active' };
+        
+        // डेटा सेव करना
+        let allStaff = JSON.parse(localStorage.getItem("all_school_staff") || "[]");
+        allStaff.push(staffObj);
+        localStorage.setItem("all_school_staff", JSON.stringify(allStaff));
+
+        alert(role + " की आईडी बन गई है।");
+        location.reload(); 
+    }
+
+    // स्टाफ लिस्ट दिखाना
+    function loadStaff() {
+        let allStaff = JSON.parse(localStorage.getItem("all_school_staff") || "[]");
+        let table = document.getElementById("staffTable");
+        document.getElementById("staffCount").innerText = allStaff.length;
+
+        allStaff.forEach((staff, index) => {
+            let row = `<tr>
+                <td>${staff.name}</td>
+                <td>${staff.role}</td>
+                <td>
+                    <button class="btn-action btn-block" onclick="removeStaff(${index})">Delete</button>
+                    <button class="btn-action btn-reset" onclick="resetStaffDevice(${index})">Reset Phone</button>
+                </td>
+            </tr>`;
+            table.innerHTML += row;
+        });
+    }
+    loadStaff();
+
+    function removeStaff(index) {
+        if(confirm("क्या आप इस स्टाफ को हटाना चाहते हैं?")) {
+            let allStaff = JSON.parse(localStorage.getItem("all_school_staff"));
+            allStaff.splice(index, 1);
+            localStorage.setItem("all_school_staff", JSON.stringify(allStaff));
+            location.reload();
+        }
+    }
+
+    function resetStaffDevice(index) {
+        if(confirm("क्या आप इसका फोन लॉक खोलना चाहते हैं?")) {
+            let allStaff = JSON.parse(localStorage.getItem("all_school_staff"));
+            allStaff[index].deviceId = null; // डिवाइस आईडी खाली कर दी
+            localStorage.setItem("all_school_staff", JSON.stringify(allStaff));
+            alert("अब यह स्टाफ नए फोन में लॉगिन कर सकता है।");
+        }
+    }
+</script>
+
+</body>
+</html>
