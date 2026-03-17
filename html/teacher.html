@@ -1,72 +1,161 @@
-<!DOCTYPE html><html><head><title>Teacher Login</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Login - SchoolSphere</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg,#eef2f3,#dfe9f3);
+            margin: 0;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-body{
-font-family:Arial;
-background:linear-gradient(135deg,#eef2f3,#dfe9f3);
-text-align:center;
-margin:0;
-}
+        /* --- टीचर के लिए ब्लॉक स्क्रीन --- */
+        #teacherBlockScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: white;
+            z-index: 10000;
+            padding-top: 60px;
+        }
 
-.title{
-font-size:30px;
-margin-top:40px;
-color:#2c5364;
-}
+        .alert-box {
+            background: #fff5f5;
+            border: 2px solid #feb2b2;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
 
-.login-box{
-margin-top:40px;
-}
+        .title {
+            font-size: 30px;
+            color: #2c5364;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
 
-input{
-display:block;
-width:260px;
-margin:12px auto;
-padding:14px;
-font-size:16px;
-border-radius:25px;
-border:1px solid #ccc;
-}
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 85%;
+            max-width: 350px;
+            margin: auto;
+        }
 
-button{
-display:block;
-width:240px;
-margin:12px auto;
-padding:14px;
-font-size:16px;
-cursor:pointer;
-border:none;
-border-radius:25px;
-background:linear-gradient(45deg,#4CAF50,#2ecc71);
-color:white;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-}
+        input {
+            display: block; width: 100%; margin: 12px auto;
+            padding: 14px; font-size: 16px; border-radius: 25px;
+            border: 1px solid #ccc; outline: none; box-sizing: border-box;
+        }
 
-button:hover{
-opacity:0.9;
-}
+        button {
+            display: block; width: 100%; margin: 12px auto;
+            padding: 14px; font-size: 16px; cursor: pointer;
+            border: none; border-radius: 25px;
+            background: linear-gradient(45deg,#4CAF50,#2ecc71);
+            color: white; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-</style></head><body><h1 class="title">Teacher Login</h1><div class="login-box"><input id="mobile" placeholder="Teacher Mobile"><input id="password" type="password" placeholder="Password"><button onclick="login()">Login</button>
+        button:hover { opacity: 0.9; }
 
-</div><script>
+        .contact-card {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef2f3;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #34495e;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
 
-function login(){
+<div id="teacherBlockScreen">
+    <div class="alert-box">
+        <h1 style="color: #c53030; font-size: 24px;">खाता लॉक है (Account Locked)</h1>
+        <p style="font-size: 16px; color: #4a5568;">आपकी टीचर आईडी अभी सस्पेंड है।</p>
+        
+        <div class="contact-card">
+            <p><b>समाधान के लिए संपर्क करें:</b></p>
+            <p>🏫 स्कूल प्रिंसिपल (Principal Office)</p>
+            <p>अथवा</p>
+            <p>💰 स्कूल अकाउंटेंट (Accountant)</p>
+        </div>
+        
+        <p style="font-size: 12px; color: #a0aec0; margin-top: 15px;">धन्यवाद।</p>
+    </div>
+</div>
 
-let mobile=document.getElementById("mobile").value;
-let password=document.getElementById("password").value;
+<div id="loginArea">
+    <h1 class="title">Teacher Login</h1>
+    <div class="login-box">
+        <input id="mobile" type="number" placeholder="शिक्षक मोबाइल नंबर">
+        <input id="password" type="password" placeholder="पासवर्ड">
+        <button onclick="login()">Login</button>
+    </div>
+</div>
 
-let savedMobile=localStorage.getItem("teacherMobile");
-let savedPass=localStorage.getItem("teacherPass");
+<script>
+    // ब्लॉक स्टेटस चेक करना
+    function checkTeacherStatus() {
+        // अगर विकास (Master Admin) ने पूरा स्कूल ब्लॉक किया है
+        let isGlobalBlocked = localStorage.getItem("master_block_status") === "blocked";
+        // अगर प्रिंसिपल ने किसी खास टीचर को ब्लॉक किया है
+        let isTeacherBlocked = localStorage.getItem("status_teacher_" + document.getElementById("mobile").value) === "blocked";
 
-if(mobile==savedMobile && password==savedPass){
+        if (isGlobalBlocked || isTeacherBlocked) {
+            document.getElementById("teacherBlockScreen").style.display = "block";
+            document.getElementById("loginArea").style.display = "none";
+            return true;
+        }
+        return false;
+    }
 
-window.location.href="teacher-dashboard.html";
+    function login() {
+        let mobile = document.getElementById("mobile").value;
+        let password = document.getElementById("password").value;
 
-}else{
+        // पहले ब्लॉक चेक करें
+        if (checkTeacherStatus()) return;
 
-alert("Wrong Mobile or Password");
+        // प्रिंसिपल द्वारा बनाया गया डेटा
+        let savedMobile = localStorage.getItem("teacherMobile");
+        let savedPass = localStorage.getItem("teacherPass");
 
-}
+        if (mobile == savedMobile && password == savedPass) {
+            
+            // डिवाइस लॉक (पहली बार लॉगिन पर फोन आईडी सेव करना)
+            let savedDevice = localStorage.getItem("teacher_device_" + mobile);
+            let currentDevice = "TEACHER_PHONE_ABC"; // यूनिक आईडी
 
-}
+            if (!savedDevice) {
+                localStorage.setItem("teacher_device_" + mobile, currentDevice);
+            } else if (savedDevice !== currentDevice) {
+                alert("सुरक्षा त्रुटि: यह आईडी केवल आपके रजिस्टर किए गए फोन पर ही चलेगी।");
+                return;
+            }
 
-</script></body></html>
+            window.location.href = "teacher-dashboard.html";
+        } else {
+            alert("गलत मोबाइल नंबर या पासवर्ड!");
+        }
+    }
+</script>
+
+</body>
+</html>
