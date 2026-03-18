@@ -26,6 +26,11 @@
         .section { background: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         h3 { border-left: 6px solid var(--gold); padding-left: 15px; margin-bottom: 20px; color: var(--owner-bg); font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
 
+        /* --- Principal Hire System (नया जोड़ा गया) --- */
+        .hire-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #f8f9fa; padding: 20px; border-radius: 15px; }
+        .hire-box input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .btn-hire { background: var(--owner-bg); color: var(--gold); border: none; padding: 12px; border-radius: 25px; font-weight: bold; cursor: pointer; grid-column: 1 / -1; }
+
         /* --- Smart Notice Board (Owner's Voice) --- */
         .notice-box { background: #fff9e6; border: 1px solid #ffeaa7; padding: 20px; border-radius: 15px; }
         textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 15px; resize: none; box-sizing: border-box; }
@@ -41,6 +46,11 @@
         th { background: #f8f9fa; color: #2d3436; font-weight: 600; }
         .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
         .pill-green { background: #dff9fb; color: #2ecc71; }
+        .pill-red { background: #ffe3e3; color: #e74c3c; }
+
+        .btn-action { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-block { background: #e74c3c; color: white; }
+        .btn-unblock { background: #27ae60; color: white; }
 
     </style>
 </head>
@@ -73,6 +83,31 @@
             <i class="fas fa-user-check"></i>
             <h4>स्टाफ हाज़िरी</h4>
             <p>24/25</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3><i class="fas fa-user-tie"></i> Principal Management (प्रिंसिपल नियुक्त करें)</h3>
+        <div class="hire-box">
+            <input type="text" id="pName" placeholder="प्रिंसिपल का नाम">
+            <input type="number" id="pMobile" placeholder="मोबाइल नंबर (ID)">
+            <input type="text" id="pPass" placeholder="पासवर्ड बनाएं">
+            <button class="btn-hire" onclick="hirePrincipal()">ID जेनरेट करें और नियुक्त करें</button>
+        </div>
+
+        <div class="table-wrap" style="margin-top:20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>प्रिंसिपल का नाम</th>
+                        <th>मोबाइल (ID)</th>
+                        <th>स्टेटस</th>
+                        <th>एक्शन</th>
+                    </tr>
+                </thead>
+                <tbody id="principalData">
+                    </tbody>
+            </table>
         </div>
     </div>
 
@@ -131,8 +166,52 @@
 </div>
 
 <script>
-    // ओनर का नाम और स्कूल सेट करना
     document.getElementById("schoolTitle").innerText = localStorage.getItem("schoolName") || "Official School";
+
+    // --- प्रिंसिपल हायरिंग लॉजिक ---
+    function hirePrincipal() {
+        let name = document.getElementById("pName").value;
+        let mobile = document.getElementById("pMobile").value;
+        let pass = document.getElementById("pPass").value;
+
+        if(!name || !mobile || !pass) { alert("कृपया पूरी जानकारी भरें!"); return; }
+
+        localStorage.setItem("principalName", name);
+        localStorage.setItem("principalMobile", mobile);
+        localStorage.setItem("principalPass", pass);
+        localStorage.setItem("principalStatus", "active");
+
+        alert("प्रिंसिपल नियुक्त हो गया है!");
+        location.reload();
+    }
+
+    function loadPrincipal() {
+        let name = localStorage.getItem("principalName");
+        let mobile = localStorage.getItem("principalMobile");
+        let status = localStorage.getItem("principalStatus") || "inactive";
+
+        if(name) {
+            let statusPill = status === "active" ? `<span class="status-pill pill-green">Active</span>` : `<span class="status-pill pill-red">Blocked</span>`;
+            let actionBtn = status === "active" ? 
+                `<button class="btn-action btn-block" onclick="updatePStatus('blocked')">Block</button>` : 
+                `<button class="btn-action btn-unblock" onclick="updatePStatus('active')">Unblock</button>`;
+
+            document.getElementById("principalData").innerHTML = `
+                <tr>
+                    <td>${name}</td>
+                    <td>${mobile}</td>
+                    <td>${statusPill}</td>
+                    <td>${actionBtn}</td>
+                </tr>
+            `;
+        }
+    }
+
+    function updatePStatus(newStatus) {
+        localStorage.setItem("principalStatus", newStatus);
+        localStorage.setItem("principal_blocked_by_owner", newStatus === "blocked" ? "true" : "false");
+        location.reload();
+    }
 
     // सबको चुनने का लॉजिक
     document.getElementById("selectAll").onclick = function() {
@@ -142,25 +221,23 @@
         }
     }
 
-    // ब्रॉडकास्ट नोटिस
     function sendBroadcast() {
         let msg = document.getElementById("ownerMsg").value;
         let selected = [];
         document.querySelectorAll('.target:checked').forEach(c => selected.push(c.value));
-
         if(!msg) { alert("कृपया संदेश लिखें!"); return; }
         if(selected.length == 0) { alert("किसे भेजना है? कम से कम एक चुनें।"); return; }
-
-        alert("ओनर का नोटिस भेजा गया!\nलक्ष्य: " + selected.join(", ") + "\nसंदेश: " + msg);
+        alert("ओनर का नोटिस भेजा गया!");
         document.getElementById("ownerMsg").value = "";
     }
 
-    // डेमो डेटा लोड करना
     function loadOwnerData() {
         document.getElementById("totalFees").innerText = "₹ 1,25,800";
+        loadPrincipal();
     }
     loadOwnerData();
 </script>
 
 </body>
-</html>
+                </html>
+    
