@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Master Control - SchoolSphere</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --owner-bg: #1a1c2c; --gold: #ffd700; --card-bg: #ffffff; --text: #2d3436; }
@@ -14,7 +17,6 @@
         
         .container { padding: 15px; max-width: 1100px; margin: auto; }
 
-        /* --- Financial & Activity Stats --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-bottom: 5px solid var(--gold); transition: 0.3s; }
         .stat-card:hover { transform: translateY(-5px); }
@@ -22,16 +24,13 @@
         .stat-card h4 { margin: 5px 0; color: #636e72; font-size: 14px; text-transform: uppercase; }
         .stat-card p { margin: 0; font-size: 22px; font-weight: bold; color: var(--owner-bg); }
 
-        /* --- Section Box --- */
         .section { background: white; padding: 25px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         h3 { border-left: 6px solid var(--gold); padding-left: 15px; margin-bottom: 20px; color: var(--owner-bg); font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* --- Principal Hire System (नया जोड़ा गया) --- */
         .hire-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #f8f9fa; padding: 20px; border-radius: 15px; }
         .hire-box input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         .btn-hire { background: var(--owner-bg); color: var(--gold); border: none; padding: 12px; border-radius: 25px; font-weight: bold; cursor: pointer; grid-column: 1 / -1; }
 
-        /* --- Smart Notice Board (Owner's Voice) --- */
         .notice-box { background: #fff9e6; border: 1px solid #ffeaa7; padding: 20px; border-radius: 15px; }
         textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 15px; resize: none; box-sizing: border-box; }
         .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
@@ -39,7 +38,6 @@
         .chip-label input { margin-right: 8px; }
         .btn-broadcast { background: var(--owner-bg); color: var(--gold); border: none; padding: 15px; width: 100%; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 16px; letter-spacing: 1px; }
 
-        /* --- Tables (Audit Logs) --- */
         .table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 600px; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid #f1f2f6; }
@@ -51,7 +49,6 @@
         .btn-action { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
         .btn-block { background: #e74c3c; color: white; }
         .btn-unblock { background: #27ae60; color: white; }
-
     </style>
 </head>
 <body>
@@ -62,51 +59,25 @@
 </div>
 
 <div class="container">
-
     <div class="stats-grid">
-        <div class="stat-card">
-            <i class="fas fa-wallet"></i>
-            <h4>आज की कुल फीस</h4>
-            <p id="totalFees">₹ 0.00</p>
-        </div>
-        <div class="stat-card">
-            <i class="fas fa-gas-pump"></i>
-            <h4>डीजल खर्च (Audit)</h4>
-            <p style="color: #e74c3c;">₹ 0.00</p>
-        </div>
-        <div class="stat-card">
-            <i class="fas fa-chart-line"></i>
-            <h4>नेट प्रॉफिट</h4>
-            <p style="color: #27ae60;">₹ 0.00</p>
-        </div>
-        <div class="stat-card">
-            <i class="fas fa-user-check"></i>
-            <h4>स्टाफ हाज़िरी</h4>
-            <p>24/25</p>
-        </div>
+        <div class="stat-card"><i class="fas fa-wallet"></i><h4>कुल फीस</h4><p id="totalFees">₹ 0.00</p></div>
+        <div class="stat-card"><i class="fas fa-gas-pump"></i><h4>डीजल खर्च</h4><p id="fuelExp" style="color: #e74c3c;">₹ 0.00</p></div>
+        <div class="stat-card"><i class="fas fa-chart-line"></i><h4>नेट प्रॉफिट</h4><p id="netProfit" style="color: #27ae60;">₹ 0.00</p></div>
+        <div class="stat-card"><i class="fas fa-user-check"></i><h4>स्टाफ हाज़िरी</h4><p id="staffAtt">0/0</p></div>
     </div>
 
     <div class="section">
-        <h3><i class="fas fa-user-tie"></i> Principal Management (प्रिंसिपल नियुक्त करें)</h3>
+        <h3><i class="fas fa-user-tie"></i> Principal Management</h3>
         <div class="hire-box">
             <input type="text" id="pName" placeholder="प्रिंसिपल का नाम">
             <input type="number" id="pMobile" placeholder="मोबाइल नंबर (ID)">
             <input type="text" id="pPass" placeholder="पासवर्ड बनाएं">
-            <button class="btn-hire" onclick="hirePrincipal()">ID जेनरेट करें और नियुक्त करें</button>
+            <button class="btn-hire" onclick="hirePrincipal()">Firebase में नियुक्त करें</button>
         </div>
-
         <div class="table-wrap" style="margin-top:20px;">
             <table>
-                <thead>
-                    <tr>
-                        <th>प्रिंसिपल का नाम</th>
-                        <th>मोबाइल (ID)</th>
-                        <th>स्टेटस</th>
-                        <th>एक्शन</th>
-                    </tr>
-                </thead>
-                <tbody id="principalData">
-                    </tbody>
+                <thead><tr><th>नाम</th><th>मोबाइल</th><th>स्टेटस</th><th>एक्शन</th></tr></thead>
+                <tbody id="principalData"></tbody>
             </table>
         </div>
     </div>
@@ -114,130 +85,99 @@
     <div class="section">
         <h3><i class="fas fa-bullhorn"></i> Master Notice Board</h3>
         <div class="notice-box">
-            <textarea id="ownerMsg" placeholder="ओनर का आदेश: यहाँ टाइप करें जो पूरी स्कूल की हर ऐप पर भेजना है..."></textarea>
-            
+            <textarea id="ownerMsg" placeholder="ओनर का आदेश यहाँ टाइप करें..."></textarea>
             <div class="chips">
                 <label class="chip-label"><input type="checkbox" class="target" value="Principal"> प्रिंसिपल्स</label>
                 <label class="chip-label"><input type="checkbox" class="target" value="Teachers"> टीचर्स</label>
                 <label class="chip-label"><input type="checkbox" class="target" value="Drivers"> ड्राइवर्स</label>
-                <label class="chip-label"><input type="checkbox" class="target" value="Parents"> पेरेंट्स</label>
-                <label class="chip-label" style="border-color: var(--gold);"><input type="checkbox" id="selectAll"> सबको एक साथ (All)</label>
+                <label class="chip-label"><input type="checkbox" id="selectAll"> All</label>
             </div>
-            
-            <button class="btn-broadcast" onclick="sendBroadcast()">📢 आदेश जारी करें (Broadcast Now)</button>
+            <button class="btn-broadcast" onclick="sendBroadcast()">📢 आदेश जारी करें</button>
         </div>
     </div>
-
-    <div class="section">
-        <h3><i class="fas fa-bus"></i> बस और डीजल ऑडिट रिपोर्ट</h3>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>बस नंबर</th>
-                        <th>ड्राइवर</th>
-                        <th>आज की दूरी</th>
-                        <th>डीजल (Ltr)</th>
-                        <th>स्टेटस</th>
-                    </tr>
-                </thead>
-                <tbody id="busLogs">
-                    <tr>
-                        <td>UP32-AW-5001</td>
-                        <td>राकेश सिंह</td>
-                        <td>52 KM</td>
-                        <td>9.5 Ltr</td>
-                        <td><span class="status-pill pill-green">On Track</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="section">
-        <h3><i class="fas fa-clipboard-list"></i> स्कूल वर्क लॉग (आज क्या हुआ?)</h3>
-        <div id="workReports" style="line-height: 1.8; color: #555;">
-            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> अकाउंटेंट: आज 14 बच्चों की फीस जमा हुई।</p>
-            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> टीचर: कक्षा 12 का सिलेबस समय पर पूरा।</p>
-            <p><i class="fas fa-check-circle" style="color:var(--success)"></i> ट्रांसपोर्ट: बस 5001 की सर्विसिंग पूरी हुई।</p>
-        </div>
-    </div>
-
 </div>
 
 <script>
+    // --- 1. Firebase Initialize (आपके google-services.json के आधार पर) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        storageBucket: "schoolsphere-824ca.firebasestorage.app",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // स्कूल आईडी (यह लॉगिन के समय मिलेगी)
+    const schoolID = localStorage.getItem("activeSchoolID") || "GPS001";
     document.getElementById("schoolTitle").innerText = localStorage.getItem("schoolName") || "Official School";
 
-    // --- प्रिंसिपल हायरिंग लॉजिक ---
+    // --- 2. प्रिंसिपल को Firebase में जोड़ना ---
     function hirePrincipal() {
         let name = document.getElementById("pName").value;
         let mobile = document.getElementById("pMobile").value;
         let pass = document.getElementById("pPass").value;
 
-        if(!name || !mobile || !pass) { alert("कृपया पूरी जानकारी भरें!"); return; }
+        if(!name || !mobile || !pass) { alert("पूरी जानकारी भरें!"); return; }
 
-        localStorage.setItem("principalName", name);
-        localStorage.setItem("principalMobile", mobile);
-        localStorage.setItem("principalPass", pass);
-        localStorage.setItem("principalStatus", "active");
-
-        alert("प्रिंसिपल नियुक्त हो गया है!");
-        location.reload();
+        // Firebase में प्रिंसिपल का डेटा सेव करना
+        db.ref('Schools/' + schoolID + '/Staff/' + mobile).set({
+            name: name,
+            role: "Principal",
+            password: pass,
+            status: "active"
+        }).then(() => {
+            alert("प्रिंसिपल Firebase में रजिस्टर हो गया!");
+            document.getElementById("pName").value = "";
+            document.getElementById("pMobile").value = "";
+            document.getElementById("pPass").value = "";
+        });
     }
 
-    function loadPrincipal() {
-        let name = localStorage.getItem("principalName");
-        let mobile = localStorage.getItem("principalMobile");
-        let status = localStorage.getItem("principalStatus") || "inactive";
-
-        if(name) {
-            let statusPill = status === "active" ? `<span class="status-pill pill-green">Active</span>` : `<span class="status-pill pill-red">Blocked</span>`;
-            let actionBtn = status === "active" ? 
-                `<button class="btn-action btn-block" onclick="updatePStatus('blocked')">Block</button>` : 
-                `<button class="btn-action btn-unblock" onclick="updatePStatus('active')">Unblock</button>`;
-
-            document.getElementById("principalData").innerHTML = `
-                <tr>
-                    <td>${name}</td>
-                    <td>${mobile}</td>
-                    <td>${statusPill}</td>
-                    <td>${actionBtn}</td>
-                </tr>
-            `;
+    // --- 3. Firebase से लाइव लिस्ट लोड करना ---
+    db.ref('Schools/' + schoolID + '/Staff').on('value', (snapshot) => {
+        const staffData = snapshot.val();
+        let html = "";
+        for (let id in staffData) {
+            if(staffData[id].role === "Principal") {
+                let s = staffData[id].status;
+                let pill = s === "active" ? `<span class="status-pill pill-green">Active</span>` : `<span class="status-pill pill-red">Blocked</span>`;
+                let btn = s === "active" ? 
+                    `<button class="btn-action btn-block" onclick="updateStatus('${id}', 'blocked')">Block</button>` : 
+                    `<button class="btn-action btn-unblock" onclick="updateStatus('${id}', 'active')">Unblock</button>`;
+                
+                html += `<tr><td>${staffData[id].name}</td><td>${id}</td><td>${pill}</td><td>${btn}</td></tr>`;
+            }
         }
+        document.getElementById("principalData").innerHTML = html;
+    });
+
+    function updateStatus(id, newStatus) {
+        db.ref('Schools/' + schoolID + '/Staff/' + id).update({ status: newStatus });
     }
 
-    function updatePStatus(newStatus) {
-        localStorage.setItem("principalStatus", newStatus);
-        localStorage.setItem("principal_blocked_by_owner", newStatus === "blocked" ? "true" : "false");
-        location.reload();
+    // --- 4. नोटिस ब्रॉडकास्ट (Firebase के जरिए) ---
+    function sendBroadcast() {
+        let msg = document.getElementById("ownerMsg").value;
+        if(!msg) return;
+        
+        db.ref('Schools/' + schoolID + '/Notices').push({
+            message: msg,
+            from: "Owner",
+            timestamp: Date.now()
+        }).then(() => {
+            alert("सूचना सभी ऐप पर भेज दी गई!");
+            document.getElementById("ownerMsg").value = "";
+        });
     }
 
     // सबको चुनने का लॉजिक
     document.getElementById("selectAll").onclick = function() {
         let checkboxes = document.querySelectorAll('.target');
-        for (let checkbox of checkboxes) {
-            checkbox.checked = this.checked;
-        }
+        checkboxes.forEach(c => c.checked = this.checked);
     }
-
-    function sendBroadcast() {
-        let msg = document.getElementById("ownerMsg").value;
-        let selected = [];
-        document.querySelectorAll('.target:checked').forEach(c => selected.push(c.value));
-        if(!msg) { alert("कृपया संदेश लिखें!"); return; }
-        if(selected.length == 0) { alert("किसे भेजना है? कम से कम एक चुनें।"); return; }
-        alert("ओनर का नोटिस भेजा गया!");
-        document.getElementById("ownerMsg").value = "";
-    }
-
-    function loadOwnerData() {
-        document.getElementById("totalFees").innerText = "₹ 1,25,800";
-        loadPrincipal();
-    }
-    loadOwnerData();
 </script>
-
 </body>
-                </html>
-    
+</html>
