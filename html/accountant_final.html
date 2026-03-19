@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accountant Dashboard - SchoolSphere</title>
     
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <style>
+        /* आपका पूरा ओरिजिनल स्टाइल (बिना किसी बदलाव के) */
         :root {
             --primary: #2c3e50;
             --accent: #e67e22;
@@ -27,7 +31,6 @@
             min-height: 100vh;
         }
 
-        /* --- ब्लॉक स्क्रीन स्टाइल (Service Suspended) --- */
         #blockScreen {
             display: none;
             position: fixed;
@@ -48,7 +51,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        /* --- Desktop Sidebar Layout --- */
         .wrapper {
             display: flex;
             flex: 1;
@@ -153,9 +155,8 @@
         <div style="margin-top: 20px;">
             <p style="margin: 0; color: #718096;">संपर्क करें (Admin):</p>
             <h2 style="color: #2d3748; margin: 10px 0;">विकास (SchoolSphere)</h2>
-            <h2 style="color: #2b6cb0;">📞 +91 [आपका नंबर यहाँ लिखें]</h2>
+            <h2 style="color: #2b6cb0;">📞 +91 [आपका नंबर]</h2>
         </div>
-        <p style="font-size: 12px; color: #a0aec0; margin-top: 20px;">भुगतान के बाद सेवा तुरंत बहाल कर दी जाएगी।</p>
     </div>
 </div>
 
@@ -217,33 +218,55 @@
 </div>
 
 <script>
-    // --- ब्लॉक सिस्टम का लॉजिक ---
+    // --- FIREBASE SETUP (इसे प्लस किया गया है) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        storageBucket: "schoolsphere-824ca.firebasestorage.app",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // लॉगिन के वक्त मिली School ID
+    const activeSchoolID = localStorage.getItem("activeSchoolID") || "GPS001";
+
+    // --- 1. मास्टर ब्लॉक लॉजिक (अब Firebase से प्लस किया गया) ---
     function checkStatus() {
-        let status = localStorage.getItem("school_status_001"); 
-        if (status === "blocked") {
-            document.getElementById("blockScreen").style.display = "block";
-            document.getElementById("mainWrapper").style.display = "none";
-        }
+        db.ref('Schools/' + activeSchoolID + '/status').on('value', (snap) => {
+            if (snap.val() === "blocked") {
+                document.getElementById("blockScreen").style.display = "block";
+                document.getElementById("mainWrapper").style.display = "none";
+            } else {
+                document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("mainWrapper").style.display = "flex";
+            }
+        });
     }
-    // पेज लोड होते ही चेक करें
-    window.onload = checkStatus;
 
-    // School Name from LocalStorage
-    document.getElementById("schoolDisplay").innerText = localStorage.getItem("schoolName") || "Official Panel";
+    window.onload = function() {
+        checkStatus();
+        document.getElementById("schoolDisplay").innerText = localStorage.getItem("schoolName") || "Official Panel";
+    };
 
-    // Map Setup
+    // --- 2. मैप सेटअप (आपका ओरिजिनल) ---
     var map = L.map('map').setView([26.8467, 80.9462], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    function generateSlip() {
+    // --- 3. सैलरी स्लिप और गूगल शीट (प्लस किया गया लॉजिक) ---
+    async function generateSlip() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         let name = document.getElementById("staffName").value;
         let role = document.getElementById("staffRole").value;
         let amount = document.getElementById("amt").value;
+        let bus = document.getElementById("busId").value;
 
         if(!name || !amount) { alert("Details bhariye!"); return; }
 
+        // PDF (आपका ओरिजिनल)
         doc.setFontSize(20);
         doc.text("Salary Slip - " + (localStorage.getItem("schoolName") || "SchoolSphere"), 20, 20);
         doc.setFontSize(14);
@@ -251,8 +274,20 @@
         doc.text("Role: " + role, 20, 50);
         doc.text("Amount: Rs. " + amount, 20, 60);
         doc.text("Date: " + new Date().toLocaleDateString(), 20, 70);
-        
         doc.save(name + "_slip.pdf");
+
+        // Google Sheet में डेटा भेजना (प्लस किया गया)
+        // यह URL Firebase से ऑटोमैटिक उठेगा
+        db.ref('Schools/' + activeSchoolID + '/sheetLink').once('value', (snap) => {
+            let sheetURL = snap.val();
+            if(sheetURL) {
+                fetch(sheetURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name, role, amount, bus, type: "Expense" })
+                });
+            }
+        });
     }
 </script>
 
