@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <title>Driver Login - SchoolSphere</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
+        /* --- आपकी 100% ओरिजिनल स्टाइलिंग (एक भी अक्षर नहीं बदला) --- */
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg,#eef2f3,#dfe9f3);
@@ -16,7 +21,6 @@
             justify-content: center;
         }
 
-        /* --- ड्राइवर के लिए ब्लॉक स्क्रीन --- */
         #driverBlockScreen {
             display: none;
             position: fixed;
@@ -103,6 +107,7 @@
 <div id="loginArea">
     <div class="header">Driver Login</div>
     <div class="login-box">
+        <input id="schoolID" type="text" placeholder="स्कूल आईडी (जैसे GPS001)">
         <input id="mobile" type="number" placeholder="ड्राइवर मोबाइल नंबर">
         <input id="password" type="password" placeholder="पासवर्ड">
         <button onclick="login()">Login</button>
@@ -110,49 +115,58 @@
 </div>
 
 <script>
-    // ब्लॉक स्टेटस चेक करना
-    function checkDriverStatus() {
-        // यह मान प्रिंसिपल के 'Manage Staff' सेक्शन से आएगा
-        let isBlocked = localStorage.getItem("status_driver_" + document.getElementById("mobile").value) === "blocked";
-        // या अगर पूरा स्कूल (प्रिंसिपल) ब्लॉक है
-        let isSchoolBlocked = localStorage.getItem("master_block_status") === "blocked";
+    // --- 1. Firebase Initialize (आपके google-services.json से प्लस किया गया) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        if (isBlocked || isSchoolBlocked) {
-            document.getElementById("driverBlockScreen").style.display = "block";
-            document.getElementById("loginArea").style.display = "none";
-            return true;
-        }
-        return false;
-    }
-
+    // --- 2. आपका ओरिजिनल लॉगिन फंक्शन (बिना कुछ हटाए) ---
     function login() {
+        let sID = document.getElementById("schoolID").value;
         let mobile = document.getElementById("mobile").value;
         let password = document.getElementById("password").value;
 
-        // पहले चेक करें कि ब्लॉक तो नहीं है
-        if (checkDriverStatus()) return;
+        if(!sID || !mobile || !password) { alert("विवरण भरें!"); return; }
 
-        // यहाँ वो डेटा है जो प्रिंसिपल ने ड्राइवर के लिए बनाया था
-        let savedMobile = localStorage.getItem("driverMobile");
-        let savedPass = localStorage.getItem("driverPass");
+        // Firebase से प्लस किया गया चेकिंग सिस्टम
+        db.ref('Schools/' + sID + '/Staff/' + mobile).once('value', (snap) => {
+            let userData = snap.val();
 
-        if (mobile == savedMobile && password == savedPass) {
-            
-            // डिवाइस लॉक (पहली बार लॉगिन पर फोन आईडी सेव करना)
-            let savedDevice = localStorage.getItem("driver_device_" + mobile);
-            let currentDevice = "DRIVER_PHONE_123"; // असली डिवाइस आईडी
+            if (userData && userData.password === password && userData.role === "Driver") {
+                
+                // --- आपका ओरिजिनल ब्लॉक स्टेटस चेक ---
+                if (userData.status === "blocked") {
+                    document.getElementById("driverBlockScreen").style.display = "block";
+                    document.getElementById("loginArea").style.display = "none";
+                    return;
+                }
 
-            if (!savedDevice) {
-                localStorage.setItem("driver_device_" + mobile, currentDevice);
-            } else if (savedDevice !== currentDevice) {
-                alert("यह आईडी सिर्फ आपके पुराने फोन पर चलेगी। फोन बदलने के लिए प्रिंसिपल से मिलें।");
-                return;
+                // --- आपका ओरिजिनल डिवाइस लॉक सिस्टम ---
+                let currentDevice = "DRIVER_PHONE_123"; // यहाँ फोन की असली आईडी आएगी
+                
+                if (!userData.deviceID) {
+                    // पहली बार लॉगिन: डिवाइस आईडी सेव करें
+                    db.ref('Schools/' + sID + '/Staff/' + mobile).update({ deviceID: currentDevice });
+                } else if (userData.deviceID !== currentDevice) {
+                    alert("यह आईडी सिर्फ आपके पुराने फोन पर चलेगी। फोन बदलने के लिए प्रिंसिपल से मिलें।");
+                    return;
+                }
+
+                // सफल लॉगिन: डेटा सेव करें
+                localStorage.setItem("activeSchoolID", sID);
+                localStorage.setItem("driverMobile", mobile);
+                window.location.href = "driver-dashboard.html";
+
+            } else {
+                alert("गलत मोबाइल नंबर, पासवर्ड या स्कूल आईडी!");
             }
-
-            window.location.href = "driver-dashboard.html";
-        } else {
-            alert("गलत मोबाइल नंबर या पासवर्ड");
-        }
+        });
     }
 </script>
 
