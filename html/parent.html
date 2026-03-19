@@ -2,189 +2,220 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Parent Login - SchoolSphere</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchoolSphere Pro - Dashboard</title>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* --- आपका 100% ओरिजिनल CSS (बिना किसी बदलाव के) --- */
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg,#eef2f3,#dfe9f3);
-            margin: 0;
-            text-align: center;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        :root { --primary: #1a1c2c; --gold: #ffd700; --bg: #f4f7f6; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); user-select: none; }
+
+        #loader {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 28, 44, 0.95); color: var(--gold);
+            z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        #parentBlockScreen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: white;
-            z-index: 10000;
-            padding-top: 60px;
+        .top-nav {
+            background: var(--primary); color: white; padding: 20px;
+            border-radius: 0 0 25px 25px; text-align: center; position: sticky; top: 0; z-index: 1000;
         }
 
-        .alert-box {
-            background: #fff5f5;
-            border: 2px solid #feb2b2;
-            display: inline-block;
-            padding: 30px;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 350px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .student-picker {
+            display: flex; overflow-x: auto; gap: 15px; justify-content: center; padding: 10px;
+            scrollbar-width: none;
+        }
+        .student-picker::-webkit-scrollbar { display: none; }
+
+        .student-thumb {
+            width: 65px; height: 65px; border-radius: 50%;
+            cursor: pointer; border: 3px solid transparent; transition: 0.3s; object-fit: cover;
+            background: #333;
+        }
+        .active { border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 10px var(--gold); }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 15px; padding: 20px;
         }
 
-        .header {
-            font-size: 30px;
-            color: #2c5364;
-            font-weight: bold;
-            margin-bottom: 20px;
+        .card {
+            background: white; padding: 20px 5px; text-align: center;
+            border-radius: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: 0.2s;
         }
+        .card:active { transform: scale(0.95); background: #eee; }
+        .card i { display: block; font-size: 24px; margin-bottom: 8px; }
+        .card span { font-size: 11px; font-weight: bold; color: #444; }
 
-        .login-box {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 85%;
-            max-width: 350px;
-            margin: auto;
-        }
-
-        input {
-            display: block; width: 100%; margin: 12px auto;
-            padding: 14px; font-size: 16px; border-radius: 25px;
-            border: 1px solid #ccc; outline: none; box-sizing: border-box;
-        }
-
-        button {
-            display: block; width: 100%; margin: 12px auto;
-            padding: 14px; font-size: 16px; cursor: pointer;
-            border: none; border-radius: 25px;
-            background: linear-gradient(45deg,#4CAF50,#2ecc71);
-            color: white; font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        button:hover { opacity: 0.9; }
-
-        .contact-card {
-            margin-top: 20px;
-            padding: 15px;
-            background: #eef2f3;
-            border-radius: 12px;
-            font-size: 14px;
-            color: #34495e;
-            line-height: 1.6;
+        .bus-float {
+            position: fixed; bottom: 25px; right: 25px; background: var(--gold);
+            width: 60px; height: 60px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 24px;
+            color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999;
         }
     </style>
 </head>
+
 <body>
 
-<div id="parentBlockScreen">
-    <div class="alert-box">
-        <h1 style="color: #c53030; font-size: 24px;">खाता निष्क्रिय (Account Inactive)</h1>
-        <p id="blockMessage" style="font-size: 16px; color: #4a5568;">आपकी पेरेंट आईडी अभी चालू नहीं है।</p>
-        
-        <div class="contact-card">
-            <p><b>अधिक जानकारी के लिए संपर्क करें:</b></p>
-            <p>🏫 स्कूल प्रिंसिपल (Principal Office)</p>
-            <p>अथवा</p>
-            <p>💰 अकाउंट सेक्शन (Accountant)</p>
-        </div>
-        
-        <p style="font-size: 12px; color: #a0aec0; margin-top: 15px;">असुविधा के लिए खेद है।</p>
-    </div>
+<div id="loader">
+    <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; margin-bottom: 15px;"></i>
+    <span>डेटा सिंक हो रहा है...</span>
 </div>
 
-<div id="loginArea">
-    <div class="header">Parent Login</div>
-    <div class="login-box">
-        <input id="schoolID" type="text" placeholder="स्कूल आईडी (जैसे GPS001)">
-        <input id="mobile" type="number" placeholder="अभिभावक मोबाइल नंबर">
-        <input id="password" type="password" placeholder="पासवर्ड">
-        <button onclick="login()">Login</button>
-    </div>
+<div class="top-nav">
+    <div id="picker" class="student-picker"></div>
+    <h2 id="name" style="margin: 10px 0 0; color: var(--gold);">Loading...</h2>
+    <p id="class" style="margin: 0; opacity: 0.8; font-size: 14px;">SchoolSphere Pro</p>
 </div>
+
+<div class="grid">
+    <div class="card" onclick="go('attendance')"><i class="fas fa-calendar-check" style="color:#2ecc71;"></i><span>Attendance</span></div>
+    <div class="card" onclick="go('homework')"><i class="fas fa-book" style="color:#3498db;"></i><span>Homework</span></div>
+    <div class="card" onclick="go('fees')"><i class="fas fa-receipt" style="color:#f39c12;"></i><span>Fees</span></div>
+    <div class="card" onclick="go('notices')"><i class="fas fa-bullhorn" style="color:#e74c3c;"></i><span>Notices</span></div>
+    <div class="card" onclick="go('timetable')"><i class="fas fa-clock" style="color:#9b59b6;"></i><span>TimeTable</span></div>
+    <div class="card" onclick="go('leave')"><i class="fas fa-paper-plane" style="color:#1abc9c;"></i><span>Leave</span></div>
+    <div class="card" onclick="logout()"><i class="fas fa-power-off"></i><span>Logout</span></div>
+</div>
+
+<div class="bus-float" onclick="go('tracking')"><i class="fas fa-bus"></i></div>
 
 <script>
-    // --- 1. Firebase Initialize (प्लस किया गया) ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
-        authDomain: "schoolsphere-824ca.firebaseapp.com",
-        projectId: "schoolsphere-824ca",
-        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
-        appId: "1:698409232180:android:7b25559d225a001d9f6761"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+// 🔴 VERSION RESET
+const VERSION = "2.2"; 
+if(localStorage.getItem("v") !== VERSION){
+    localStorage.clear();
+    localStorage.setItem("v", VERSION);
+}
 
-    // लॉगिन की कोशिशों को गिनने के लिए (3-Try Rule)
-    let loginAttempts = 0;
+// 🔴 LOGIN CHECK
+const sID = localStorage.getItem("activeSchoolID");
+const mobile = localStorage.getItem("parentMobile");
 
-    function login() {
-        let sID = document.getElementById("schoolID").value;
-        let mobile = document.getElementById("mobile").value;
-        let password = document.getElementById("password").value;
+if(!sID || !mobile){
+    location.href = "login.html";
+}
 
-        if(!sID || !mobile || !password) { alert("सभी जानकारी भरें!"); return; }
+// 🔴 FIREBASE (API KEY FIXED)
+const firebaseConfig = {
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", // ✅ FIXED
+    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+    projectId: "schoolsphere-824ca"
+};
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+const db = firebase.database();
 
-        // --- Firebase से डेटा चेक करना (प्लस किया गया) ---
-        db.ref('Schools/' + sID + '/Parents/' + mobile).once('value', (snap) => {
-            const parentData = snap.val();
+let students = [], current = 0, refs = [];
 
-            if (parentData) {
-                // 1. क्या आईडी पहले से ब्लॉक है?
-                if (parentData.status === "blocked") {
-                    document.getElementById("blockMessage").innerText = parentData.blockReason || "आपकी आईडी बंद है, प्रिंसिपल से संपर्क करें।";
-                    document.getElementById("parentBlockScreen").style.display = "block";
-                    document.getElementById("loginArea").style.display = "none";
-                    return;
-                }
-
-                // 2. पासवर्ड चेक
-                if (parentData.password === password) {
-                    
-                    // --- आपका डिवाइस लॉक सिस्टम ---
-                    let currentDevice = "PARENT_PHONE_XYZ"; // यहाँ फोन की असली आईडी आएगी
-                    if (!parentData.deviceID) {
-                        db.ref('Schools/' + sID + '/Parents/' + mobile).update({ deviceID: currentDevice });
-                    } else if (parentData.deviceID !== currentDevice) {
-                        alert("सुरक्षा कारणों से यह आईडी केवल आपके पंजीकृत फोन पर ही चलेगी।");
-                        return;
-                    }
-
-                    // लॉगिन सफल: डेटा सेव करें
-                    localStorage.setItem("activeSchoolID", sID);
-                    localStorage.setItem("parentMobile", mobile);
-                    window.location.href = "parent-dashboard.html";
-
-                } else {
-                    // गलत पासवर्ड पर 3-Try Rule (प्लस किया गया)
-                    loginAttempts++;
-                    if (loginAttempts >= 3) {
-                        db.ref('Schools/' + sID + '/Parents/' + mobile).update({ 
-                            status: "blocked",
-                            blockReason: "3 बार गलत पासवर्ड डालने के कारण आईडी बंद कर दी गई है।" 
-                        });
-                        alert("3 बार गलत पासवर्ड! आईडी ब्लॉक हो गई है। प्रिंसिपल से मिलें।");
-                    } else {
-                        alert("गलत पासवर्ड! आपके पास " + (3 - loginAttempts) + " कोशिशें बची हैं।");
-                    }
-                }
-            } else {
-                alert("गलत स्कूल आईडी या मोबाइल नंबर!");
-            }
-        });
+// 🔴 LOAD STUDENTS
+async function load() {
+    if(!navigator.onLine){ 
+        document.getElementById("name").innerText = "ऑफलाइन मोड";
+        return; 
     }
+
+    showLoader();
+    try {
+        let snap = await db.ref(`Schools/${sID}/Parents/${mobile}/students`).once('value');
+        let list = snap.val();
+
+        if(!list || !Array.isArray(list)){
+            document.getElementById("name").innerText = "डेटा नहीं मिला";
+            hideLoader(); return;
+        }
+
+        let data = await Promise.all(
+            list.map(id => db.ref(`Schools/${sID}/Students/${id}`).once('value'))
+        );
+
+        students = data.map((s, i) => {
+            let v = s.val();
+            if(v){ v.id = list[i]; return v; }
+        }).filter(Boolean);
+
+        if(students.length > 0) {
+            render();
+            show(0);
+        }
+    } catch(e) {
+        setTimeout(load, 5000);
+    }
+    hideLoader();
+}
+
+function render(){
+    let html = "";
+    students.forEach((s, i) => {
+        html += `<img src="${s.photo || 'https://via.placeholder.com/100?text=User'}" 
+                 onerror="this.src='https://via.placeholder.com/100?text=User'"
+                 class="student-thumb ${i == 0 ? 'active' : ''}" 
+                 onclick="show(${i})" id="t${i}">`;
+    });
+    document.getElementById("picker").innerHTML = html;
+}
+
+function show(i) {
+    current = i;
+    let s = students[i];
+    document.getElementById("name").innerText = s.name || "Student";
+    document.getElementById("class").innerText = `कक्षा: ${s.class || '--'} | रोल नंबर: ${s.rollNo || '--'}`;
+    document.querySelectorAll(".student-thumb").forEach(x => x.classList.remove("active"));
+    document.getElementById("t" + i).classList.add("active");
+
+    localStorage.setItem("studentID", s.id);
+    sync(s.id);
+}
+
+// 🔴 SILENT SYNC (STORAGE SIZE FIXED)
+function sync(id) {
+    refs.forEach(r => r.off());
+    refs = [];
+
+    let cls = students[current].class || "default";
+
+    let paths = [
+        {key: "att", path: `Attendance/${id}`},
+        {key: "hw", path: `Homework/${cls}`},
+        {key: "fees", path: `Fees/${id}`},
+        {key: "notice", path: `Notices/${cls}`}
+    ];
+
+    paths.forEach(p => {
+        let r = db.ref(`Schools/${sID}/${p.path}`);
+        r.on("value", snap => {
+            // ✅ SAFE VERSION FOR STORAGE
+            const data = JSON.stringify(snap.val() || {});
+            localStorage.setItem(p.key, data.slice(0, 40000)); 
+        });
+        refs.push(r);
+    });
+}
+
+function go(p) {
+    if(!students[current]) return;
+    showLoader();
+    setTimeout(() => location.href = p + ".html", 150);
+}
+
+function logout() {
+    if(confirm("Logout करना चाहते हैं?")){
+        refs.forEach(r => r.off());
+        localStorage.clear();
+        location.href = "login.html";
+    }
+}
+
+function showLoader() { document.getElementById("loader").style.display = "flex"; }
+function hideLoader() { document.getElementById("loader").style.display = "none"; }
+
+window.addEventListener("online", load);
+window.onload = load;
+
 </script>
 
 </body>
