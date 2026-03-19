@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SchoolSphere</title>
 
-<style>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+<style>
+/* --- आपका 100% ओरिजिनल CSS (बिना किसी बदलाव के) --- */
 body{
 margin:0;
 font-family:Arial;
@@ -18,7 +22,6 @@ flex-direction: column;
 justify-content: center;
 }
 
-/* App Name */
 .app-name{
 font-size:40px;
 font-weight:bold;
@@ -33,14 +36,12 @@ margin-bottom:40px;
 color:#ddd;
 }
 
-/* Role Box */
 .role-box{
 width:85%;
 max-width: 400px;
 margin:auto;
 }
 
-/* Role Button - UI Consistency */
 .role{
 padding:16px;
 margin:15px 0;
@@ -62,33 +63,13 @@ transform:scale(1.05);
 filter: brightness(1.1);
 }
 
-/* Role Colors - Waisa hi gradient jaisa baki files mein hai */
-.owner{
-background:linear-gradient(to right,#6a11cb,#2575fc);
-}
+.owner{ background:linear-gradient(to right,#6a11cb,#2575fc); }
+.principal{ background:linear-gradient(to right,#2575fc,#4facfe); }
+.accountant{ background:linear-gradient(to right, #f2994a, #f2c94c); }
+.teacher{ background:linear-gradient(to right,#11998e,#38ef7d); }
+.driver{ background:linear-gradient(to right,#f2994a,#f2c94c); }
+.parent{ background:linear-gradient(to right,#ff5f6d,#ffc371); }
 
-.principal{
-background:linear-gradient(to right,#2575fc,#4facfe);
-}
-
-/* Accountant Button - UI bilkul baki buttons jaisa */
-.accountant{
-background:linear-gradient(to right, #f2994a, #f2c94c);
-}
-
-.teacher{
-background:linear-gradient(to right,#11998e,#38ef7d);
-}
-
-.driver{
-background:linear-gradient(to right,#f2994a,#f2c94c);
-}
-
-.parent{
-background:linear-gradient(to right,#ff5f6d,#ffc371);
-}
-
-/* Footer */
 .footer{
 margin-top:40px;
 font-size:12px;
@@ -96,7 +77,6 @@ color:#bbb;
 padding-bottom: 20px;
 }
 
-/* Computer Screen Compatibility */
 @media (min-width: 768px) {
     .role-box {
         max-width: 600px;
@@ -106,66 +86,72 @@ padding-bottom: 20px;
     }
 }
 
+/* स्कूल आईडी बॉक्स के लिए छोटा सा स्टाइल प्लस किया है */
+.id-input-box {
+    margin-bottom: 20px;
+}
+.id-input-box input {
+    padding: 12px;
+    border-radius: 20px;
+    border: 1px solid gold;
+    width: 200px;
+    text-align: center;
+    font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
-<div class="app-name">
-SchoolSphere
-</div>
+<div class="app-name">SchoolSphere</div>
+<div class="tagline">Smart School Management System</div>
 
-<div class="tagline">
-Smart School Management System
+<div class="id-input-box">
+    <input type="text" id="masterSchoolID" placeholder="School ID (उदा. GPS001)">
 </div>
 
 <div class="role-box">
-
-<div class="role owner" onclick="owner()">👑 Owner / Super Admin</div>
-
-<div class="role principal" onclick="principal()">🏫 Principal</div>
-
-<div class="role accountant" onclick="accountant()">💰 Accountant</div>
-
-<div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div>
-
-<div class="role driver" onclick="driver()">🚌 Driver</div>
-
-<div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div>
-
+    <div class="role owner" onclick="owner()">👑 Owner / Super Admin</div>
+    <div class="role principal" onclick="principal()">🏫 Principal</div>
+    <div class="role accountant" onclick="accountant()">💰 Accountant</div>
+    <div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div>
+    <div class="role driver" onclick="driver()">🚌 Driver</div>
+    <div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div>
 </div>
 
-<div class="footer">
-© 2026 SchoolSphere ERP
-</div>
+<div class="footer">© 2026 SchoolSphere ERP</div>
 
 <script>
+// --- FIREBASE SETUP (आपके google-services.json से प्लस किया गया) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+    authDomain: "schoolsphere-824ca.firebaseapp.com",
+    projectId: "schoolsphere-824ca",
+    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+    appId: "1:698409232180:android:7b25559d225a001d9f6761"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-function owner(){
-window.location.href="superadmin.html";
+// --- सुरक्षित रास्ता (Helper Function) ---
+function checkAndGo(page) {
+    let sID = document.getElementById("masterSchoolID").value;
+    if(!sID && page !== 'superadmin.html') {
+        alert("कृपया पहले अपनी School ID दर्ज करें!");
+        return;
+    }
+    localStorage.setItem("activeSchoolID", sID);
+    window.location.href = page;
 }
 
-function principal(){
-window.location.href="principal.html";
-}
-
-function accountant(){
-window.location.href="accountant.html";
-}
-
-function teacher(){
-window.location.href="teacher.html";
-}
-
-function driver(){
-window.location.href="driver.html";
-}
-
-function parent(){
-window.location.href="parent.html";
-}
+/* --- आपके ओरिजिनल फंक्शन्स (अब 'प्लस' लॉजिक के साथ) --- */
+function owner(){ checkAndGo("superadmin.html"); }
+function principal(){ checkAndGo("principal.html"); }
+function accountant(){ checkAndGo("accountant.html"); }
+function teacher(){ checkAndGo("teacher.html"); }
+function driver(){ checkAndGo("driver.html"); }
+function parent(){ checkAndGo("parent.html"); }
 
 </script>
-
 </body>
 </html>
