@@ -1,7 +1,14 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+<html>
+<head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SchoolSphere</title><style>
+<title>SchoolSphere</title>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+/* --- Aapka 100% Original Style (No Change) --- */
 body{
 margin:0;
 font-family:Arial;
@@ -9,8 +16,6 @@ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
 text-align:center;
 }
-
-/* App Name */
 
 .app-name{
 font-size:40px;
@@ -26,14 +31,10 @@ margin-bottom:40px;
 color:#ddd;
 }
 
-/* Role Box */
-
 .role-box{
 width:85%;
 margin:auto;
 }
-
-/* Base Role Button */
 
 .role{
 padding:16px;
@@ -50,29 +51,11 @@ transition:0.3s;
 transform:scale(1.05);
 }
 
-/* Role Colors */
-
-.owner{
-background:linear-gradient(to right,#6a11cb,#2575fc);
-}
-
-.principal{
-background:linear-gradient(to right,#2575fc,#4facfe);
-}
-
-.teacher{
-background:linear-gradient(to right,#11998e,#38ef7d);
-}
-
-.driver{
-background:linear-gradient(to right,#f2994a,#f2c94c);
-}
-
-.parent{
-background:linear-gradient(to right,#ff5f6d,#ffc371);
-}
-
-/* Footer */
+.owner{ background:linear-gradient(to right,#6a11cb,#2575fc); }
+.principal{ background:linear-gradient(to right,#2575fc,#4facfe); }
+.teacher{ background:linear-gradient(to right,#11998e,#38ef7d); }
+.driver{ background:linear-gradient(to right,#f2994a,#f2c94c); }
+.parent{ background:linear-gradient(to right,#ff5f6d,#ffc371); }
 
 .footer{
 margin-top:40px;
@@ -80,35 +63,85 @@ font-size:12px;
 color:#bbb;
 }
 
-</style></head><body><div class="app-name">
-SchoolSphere
-</div><div class="tagline">
-School Management App
-</div><div class="role-box"><div class="role owner" onclick="owner()">👑 Owner / Super Admin</div><div class="role principal" onclick="principal()">🏫 Principal</div><div class="role teacher" onclick="teacher()">👨‍🏫 Teacher</div><div class="role driver" onclick="driver()">🚌 Driver</div><div class="role parent" onclick="parent()">👨‍👩‍👧 Parent</div></div><div class="footer">
-© SchoolSphere ERP
-</div><script>
+/* School ID box (Plus kiya gaya) */
+.id-container { margin: 20px auto; }
+#mainSchoolID {
+    padding: 12px;
+    border-radius: 20px;
+    border: 2px solid gold;
+    width: 220px;
+    text-align: center;
+    font-size: 16px;
+}
+</style>
+</head>
+<body>
 
-/* Navigation fixed according to your project files */
+<div class="app-name">SchoolSphere</div>
+<div class="tagline">School Management App</div>
 
-function owner(){
-window.location.href="superadmin.html";
+<div class="id-container">
+    <input type="text" id="mainSchoolID" placeholder="Enter School ID (e.g. GPS001)">
+</div>
+
+<div class="role-box">
+    <div class="role owner" onclick="checkRole('owner')">👑 Owner / Super Admin</div>
+    <div class="role principal" onclick="checkRole('principal')">🏫 Principal</div>
+    <div class="role teacher" onclick="checkRole('teacher')">👨‍🏫 Teacher</div>
+    <div class="role driver" onclick="checkRole('driver')">🚌 Driver</div>
+    <div class="role parent" onclick="checkRole('parent')">👨‍👩‍👧 Parent</div>
+</div>
+
+<div class="footer">© SchoolSphere ERP</div>
+
+<script>
+// --- Firebase Config (Plus) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+    projectId: "schoolsphere-824ca"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// --- 3-Try Lock Logic (Naya Rule Plus) ---
+let attemptCount = 0;
+
+function checkRole(roleName) {
+    let sID = document.getElementById("mainSchoolID").value;
+    if(!sID) {
+        alert("Pehle School ID bhariye!");
+        return;
+    }
+
+    // Save ID for next pages
+    localStorage.setItem("activeSchoolID", sID);
+    localStorage.setItem("selectedRole", roleName);
+
+    // Redirect to common login or specific page
+    // Yahan hum login page par bhejenge jahan '3 Try' wala kaam hoga
+    window.location.href = roleName + ".html";
 }
 
-function principal(){
-window.location.href="principal.html";
-}
+/* DRIVER/TEACHER LOGIN PAGE KE LIYE LOGIC (Niche wala logic login buttons mein use hoga):
+   
+   function validateLogin(enteredPass, correctPass, userRef) {
+       if(enteredPass === correctPass) {
+           attemptCount = 0; // Reset on success
+           window.location.href = "dashboard.html";
+       } else {
+           attemptCount++;
+           if(attemptCount >= 3) {
+               // Firebase mein ID lock kar do
+               userRef.update({ status: "blocked" });
+               alert("3 baar galat password! Aapki ID band ho gayi hai. Dobara se Principal se sampark karen.");
+           } else {
+               alert("Galat Password! " + (3 - attemptCount) + " koshish bachi hain.");
+           }
+       }
+   }
+*/
 
-function teacher(){
-window.location.href="teacher.html";
-}
-
-function driver(){
-window.location.href="driver.html";
-}
-
-function parent(){
-window.location.href="parent.html";
-}
-
-</script></body>
+</script>
+</body>
 </html>
