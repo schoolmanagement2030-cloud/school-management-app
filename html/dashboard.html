@@ -1,36 +1,123 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html lang="hi">
 <head>
-<title>SchoolSphere Dashboard</title><style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchoolSphere Dashboard</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-body{
-font-family:Arial;
-background:#f2f2f2;
-text-align:center;
-padding:40px;
-}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            text-align: center;
+            padding: 40px;
+        }
 
-h1{
-margin-bottom:30px;
-}
+        h1 {
+            margin-bottom: 30px;
+        }
 
-button{
-width:200px;
-padding:15px;
-margin:10px;
-border:none;
-background:#0072ff;
-color:white;
-font-size:16px;
-border-radius:10px;
-}
+        /* लॉगिन बॉक्स के लिए थोड़ा स्टाइल प्लस किया है */
+        .login-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
 
-</style></head><body><h1>Welcome to SchoolSphere</h1><button onclick="alert('Students Panel')">Students</button>
+        input {
+            display: block;
+            width: 200px;
+            padding: 10px;
+            margin: 10px auto;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
 
-<button onclick="alert('Teachers Panel')">Teachers</button>
+        button {
+            width: 220px;
+            padding: 15px;
+            margin: 10px;
+            border: none;
+            background: #0072ff;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-<button onclick="alert('Bus Tracking')">Bus Tracking</button>
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
 
-<button onclick="alert('Fees System')">Fees</button>
+    <h1>Welcome to SchoolSphere</h1>
 
+    <div class="login-box">
+        <h3 style="margin-top:0;">Login Access</h3>
+        <input type="text" id="schoolID" placeholder="School ID (जैसे GPS001)">
+        <input type="number" id="userMobile" placeholder="Mobile Number">
+        <input type="password" id="userPass" placeholder="Password">
+    </div>
+
+    <br>
+
+    <button onclick="loginUser('Students')">Students Panel</button>
+    <button onclick="loginUser('Teachers')">Teachers Panel</button>
+    <button onclick="loginUser('Bus')">Bus Tracking (Driver)</button>
+    <button onclick="loginUser('Accountant')">Fees (Accountant)</button>
+
+    <script>
+        // --- FIREBASE CONFIG (आपके google-services.json से) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+            authDomain: "schoolsphere-824ca.firebaseapp.com",
+            projectId: "schoolsphere-824ca",
+            databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+            appId: "1:698409232180:android:7b25559d225a001d9f6761"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function loginUser(panel) {
+            const sID = document.getElementById('schoolID').value;
+            const mobile = document.getElementById('userMobile').value;
+            const pass = document.getElementById('userPass').value;
+
+            if(!sID || !mobile || !pass) {
+                alert("कृपया School ID, Mobile और Password भरें!");
+                return;
+            }
+
+            // --- लॉगिन चेक (Firebase से प्लस किया गया) ---
+            db.ref('Schools/' + sID + '/Staff/' + mobile).once('value', (snap) => {
+                const userData = snap.val();
+
+                if (userData && userData.password === pass) {
+                    // डेटा को लोकल सेव करना ताकि अगले पेज पर काम आए
+                    localStorage.setItem("activeSchoolID", sID);
+                    localStorage.setItem("userRole", panel);
+                    
+                    alert(panel + " में आपका स्वागत है!");
+                    
+                    // यहाँ से सही पेज पर भेज देगा (जैसे accountant.html)
+                    if(panel === 'Accountant') window.location.href = "accountant.html";
+                    else if(panel === 'Teachers') window.location.href = "teacher.html";
+                    else if(panel === 'Bus') window.location.href = "driver.html";
+                    else alert("Students panel अभी तैयार हो रहा है!");
+                } else {
+                    alert("गलत जानकारी! कृपया दोबारा चेक करें।");
+                }
+            });
+        }
+    </script>
 </body>
 </html>
