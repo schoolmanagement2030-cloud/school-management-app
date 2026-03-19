@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-/* --- Aapka 100% Original Style (No Change) --- */
+/* --- आपका 100% ओरिजिनल स्टाइलिंग (बिना किसी बदलाव के) --- */
 body{
 margin:0;
 font-family:Arial;
@@ -63,16 +63,20 @@ font-size:12px;
 color:#bbb;
 }
 
-/* School ID box (Plus kiya gaya) */
+/* School ID इनपुट के लिए स्टाइल (UI कंसिस्टेंसी के लिए) */
 .id-container { margin: 20px auto; }
 #mainSchoolID {
     padding: 12px;
     border-radius: 20px;
     border: 2px solid gold;
     width: 220px;
+    background: rgba(255,255,255,0.1);
+    color: white;
     text-align: center;
     font-size: 16px;
+    outline: none;
 }
+#mainSchoolID::placeholder { color: #ccc; }
 </style>
 </head>
 <body>
@@ -85,17 +89,17 @@ color:#bbb;
 </div>
 
 <div class="role-box">
-    <div class="role owner" onclick="checkRole('owner')">👑 Owner / Super Admin</div>
-    <div class="role principal" onclick="checkRole('principal')">🏫 Principal</div>
-    <div class="role teacher" onclick="checkRole('teacher')">👨‍🏫 Teacher</div>
-    <div class="role driver" onclick="checkRole('driver')">🚌 Driver</div>
-    <div class="role parent" onclick="checkRole('parent')">👨‍👩‍👧 Parent</div>
+    <div class="role owner" onclick="goTo('superadmin.html')">👑 Owner / Super Admin</div>
+    <div class="role principal" onclick="goTo('principal.html')">🏫 Principal</div>
+    <div class="role teacher" onclick="goTo('teacher.html')">👨‍🏫 Teacher</div>
+    <div class="role driver" onclick="goTo('driver.html')">🚌 Driver</div>
+    <div class="role parent" onclick="goTo('parent.html')">👨‍👩‍👧 Parent</div>
 </div>
 
 <div class="footer">© SchoolSphere ERP</div>
 
 <script>
-// --- Firebase Config (Plus) ---
+// --- FIREBASE CONFIG (प्लस किया गया) ---
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -104,41 +108,28 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- 3-Try Lock Logic (Naya Rule Plus) ---
-let attemptCount = 0;
-
-function checkRole(roleName) {
+// --- सुरक्षित नेविगेशन (प्लस किया गया) ---
+function goTo(page) {
     let sID = document.getElementById("mainSchoolID").value;
     if(!sID) {
-        alert("Pehle School ID bhariye!");
+        alert("कृपया पहले अपनी School ID दर्ज करें!");
         return;
     }
-
-    // Save ID for next pages
+    // ID को सुरक्षित सेव करना ताकि लॉगिन पेजों पर इस्तेमाल हो सके
     localStorage.setItem("activeSchoolID", sID);
-    localStorage.setItem("selectedRole", roleName);
-
-    // Redirect to common login or specific page
-    // Yahan hum login page par bhejenge jahan '3 Try' wala kaam hoga
-    window.location.href = roleName + ".html";
+    window.location.href = page;
 }
 
-/* DRIVER/TEACHER LOGIN PAGE KE LIYE LOGIC (Niche wala logic login buttons mein use hoga):
+/* --- विकास भाई के लिए नोट (3-Try Logic): ---
+   जब यूजर 'Login' बटन दबाएगा, तो हम ये कोड वहां इस्तेमाल करेंगे:
    
-   function validateLogin(enteredPass, correctPass, userRef) {
-       if(enteredPass === correctPass) {
-           attemptCount = 0; // Reset on success
-           window.location.href = "dashboard.html";
-       } else {
-           attemptCount++;
-           if(attemptCount >= 3) {
-               // Firebase mein ID lock kar do
-               userRef.update({ status: "blocked" });
-               alert("3 baar galat password! Aapki ID band ho gayi hai. Dobara se Principal se sampark karen.");
-           } else {
-               alert("Galat Password! " + (3 - attemptCount) + " koshish bachi hain.");
-           }
-       }
+   let attempts = localStorage.getItem("login_tries") || 0;
+   
+   if(attempts >= 3) {
+       alert("3 बार गलत पासवर्ड! ID बंद है, दोबारा से प्रिंसिपल से संपर्क करें।");
+       // Firebase में स्टेटस 'blocked' कर देंगे
+       db.ref('Schools/'+sID+'/Staff/'+mobile).update({ status: 'blocked' });
+       return;
    }
 */
 
