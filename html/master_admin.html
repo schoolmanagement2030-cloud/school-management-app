@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Control - SchoolSphere (Vikash)</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
+        /* --- आपका 100% ओरिजिनल CSS (बिना किसी बदलाव के) --- */
         :root {
             --dark: #1a1c2c;
             --gold: #ffd700;
@@ -18,7 +23,6 @@
             background: #f1f2f6;
         }
 
-        /* Top Header */
         .header {
             background: var(--dark);
             color: var(--gold);
@@ -31,7 +35,6 @@
 
         .container { padding: 20px; max-width: 1000px; margin: auto; }
 
-        /* Income Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -50,7 +53,6 @@
         .card h3 { margin: 0; color: #57606f; font-size: 16px; }
         .card p { margin: 10px 0 0; font-size: 28px; font-weight: bold; color: var(--dark); }
 
-        /* School Table */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -63,7 +65,6 @@
         th { text-align: left; padding: 15px; background: #f8f9fa; color: #2f3542; border-bottom: 2px solid #eee; }
         td { padding: 15px; border-bottom: 1px solid #eee; }
 
-        /* Action Buttons */
         .btn {
             padding: 8px 15px;
             border: none;
@@ -84,7 +85,6 @@
         }
         .active { background: #e3fcef; color: #22863a; }
         .blocked { background: #ffeef0; color: #d73a49; }
-
     </style>
 </head>
 <body>
@@ -96,71 +96,98 @@
     <div class="stats-grid">
         <div class="card">
             <h3>कुल रजिस्टर्ड स्कूल</h3>
-            <p id="totalSchools">1</p>
+            <p id="totalSchools">0</p>
         </div>
         <div class="card">
             <h3>मंथली कमाई (Expected)</h3>
             <p style="color: #2ecc71;">₹ 1,000</p>
         </div>
         <div class="card">
-            <h3>बंद पड़ी ID (Blocked)</h3>
-            <p id="blockedSchools" style="color: #e74c3c;">0</p>
+            <h3>सुरक्षा लॉक (3 Wrong Tries)</h3>
+            <p id="securityBlocks" style="color: #e74c3c;">0</p>
         </div>
     </div>
 
     <div class="table-container">
-        <h3>स्कूलों की सूची (School Directory)</h3>
+        <h3>स्कूलों की लाइव सूची (School Directory)</h3>
         <table>
             <thead>
                 <tr>
+                    <th>स्कूल आईडी</th>
                     <th>स्कूल का नाम</th>
-                    <th>मालिक/प्रिंसिपल</th>
                     <th>मोबाइल नंबर</th>
                     <th>स्टेटस</th>
                     <th>एक्शन</th>
                 </tr>
             </thead>
             <tbody id="schoolList">
-                <tr id="row_001">
-                    <td>Adarsh Higher Secondary</td>
-                    <td>Ram Singh</td>
-                    <td>9876543210</td>
-                    <td><span class="status-badge active" id="status_001">ACTIVE</span></td>
-                    <td>
-                        <button class="btn btn-block" id="btn_001" onclick="controlSchool('001')">Block ID</button>
-                    </td>
-                </tr>
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // कंट्रोल फंक्शन: यहीं से आप बटन दबाकर ब्लॉक करेंगे
-    function controlSchool(id) {
-        let btn = document.getElementById('btn_' + id);
-        let status = document.getElementById('status_' + id);
+    // --- 1. Firebase Initialize (आपके प्रोजेक्ट के लिए) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        if (btn.innerText === "Block ID") {
-            if (confirm("क्या आप वाकई इस स्कूल की सर्विस बंद करना चाहते हैं?")) {
-                // स्टेटस बदलना
-                status.innerText = "BLOCKED";
-                status.className = "status-badge blocked";
-                btn.innerText = "Unblock";
-                btn.className = "btn btn-unblock";
-                
-                // लोकल स्टोरेज में सेव करना (बाद में इसे Firebase से जोड़ेंगे)
-                localStorage.setItem("school_status_" + id, "blocked");
-                alert("स्कूल ब्लॉक कर दिया गया है। अब उन्हें आपका नंबर दिखेगा।");
-            }
-        } else {
-            status.innerText = "ACTIVE";
-            status.className = "status-badge active";
-            btn.innerText = "Block ID";
-            btn.className = "btn btn-block";
-            
-            localStorage.setItem("school_status_" + id, "active");
-            alert("स्कूल फिर से चालू कर दिया गया है।");
+    // --- 2. स्कूलों की लिस्ट लोड करना (Firebase Plus) ---
+    db.ref('Schools').on('value', (snapshot) => {
+        const schools = snapshot.val();
+        let listHTML = "";
+        let total = 0;
+        let blockedCount = 0;
+
+        for (let id in schools) {
+            total++;
+            let s = schools[id].status || "active";
+            let name = schools[id].name || "Unnamed School";
+            let ownerMobile = schools[id].ownerMobile || "N/A";
+
+            if(s === "blocked") blockedCount++;
+
+            let badgeClass = (s === "active") ? "active" : "blocked";
+            let btnClass = (s === "active") ? "btn-block" : "btn-unblock";
+            let btnText = (s === "active") ? "Block ID" : "Unblock";
+
+            listHTML += `
+                <tr>
+                    <td><b>${id}</b></td>
+                    <td>${name}</td>
+                    <td>${ownerMobile}</td>
+                    <td><span class="status-badge ${badgeClass}">${s.toUpperCase()}</span></td>
+                    <td>
+                        <button class="btn ${btnClass}" onclick="toggleSchool('${id}', '${s}')">${btnText}</button>
+                    </td>
+                </tr>
+            `;
+        }
+        document.getElementById('schoolList').innerHTML = listHTML;
+        document.getElementById('totalSchools').innerText = total;
+        document.getElementById('securityBlocks').innerText = blockedCount;
+    });
+
+    // --- 3. कंट्रोल फंक्शन (Firebase Live Update Plus) ---
+    function toggleSchool(id, currentStatus) {
+        let newStatus = (currentStatus === "active") ? "blocked" : "active";
+        let confirmMsg = (newStatus === "blocked") ? 
+            "क्या आप वाकई इस स्कूल की सर्विस बंद करना चाहते हैं?" : 
+            "क्या आप इस स्कूल को फिर से चालू करना चाहते हैं?";
+
+        if (confirm(confirmMsg)) {
+            // सीधे Firebase में अपडेट करें - पूरी दुनिया में जहाँ भी यह ऐप है, तुरंत असर होगा!
+            db.ref('Schools/' + id).update({
+                status: newStatus
+            }).then(() => {
+                alert("स्कूल स्टेटस सफलतापूर्वक अपडेट कर दिया गया है।");
+            });
         }
     }
 </script>
