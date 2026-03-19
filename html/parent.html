@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <title>Parent Login - SchoolSphere</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
+        /* --- आपका 100% ओरिजिनल CSS (बिना किसी बदलाव के) --- */
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg,#eef2f3,#dfe9f3);
@@ -16,7 +21,6 @@
             justify-content: center;
         }
 
-        /* --- पेरेंट्स के लिए ब्लॉक स्क्रीन --- */
         #parentBlockScreen {
             display: none;
             position: fixed;
@@ -88,7 +92,7 @@
 <div id="parentBlockScreen">
     <div class="alert-box">
         <h1 style="color: #c53030; font-size: 24px;">खाता निष्क्रिय (Account Inactive)</h1>
-        <p style="font-size: 16px; color: #4a5568;">आपकी पेरेंट आईडी अभी चालू नहीं है।</p>
+        <p id="blockMessage" style="font-size: 16px; color: #4a5568;">आपकी पेरेंट आईडी अभी चालू नहीं है।</p>
         
         <div class="contact-card">
             <p><b>अधिक जानकारी के लिए संपर्क करें:</b></p>
@@ -104,6 +108,7 @@
 <div id="loginArea">
     <div class="header">Parent Login</div>
     <div class="login-box">
+        <input id="schoolID" type="text" placeholder="स्कूल आईडी (जैसे GPS001)">
         <input id="mobile" type="number" placeholder="अभिभावक मोबाइल नंबर">
         <input id="password" type="password" placeholder="पासवर्ड">
         <button onclick="login()">Login</button>
@@ -111,49 +116,74 @@
 </div>
 
 <script>
-    // ब्लॉक स्टेटस चेक करना
-    function checkParentStatus() {
-        // अगर विकास (Master Admin) ने पूरा स्कूल ब्लॉक किया है
-        let isGlobalBlocked = localStorage.getItem("master_block_status") === "blocked";
-        // या अगर प्रिंसिपल ने किसी खास बच्चे/पेरेंट को ब्लॉक किया है
-        let isParentBlocked = localStorage.getItem("status_parent_" + document.getElementById("mobile").value) === "blocked";
+    // --- 1. Firebase Initialize (प्लस किया गया) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        if (isGlobalBlocked || isParentBlocked) {
-            document.getElementById("parentBlockScreen").style.display = "block";
-            document.getElementById("loginArea").style.display = "none";
-            return true;
-        }
-        return false;
-    }
+    // लॉगिन की कोशिशों को गिनने के लिए (3-Try Rule)
+    let loginAttempts = 0;
 
     function login() {
+        let sID = document.getElementById("schoolID").value;
         let mobile = document.getElementById("mobile").value;
         let password = document.getElementById("password").value;
 
-        // पहले ब्लॉक चेक करें
-        if (checkParentStatus()) return;
+        if(!sID || !mobile || !password) { alert("सभी जानकारी भरें!"); return; }
 
-        // यहाँ वो डेटा है जो स्कूल ने पेरेंट के लिए बनाया है
-        let savedMobile = localStorage.getItem("parentMobile");
-        let savedPass = localStorage.getItem("parentPass");
+        // --- Firebase से डेटा चेक करना (प्लस किया गया) ---
+        db.ref('Schools/' + sID + '/Parents/' + mobile).once('value', (snap) => {
+            const parentData = snap.val();
 
-        if (mobile == savedMobile && password == savedPass) {
-            
-            // डिवाइस लॉक (पहली बार लॉगिन पर फोन आईडी सेव करना)
-            let savedDevice = localStorage.getItem("parent_device_" + mobile);
-            let currentDevice = "PARENT_PHONE_XYZ"; // यूनिक आईडी
+            if (parentData) {
+                // 1. क्या आईडी पहले से ब्लॉक है?
+                if (parentData.status === "blocked") {
+                    document.getElementById("blockMessage").innerText = parentData.blockReason || "आपकी आईडी बंद है, प्रिंसिपल से संपर्क करें।";
+                    document.getElementById("parentBlockScreen").style.display = "block";
+                    document.getElementById("loginArea").style.display = "none";
+                    return;
+                }
 
-            if (!savedDevice) {
-                localStorage.setItem("parent_device_" + mobile, currentDevice);
-            } else if (savedDevice !== currentDevice) {
-                alert("सुरक्षा कारणों से यह आईडी केवल आपके पंजीकृत फोन पर ही चलेगी।");
-                return;
+                // 2. पासवर्ड चेक
+                if (parentData.password === password) {
+                    
+                    // --- आपका डिवाइस लॉक सिस्टम ---
+                    let currentDevice = "PARENT_PHONE_XYZ"; // यहाँ फोन की असली आईडी आएगी
+                    if (!parentData.deviceID) {
+                        db.ref('Schools/' + sID + '/Parents/' + mobile).update({ deviceID: currentDevice });
+                    } else if (parentData.deviceID !== currentDevice) {
+                        alert("सुरक्षा कारणों से यह आईडी केवल आपके पंजीकृत फोन पर ही चलेगी।");
+                        return;
+                    }
+
+                    // लॉगिन सफल: डेटा सेव करें
+                    localStorage.setItem("activeSchoolID", sID);
+                    localStorage.setItem("parentMobile", mobile);
+                    window.location.href = "parent-dashboard.html";
+
+                } else {
+                    // गलत पासवर्ड पर 3-Try Rule (प्लस किया गया)
+                    loginAttempts++;
+                    if (loginAttempts >= 3) {
+                        db.ref('Schools/' + sID + '/Parents/' + mobile).update({ 
+                            status: "blocked",
+                            blockReason: "3 बार गलत पासवर्ड डालने के कारण आईडी बंद कर दी गई है।" 
+                        });
+                        alert("3 बार गलत पासवर्ड! आईडी ब्लॉक हो गई है। प्रिंसिपल से मिलें।");
+                    } else {
+                        alert("गलत पासवर्ड! आपके पास " + (3 - loginAttempts) + " कोशिशें बची हैं।");
+                    }
+                }
+            } else {
+                alert("गलत स्कूल आईडी या मोबाइल नंबर!");
             }
-
-            window.location.href = "parent-dashboard.html";
-        } else {
-            alert("गलत मोबाइल नंबर या पासवर्ड!");
-        }
+        });
     }
 </script>
 
