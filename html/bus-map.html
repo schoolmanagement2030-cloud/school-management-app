@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
-<title>School Bus Tracking</title>
-
+<title>School Sphere - Bus Tracking</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -21,27 +20,74 @@ h1{
 background:#FFD700;
 margin:0;
 padding:15px;
+font-size: 20px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 #map{
-height:85vh;
+height:90vh; /* थोड़ा बढ़ा दिया ताकि पूरी स्क्रीन कवर हो */
 width:100%;
 }
 
+/* बस का आइकन स्टाइल */
+.bus-icon {
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
 </style>
-
 </head>
 
 <body>
 
-<h1>School Bus Tracking</h1>
+<h1><i class="fas fa-bus"></i> Live School Bus Tracking</h1>
 
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<script type="module" src="../js/bus.js"></script>
+<script>
+    // --- FIREBASE CONFIG (आपके google-services.json से) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+        authDomain: "schoolsphere-824ca.firebaseapp.com",
+        projectId: "schoolsphere-824ca",
+        databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // स्कूल आईडी और बस आईडी (लॉगिन से मिलेगी)
+    const sID = localStorage.getItem("activeSchoolID") || "GPS001";
+    
+    // मैप सेटअप (आपका ओरिजिनल)
+    var map = L.map('map').setView([26.8467, 80.9462], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'SchoolSphere Live'
+    }).addTo(map);
+
+    // बस का मार्कर (निशान)
+    var busMarker = L.marker([26.8467, 80.9462]).addTo(map)
+        .bindPopup('बस अभी यहाँ है').openPopup();
+
+    // --- लाइव लोकेशन अपडेट (Firebase से प्लस किया गया) ---
+    // ड्राइवर की ऐप जहाँ भी 'Location' अपडेट करेगी, यह मैप उसे तुरंत पकड़ेगा
+    db.ref('Schools/' + sID + '/LiveBuses').on('value', (snapshot) => {
+        const buses = snapshot.val();
+        for (let id in buses) {
+            let lat = buses[id].latitude;
+            let lng = buses[id].longitude;
+            let busNum = buses[id].busNumber || "School Bus";
+
+            // मार्कर की पोजीशन अपडेट करना
+            busMarker.setLatLng([lat, lng]);
+            busMarker.getPopup().setContent("<b>" + busNum + "</b><br>Speed: " + (buses[id].speed || 0) + " km/h");
+            
+            // मैप को बस के साथ-साथ चलाना (Optional)
+            map.panTo([lat, lng]);
+        }
+    });
+
+</script>
 
 </body>
-
 </html>
