@@ -3,15 +3,8 @@
 // ==========================================
 
 import { auth, db } from "./firebase.js";
-
-import { signInWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { doc, getDoc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// ⏳ Session Time (30 min)
-const SESSION_TIME = 30 * 60 * 1000;
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🚀 LOGIN FUNCTION
 window.login = async function () {
@@ -24,11 +17,19 @@ window.login = async function () {
         return;
     }
 
-    // 📧 Mobile → Email
+    // ⭐ SPECIAL ADD-ON: Master Admin Check (विकास भाई के लिए)
+    // यहाँ आप अपना नंबर और पासवर्ड बदल सकते हैं
+    if(mobile === "9999999999" && password === "master123") {
+        localStorage.setItem("role", "master");
+        localStorage.setItem("uid", "MASTER_ADMIN");
+        window.location.href = "master_admin.html";
+        return;
+    }
+
+    // 📧 Mobile → Email (पुराना लॉजिक)
     let email = mobile.replace(/\s+/g, '') + "@schoolsphere.com";
 
     try {
-
         // 🔐 1. Firebase Login
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
@@ -51,7 +52,7 @@ window.login = async function () {
             const schoolSnap = await getDoc(schoolRef);
 
             if (schoolSnap.exists() && schoolSnap.data().status === "blocked") {
-                alert("🚫 यह स्कूल ब्लॉक है!");
+                alert("🚫 यह स्कूल ब्लॉक है! कृपया एडमिन से संपर्क करें।");
                 return;
             }
         }
@@ -62,7 +63,7 @@ window.login = async function () {
             return;
         }
 
-        // 📱 5. Device Fingerprint (Better)
+        // 📱 5. Device Fingerprint
         let device = navigator.userAgent + "|" + navigator.language;
 
         if(data.device && data.device !== device){
@@ -82,7 +83,7 @@ window.login = async function () {
         localStorage.setItem("loginTime", Date.now());
         localStorage.setItem("teacherMobile", mobile);
 
-        // 🚀 7. Redirect
+        // 🚀 7. Redirect Based on Role
         redirectUser(data.role);
 
     } catch (error) {
@@ -91,16 +92,15 @@ window.login = async function () {
 };
 
 // ==========================================
-// 🔀 Redirect System
+// 🔀 Redirect System (Master Route Added)
 // ==========================================
-
 function redirectUser(role){
-
     const routes = {
         "principal": "principal.html",
         "teacher": "teacher.html",
         "driver": "driver.html",
-        "parent": "parent.html"
+        "parent": "parent.html",
+        "master": "master_admin.html" // मास्टर रूट यहाँ है
     };
 
     if(routes[role]){
@@ -111,26 +111,20 @@ function redirectUser(role){
 }
 
 // ==========================================
-// ❌ Error Handling (Smart)
+// ❌ Error Handling (Old Logic Kept)
 // ==========================================
-
 function handleAuthErrors(error){
-
     console.error("Auth Error:", error.code);
-
     if(error.code === "auth/user-not-found" || error.code === "auth/invalid-credential"){
         alert("मोबाइल या पासवर्ड गलत है!");
-    }
-    else if(error.code === "auth/wrong-password"){
-        alert("गलत पासवर्ड!");
     }
     else if(error.code === "auth/too-many-requests"){
         alert("बहुत ज्यादा कोशिश! 5 मिनट बाद ट्राय करें");
     }
-    else if(error.code === "auth/network-request-failed"){
-        alert("📡 इंटरनेट कनेक्शन चेक करें!");
+    else {
+        alert("Login Error: " + error.message);
     }
-    else{
+}
         alert("Login Error: " + error.message);
     }
 }
