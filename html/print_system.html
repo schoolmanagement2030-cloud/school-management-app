@@ -1,90 +1,184 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <title>SchoolSphere Printing System</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
-    <style>
-        .print-card {
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin: 10px;
-            border-radius: 10px;
-            background: #fff;
-        }
-        button {
-            padding: 10px 20px;
-            background: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SchoolSphere Pro - Fin-Printer</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root { --primary:#1a1c2c; --success:#27ae60; --gold:#ffd700; --bg:#f8fafc; }
+body { font-family:'Segoe UI', sans-serif; background:var(--bg); padding:20px; margin:0; }
+
+.container { max-width:450px; margin:auto; background:white; padding:25px; border-radius:25px; box-shadow:0 15px 35px rgba(0,0,0,0.1); border-top:10px solid var(--primary); }
+h2 { color:var(--primary); text-align:center; margin-bottom:20px; }
+
+.input-box { margin-bottom:15px; }
+label { font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:5px; }
+input, select { width:100%; padding:14px; border-radius:12px; border:1.5px solid #eee; box-sizing:border-box; outline:none; font-size:16px; transition:0.3s; }
+input:focus { border-color:var(--primary); }
+
+button { width:100%; padding:16px; margin-top:20px; background:var(--primary); color:var(--gold); border:none; border-radius:15px; font-size:18px; font-weight:bold; cursor:pointer; transition:0.3s; box-shadow:0 10px 20px rgba(26,28,44,0.2); }
+button:active { transform:scale(0.98); }
+button:disabled { background:#ccc; cursor:wait; }
+
+.loader { display:none; text-align:center; color:var(--success); margin-top:10px; font-weight:bold; }
+</style>
 </head>
+
 <body>
 
-<div class="print-card">
-    <h2>स्टाफ सैलरी और रिपोर्ट प्रिंटर</h2>
-    <p>यहाँ से आप ड्राइवर, स्वीपर, वॉर्डन और टीचर्स की रसीद निकाल सकते हैं।</p>
+<div class="container">
+    <h2>सैलरी रसीद 🧾</h2>
     
-    <input type="text" id="staffName" placeholder="Staff Name">
-    <select id="staffRole">
-        <option value="Bus Driver">Bus Driver</option>
-        <option value="Bus Conductor">Bus Conductor</option>
-        <option value="Teacher">Teacher</option>
-        <option value="Sweeper">Sweeper</option>
-        <option value="Hostel Warden">Hostel Warden</option>
-    </select>
-    <input type="number" id="salaryAmount" placeholder="Amount (Salary)">
-    
-    <br><br>
-    <button onclick="printSalarySlip()">Salary Slip (PDF) निकालें</button>
+    <div class="input-box">
+        <label>स्टाफ का नाम</label>
+        <input type="text" id="staffName" placeholder="उदा: राम सिंह">
+    </div>
+
+    <div class="input-box">
+        <label>पद (Role)</label>
+        <select id="staffRole">
+            <option value="Bus Driver">Bus Driver 🚌</option>
+            <option value="Teacher">Teacher 👨‍🏫</option>
+            <option value="Warden">Warden 🏫</option>
+            <option value="Sweeper">Sweeper 🧹</option>
+        </select>
+    </div>
+
+    <div class="input-box">
+        <label>किस महीने की सैलरी (Month)</label>
+        <select id="salaryMonth">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+        </select>
+    </div>
+
+    <div class="input-box">
+        <label>राशि (₹ Amount)</label>
+        <input type="number" id="salaryAmount" placeholder="₹ 0.00">
+    </div>
+
+    <button id="printBtn" onclick="processPayment()">PRINT & CLOUD SYNC ✅</button>
+    <div id="loader" class="loader"><i class="fas fa-sync fa-spin"></i> डेटा सुरक्षित किया जा रहा है...</div>
 </div>
 
 <script>
-function printSalarySlip() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    let sName = document.getElementById("staffName").value;
-    let sRole = document.getElementById("staffRole").value;
-    let sAmount = document.getElementById("salaryAmount").value;
-    let schoolName = localStorage.getItem("schoolName") || "SchoolSphere App";
+// 🔥 Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+    projectId: "schoolsphere-824ca"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    // PDF का डिजाइन
-    doc.setFillColor(44, 83, 100);
-    doc.rect(0, 0, 210, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.text(schoolName, 105, 20, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.text("Official Salary Certificate", 105, 30, { align: 'center' });
+const sID = localStorage.getItem("activeSchoolID") || "GPS001";
+const schoolName = localStorage.getItem("schoolName") || "SchoolSphere Pro";
 
-    // डेटा टेबल
-    doc.setTextColor(0, 0, 0);
-    doc.autoTable({
-        startY: 50,
-        head: [['Detail', 'Information']],
-        body: [
-            ['Employee Name', sName],
-            ['Designation (Post)', sRole],
-            ['Salary Amount', 'Rs. ' + sAmount],
-            ['Payment Date', new Date().toLocaleDateString()],
-            ['Status', 'Paid Successfully']
-        ],
-    });
+// 🧠 Smart Number to Words Logic
+function inWords(num) {
+    let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+    let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+    if ((num = num.toString()).length > 9) return 'overflow';
+    let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n) return; let str = '';
+    str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+    str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+    str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+    str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+    str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'Only' : '';
+    return str;
+}
 
-    // हस्ताक्षर (Signature)
-    doc.text("Principal/Owner Signature", 150, 150);
-    doc.line(145, 145, 195, 145);
+async function processPayment(){
+    if(!navigator.onLine) { alert("📡 इंटरनेट बंद है!"); return; }
 
-    // फाइल सेव करना
-    doc.save(sName + "_Salary_Slip.pdf");
-    alert(sRole + " की सैलरी स्लिप डाउनलोड हो गई है!");
+    let name = document.getElementById("staffName").value.trim();
+    let role = document.getElementById("staffRole").value;
+    let month = document.getElementById("salaryMonth").value;
+    let amount = parseFloat(document.getElementById("salaryAmount").value);
+
+    if(!name || !amount || amount <= 0){ alert("पूरी जानकारी भरें!"); return; }
+
+    document.getElementById("loader").style.display="block";
+    document.getElementById("printBtn").disabled=true;
+
+    let slipID = "SS-" + Date.now().toString().slice(-6) + "-" + Math.floor(Math.random()*99);
+    let date = new Date().toLocaleDateString('en-IN');
+
+    try {
+        // 1. ☁️ Firebase Cloud Sync
+        await db.ref(`Schools/${sID}/SalaryLogs/${slipID}`).set({
+            name, role, month, amount,
+            date,
+            timestamp: Date.now()
+        });
+
+        // 2. 🖨️ PDF Generation (Pro Design)
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header Background
+        doc.setFillColor(26, 28, 44);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 215, 0);
+        doc.setFontSize(22);
+        doc.text(schoolName.toUpperCase(), 105, 18, {align:'center'});
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text(`OFFICIAL SALARY DISBURSEMENT SLIP - ${month.toUpperCase()}`, 105, 28, {align:'center'});
+
+        // Info Table
+        doc.autoTable({
+            startY: 45,
+            theme: 'striped',
+            head: [['Description', 'Staff Information']],
+            body: [
+                ['Slip ID', slipID],
+                ['Date', date],
+                ['Staff Name', name],
+                ['Position', role],
+                ['Salary Month', month],
+                ['Net Amount Paid', 'Rs. ' + amount.toLocaleString('en-IN')],
+                ['Status', 'SUCCESSFULLY PAID ✅']
+            ],
+            headStyles: { fillColor: [26, 28, 44] }
+        });
+
+        let finalY = doc.lastAutoTable.finalY;
+        doc.setTextColor(0,0,0);
+        doc.setFontSize(11);
+        doc.text(`Amount in Words: ${inWords(amount)}`, 15, finalY + 15);
+        
+        doc.setFontSize(10);
+        doc.text("Employee Signature", 30, finalY + 50);
+        doc.text("Authorized Accountant", 150, finalY + 50);
+        doc.line(145, finalY + 45, 195, finalY + 45);
+
+        window.open(doc.output('bloburl'), '_blank');
+        alert("सैलरी रिकॉर्ड सुरक्षित और रसीद तैयार! ✅");
+
+    } catch(err) {
+        alert("❌ Error: " + err.message);
+    } finally {
+        document.getElementById("loader").style.display="none";
+        document.getElementById("printBtn").disabled=false;
+    }
 }
 </script>
 
