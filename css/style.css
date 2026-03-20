@@ -1,42 +1,200 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolSphere Pro Login</title>
+
+<style>
+:root {
+    --primary: #2ecc71;
+    --dark: #1a1c2c;
+    --gold: #ffd700;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
-    background: #f0f2f5;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh; 
     margin: 0;
+    padding: 20px;
 }
 
 .login-container {
     background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 300px;
+    padding: 40px 30px;
+    border-radius: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    width: 100%;
+    max-width: 350px;
     text-align: center;
+    animation: fadeIn 0.5s ease;
 }
 
-input {
+h2 { margin-bottom: 25px; color: #2c3e50; font-size: 28px; }
+
+input, select {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    padding: 15px;
+    margin: 12px 0;
+    border: 2px solid #f0f0f0;
+    border-radius: 15px;
     box-sizing: border-box;
+    font-size: 16px;
+    background: #f9f9f9;
+    transition: 0.3s;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+    outline: none;
 }
 
 button {
     width: 100%;
-    padding: 12px;
-    background: #007bff;
+    padding: 16px;
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 15px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 18px;
+    margin-top: 15px;
+    box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
 }
 
-button:hover {
-    background: #0056b3;
+button:active { transform: translateY(2px); }
+
+.toggle {
+    margin-top: 25px;
+    font-size: 14px;
+    color: #3498db;
+    cursor: pointer;
+    font-weight: 600;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+<h2 id="title">Login</h2>
+
+<!-- LOGIN -->
+<div id="loginBox">
+
+<select id="loginRole">
+    <option value="owner">Owner / Admin</option>
+    <option value="teacher">Teacher</option>
+</select>
+
+<input id="loginMobile" placeholder="Mobile Number">
+<input id="loginPass" type="password" placeholder="Password">
+
+<button onclick="login()">Login 🚀</button>
+
+</div>
+
+<!-- REGISTER -->
+<div id="registerBox" style="display:none;">
+
+<select id="regRole">
+    <option value="owner">Owner / Admin</option>
+    <option value="teacher">Teacher</option>
+</select>
+
+<input id="regSchool" placeholder="School Name">
+<input id="regMobile" placeholder="Mobile Number">
+<input id="regPass" type="password" placeholder="Password">
+
+<button onclick="register()">Register ✅</button>
+
+</div>
+
+<div class="toggle" onclick="toggle()">New user? Register</div>
+
+</div>
+
+<script>
+
+// Toggle
+function toggle(){
+let login=document.getElementById("loginBox");
+let reg=document.getElementById("registerBox");
+let title=document.getElementById("title");
+
+if(login.style.display==="none"){
+login.style.display="block";
+reg.style.display="none";
+title.innerText="Login";
+}else{
+login.style.display="none";
+reg.style.display="block";
+title.innerText="Register";
+}
+}
+
+// Register
+function register(){
+
+let role=document.getElementById("regRole").value;
+let school=document.getElementById("regSchool").value;
+let mobile=document.getElementById("regMobile").value;
+let pass=document.getElementById("regPass").value;
+
+if(!school || !mobile || !pass){
+alert("सभी जानकारी भरें!");
+return;
+}
+
+// अलग-अलग roles के लिए save
+localStorage.setItem(role+"_mobile",mobile);
+localStorage.setItem(role+"_pass",pass);
+localStorage.setItem("schoolName",school);
+
+alert("Registration Successful!");
+toggle();
+}
+
+// Login
+function login(){
+
+let role=document.getElementById("loginRole").value;
+let mobile=document.getElementById("loginMobile").value;
+let pass=document.getElementById("loginPass").value;
+
+let savedMobile=localStorage.getItem(role+"_mobile");
+let savedPass=localStorage.getItem(role+"_pass");
+
+if(mobile===savedMobile && pass===savedPass){
+
+alert("Welcome " + role);
+
+// अलग-अलग dashboard
+if(role==="owner"){
+window.location.href="superadmin.html";
+}else{
+window.location.href="teacher-dashboard.html";
+}
+
+}else{
+alert("गलत जानकारी!");
+}
+}
+
+</script>
+
+</body>
+</html>
