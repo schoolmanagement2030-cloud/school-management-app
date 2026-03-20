@@ -1,69 +1,121 @@
+// ==========================================
+// 🚌 SchoolSphere Bus Tracking (ULTIMATE PRO)
+// ==========================================
+
 import { db } from "./firebase.js";
 import { doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 1. मैप सेटअप (Default Location: Lucknow)
-var map = L.map('map').setView([26.8467, 80.9462], 13);
+// 🗺️ 1. Map Setup (Default: Lucknow)
+var map = L.map('map').setView([26.8467, 80.9462], 14);
 
-// फ्री मैप टाइल्स (Leaflet)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    maxZoom: 19
 }).addTo(map);
 
-// बस का मार्कर
-var marker = L.marker([26.8467, 80.9462]).addTo(map);
-marker.bindPopup("School Bus - Live").openPopup();
-
-// --- दूरी और डीजल के वेरिएबल्स ---
-let totalDistance = 0; // कुल चली गई दूरी (KM)
-let lastLatLng = null; // पिछली लोकेशन
-let busAverage = 5;    // यहाँ अपनी बस की एवरेज डालें (जैसे 5 km/l)
-// -------------------------------
-
-// 2. Firebase से लाइव लोकेशन सुनना
-const busRef = doc(db, "bus", "location");
-
-onSnapshot(busRef, (docSnap) => {
-    if (docSnap.exists()) {
-        let data = docSnap.data();
-        let lat = data.lat;
-        let lng = data.lng;
-        let currentLatLng = L.latLng(lat, lng);
-
-        // --- दूरी नापने का असली लॉजिक ---
-        if (lastLatLng) {
-            // distanceTo मीटर में दूरी देता है, उसे KM में बदलने के लिए 1000 से भाग दिया
-            let d = lastLatLng.distanceTo(currentLatLng) / 1000;
-
-            // अगर दूरी 20 मीटर से ज्यादा है, तभी जोड़ें (ताकि सिग्नल गड़बड़ होने पर फालतू KM न बढ़ें)
-            if (d > 0.02) { 
-                totalDistance += d;
-            }
-        }
-        lastLatLng = currentLatLng;
-
-        // डीजल का हिसाब (Formula: KM / Average)
-        let expectedFuel = totalDistance / busAverage;
-
-        // 3. UI (स्क्रीन) पर डेटा अपडेट करना
-        // ये IDs आपकी HTML फाइल में होनी चाहिए (liveKm और expectedFuel)
-        if(document.getElementById("liveKm")) {
-            document.getElementById("liveKm").innerText = totalDistance.toFixed(2) + " KM";
-        }
-        if(document.getElementById("expectedFuel")) {
-            document.getElementById("expectedFuel").innerText = expectedFuel.toFixed(2) + " Ltr";
-        }
-
-        // 4. मैप और मार्कर अपडेट करना
-        marker.setLatLng([lat, lng]);
-        map.setView([lat, lng], 15);
-        
-        // मार्कर के ऊपर लाइव जानकारी दिखाना
-        marker.setPopupContent(`<b>Bus Status</b><br>Today: ${totalDistance.toFixed(2)} KM<br>Fuel: ${expectedFuel.toFixed(2)} L`).openPopup();
-
-        // 5. (Optional) इस दूरी को वापस Firebase में सेव करना ताकि अकाउंटेंट देख सके
-        // updateBusStats(totalDistance, expectedFuel);
-    }
+// 🚌 Custom Bus Icon (दिखने में प्रोफेशनल)
+var busIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // बस का आइकन
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
 });
 
-console.log("Bus Tracking Service Started...");
+// 📍 Bus Marker
+var marker = L.marker([26.8467, 80.9462], { icon: busIcon }).addTo(map);
+
+// ==========================================
+// 📊 Tracking Variables
+// ==========================================
+let totalDistance = 0;
+let lastLatLng = null;
+let busAverage = 5; // km/l
+
+const todayKey = new Date().toDateString();
+
+// 💾 Local Storage Sync
+if(localStorage.getItem("bus_date") === todayKey){
+    totalDistance = parseFloat(localStorage.getItem("bus_km")) || 0;
+} else {
+    localStorage.setItem("bus_date", todayKey);
+    localStorage.setItem("bus_km", 0);
+    totalDistance = 0;
+}
+
+// ==========================================
+// 🔥 Firebase Live Listener
+// ==========================================
+const busRef = doc(db, "bus", "location");
+
+onSnapshot(busRef, async (docSnap) => {
+    if (!docSnap.exists()) return;
+
+    const data = docSnap.data();
+    if(!data.lat || !data.lng) return;
+
+    const lat = data.lat;
+    const lng = data.lng;
+    const speed = data.speed || 0; // ड्राइवर के फोन से आने वाली लाइव स्पीड
+    const heading = data.heading || 0; // बस की दिशा (Degrees)
+
+    let currentLatLng = L.latLng(lat, lng);
+
+    // ======================================
+    // 📏 Distance Calculation (Noise Filtered)
+    // ======================================
+    if (lastLatLng) {
+        let distance = lastLatLng.distanceTo(currentLatLng) / 1000;
+
+        // 🚫 GPS Noise Filter: 0.03 KM (30 मीटर) से कम और 2 KM से ज्यादा को हटाओ
+        if (distance > 0.03 && distance < 2) {
+            totalDistance += distance;
+            localStorage.setItem("bus_km", totalDistance.toFixed(2));
+        }
+    }
+
+    lastLatLng = currentLatLng;
+    let expectedFuel = totalDistance / busAverage;
+
+    // ======================================
+    // 📺 UI Updates (Direct DOM manipulation)
+    // ======================================
+    updateUI("liveKm", totalDistance.toFixed(2) + " KM");
+    updateUI("expectedFuel", expectedFuel.toFixed(2) + " L");
+    updateUI("liveSpeed", speed + " KM/H");
+
+    // ======================================
+    // 🗺️ Map & Marker Update
+    // ======================================
+    marker.setLatLng([lat, lng]);
+    
+    // बस को उसकी दिशा के हिसाब से घुमाना (CSS Rotation)
+    marker.getElement().style.transform += ` rotate(${heading}deg)`;
+
+    map.flyTo([lat, lng], 16, { duration: 1.2 });
+
+    marker.bindPopup(`
+        <div style="text-align:center;">
+            <b style="color:#1a1c2c;">🚌 बस लाइव ट्रैक</b><br>
+            <hr>
+            स्पीड: <b>${speed} KM/H</b><br>
+            दूरी: <b>${totalDistance.toFixed(2)} KM</b><br>
+            डीजल (अनुमानित): <b>${expectedFuel.toFixed(2)} L</b>
+        </div>
+    `).openPopup();
+
+    // ======================================
+    // ☁️ Sync Stats to Firebase
+    // ======================================
+    await setDoc(doc(db, "bus", "stats"), {
+        totalKM: totalDistance.toFixed(2),
+        fuelUsed: expectedFuel.toFixed(2),
+        currentSpeed: speed,
+        lastUpdated: Date.now()
+    }, { merge: true });
+});
+
+// Helper Function
+function updateUI(id, val) {
+    const el = document.getElementById(id);
+    if(el) el.innerText = val;
+}
+
+console.log("🚌 Bus Tracking System Active...");
