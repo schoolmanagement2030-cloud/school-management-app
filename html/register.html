@@ -1,211 +1,259 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SchoolSphere - Owner / Super Admin</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f4f6f9;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolSphere - Owner Panel</title>
 
-        /* Header Section */
-        .header {
-            background: linear-gradient(135deg, #2c5364, #203a43, #0f2027);
-            padding: 30px 20px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-        .app-name {
-            font-size: 36px;
-            font-weight: bold;
-            color: #ffd700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+<!-- Crypto -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-        .tagline {
-            font-size: 16px;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
+<style>
+body { margin:0; font-family:'Segoe UI'; background:#f4f6f9; }
 
-        /* Login & Register Box */
-        .container {
-            width: 90%;
-            max-width: 450px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+.header {
+background: linear-gradient(135deg,#2c5364,#203a43,#0f2027);
+padding:30px; text-align:center; color:white;
+}
 
-        h2 {
-            margin-bottom: 25px;
-            color: #2c5364;
-            font-size: 24px;
-        }
+.app-name { font-size:36px; font-weight:bold; color:#ffd700; }
+.tagline { font-size:14px; }
 
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 12px 0;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            box-sizing: border-box;
-            font-size: 16px;
-            background: #fafafa;
-        }
+.container {
+width:90%; max-width:450px;
+margin:40px auto; background:white;
+padding:25px; border-radius:15px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
 
-        input:focus {
-            border-color: #3498db;
-            outline: none;
-            background: #fff;
-        }
+input {
+width:100%; padding:12px;
+margin:10px 0; border-radius:8px;
+border:1px solid #ddd;
+}
 
-        /* Buttons */
-        .btn-group {
-            margin-top: 20px;
-        }
+button {
+width:100%; padding:12px;
+border:none; border-radius:20px;
+font-size:16px; cursor:pointer;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 15px;
-        }
+.login-btn { background:#3498db; color:white; }
+.register-btn { background:#27ae60; color:white; }
 
-        .login-btn {
-            background: #3498db;
-            color: white;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
-        }
+.toggle-link { cursor:pointer; margin-top:10px; display:block; color:#555; }
 
-        .login-btn:hover {
-            background: #2980b9;
-        }
+.hidden { display:none; }
 
-        .register-btn {
-            background: #27ae60;
-            color: white;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
-        }
-
-        .register-btn:hover {
-            background: #219150;
-        }
-
-        /* Toggle Text */
-        .toggle-link {
-            margin-top: 15px;
-            color: #7f8c8d;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
+.loader {
+display:none;
+color:green;
+font-weight:bold;
+margin-bottom:10px;
+}
+</style>
 </head>
+
 <body>
 
 <div class="header">
-    <div class="app-name">SchoolSphere</div>
-    <div class="tagline">School Management Excellence</div>
+<div class="app-name">SchoolSphere</div>
+<div class="tagline">Smart School System</div>
 </div>
 
+<!-- LOGIN -->
 <div class="container" id="loginSection">
-    <h2>Owner Login</h2>
-    <input type="tel" id="loginMobile" placeholder="Mobile Number">
-    <input type="password" id="loginPassword" placeholder="Password">
-    
-    <div class="btn-group">
-        <button class="login-btn" onclick="login()">Login Now</button>
-    </div>
-    
-    <div class="toggle-link" onclick="showRegister()">New School? Register Here</div>
+<div class="loader" id="loginLoader">⏳ Login हो रहा है...</div>
+
+<h2>Owner Login</h2>
+
+<input id="loginID" placeholder="School ID (GPS001)"
+oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+
+<input id="loginPassword" type="password" placeholder="Password">
+
+<button class="login-btn" onclick="login()">Login</button>
+
+<div class="toggle-link" onclick="showRegister()">New School? Register</div>
 </div>
 
+<!-- REGISTER -->
 <div class="container hidden" id="registerSection">
-    <h2>Register School</h2>
-    <input type="text" id="regSchoolName" placeholder="School Full Name">
-    <input type="tel" id="regMobile" placeholder="Mobile Number">
-    <input type="password" id="regPassword" placeholder="Set Password">
-    
-    <div class="btn-group">
-        <button class="register-btn" onclick="register()">Register & Save</button>
-    </div>
-    
-    <div class="toggle-link" onclick="showLogin()">Already have a School? Login</div>
+<div class="loader" id="regLoader">⏳ Register हो रहा है...</div>
+
+<h2>Register School</h2>
+
+<input id="schoolName" placeholder="School Name">
+
+<input id="schoolID" placeholder="School ID (GPS001)"
+oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+
+<input id="mobile" placeholder="Mobile Number"
+oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+<input id="password" type="password" placeholder="Password">
+
+<button class="register-btn" onclick="register()">Register</button>
+
+<div class="toggle-link" onclick="showLogin()">Already have account?</div>
 </div>
 
 <script>
-    // सेक्शन्स को आपस में बदलने के लिए
-    function showRegister() {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("registerSection").classList.remove("hidden");
-    }
 
-    function showLogin() {
-        document.getElementById("registerSection").classList.add("hidden");
-        document.getElementById("loginSection").classList.remove("hidden");
-    }
+// 🔥 Firebase Config (Same)
+const firebaseConfig = {
+apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+projectId: "schoolsphere-824ca"
+};
 
-    // रजिस्ट्रेशन फंक्शन
-    function register() {
-        let school = document.getElementById("regSchoolName").value;
-        let mobile = document.getElementById("regMobile").value;
-        let password = document.getElementById("regPassword").value;
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-        if (school === "" || mobile === "" || password === "") {
-            alert("कृपया सभी जानकारी भरें!");
-            return;
-        }
+// 🔐 Security Salt
+const SALT = "SS_2026_SECURE";
+function hash(p){ return CryptoJS.SHA256(p+SALT).toString(); }
 
-        // डेटा को लोकल स्टोरेज में सेव करना
-        localStorage.setItem("ownerMobile", mobile);
-        localStorage.setItem("ownerPassword", password);
-        localStorage.setItem("schoolName", school);
+// 🔄 Toggle
+function showRegister(){
+document.getElementById("loginSection").classList.add("hidden");
+document.getElementById("registerSection").classList.remove("hidden");
+}
 
-        alert("बधाई हो! " + school + " रजिस्टर हो गया है। अब लॉगिन करें।");
-        showLogin(); // रजिस्ट्रेशन के बाद लॉगिन पेज पर भेजें
-    }
+function showLogin(){
+document.getElementById("registerSection").classList.add("hidden");
+document.getElementById("loginSection").classList.remove("hidden");
+}
 
-    // लॉगिन फंक्शन
-    function login() {
-        let mobile = document.getElementById("loginMobile").value;
-        let password = document.getElementById("loginPassword").value;
+// ================= REGISTER =================
+async function register(){
 
-        // सेव किया हुआ डेटा लाना
-        let savedMobile = localStorage.getItem("ownerMobile");
-        let savedPass = localStorage.getItem("ownerPassword");
-        let savedSchool = localStorage.getItem("schoolName");
+let name = document.getElementById("schoolName").value.trim();
+let id = document.getElementById("schoolID").value.trim();
+let mob = document.getElementById("mobile").value.trim();
+let pass = document.getElementById("password").value.trim();
 
-        if (mobile === "" || password === "") {
-            alert("कृपया मोबाइल और पासवर्ड भरें!");
-            return;
-        }
+if(!name || !id || !mob || !pass){
+alert("❌ सभी जानकारी भरें!");
+return;
+}
 
-        if (mobile === savedMobile && password === savedPass) {
-            alert("स्वागत है! " + savedSchool);
-            window.location.href = "superadmin.html"; // यहाँ आपके अगले पेज का नाम आएगा
-        } else {
-            alert("गलत मोबाइल नंबर या पासवर्ड! कृपया चेक करें या रजिस्टर करें।");
-        }
-    }
+if(mob.length !== 10){
+alert("❌ सही मोबाइल नंबर डालें!");
+return;
+}
+
+document.getElementById("regLoader").style.display="block";
+
+try{
+
+let snap = await db.ref("Schools/"+id).once("value");
+
+if(snap.exists()){
+alert("❌ School ID पहले से मौजूद है!");
+return;
+}
+
+// 🔥 Save
+await db.ref("Schools/"+id).set({
+schoolName:name,
+ownerMobile:mob,
+password:hash(pass),
+status:"active",
+loginAttempts:0,
+createdAt:Date.now()
+});
+
+// 💾 Save Local
+localStorage.setItem("activeSchoolID", id);
+localStorage.setItem("schoolName", name);
+
+alert("🎉 Registration Successful!");
+showLogin();
+
+}catch(e){
+alert("Error: "+e.message);
+}
+
+document.getElementById("regLoader").style.display="none";
+}
+
+// ================= LOGIN =================
+async function login(){
+
+let id = document.getElementById("loginID").value.trim();
+let pass = document.getElementById("loginPassword").value.trim();
+
+if(!id || !pass){
+alert("❌ ID और पासवर्ड भरें!");
+return;
+}
+
+document.getElementById("loginLoader").style.display="block";
+
+try{
+
+let snap = await db.ref("Schools/"+id).once("value");
+
+if(!snap.exists()){
+alert("❌ School ID नहीं मिला!");
+return;
+}
+
+let user = snap.val();
+
+// 🚫 BLOCK CHECK
+if(user.status === "blocked"){
+alert("🚫 आपकी ID ब्लॉक है! Admin से संपर्क करें");
+return;
+}
+
+let attempts = user.loginAttempts || 0;
+
+// 🔐 LIMIT
+if(attempts >= 3){
+await db.ref("Schools/"+id).update({status:"blocked"});
+alert("🚫 3 गलत कोशिश! ID ब्लॉक हो गई");
+return;
+}
+
+// 🔑 PASSWORD MATCH
+if(user.password === hash(pass)){
+
+await db.ref("Schools/"+id).update({
+loginAttempts:0,
+lastLogin:Date.now()
+});
+
+localStorage.setItem("activeSchoolID", id);
+localStorage.setItem("schoolName", user.schoolName);
+
+alert("✅ Login Success!");
+window.location.href="superadmin.html";
+
+}else{
+
+attempts++;
+
+await db.ref("Schools/"+id).update({
+loginAttempts:attempts
+});
+
+alert("❌ गलत पासवर्ड! बाकी: "+(3-attempts));
+}
+
+}catch(e){
+alert("Error: "+e.message);
+}
+
+document.getElementById("loginLoader").style.display="none";
+}
+
 </script>
 
 </body>
