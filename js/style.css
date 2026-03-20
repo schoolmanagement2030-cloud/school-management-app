@@ -1,52 +1,180 @@
-body{
-font-family:Arial;
-background:linear-gradient(135deg,#141e30,#243b55);
-color:white;
-text-align:center;
-margin:0;
+/* ==========================================
+   🎨 SchoolSphere Core Styles (FINAL PRO)
+   ========================================== */
+
+:root {
+    --primary: #2196f3;
+    --secondary: #21cbf3;
+    --bg-dark: #141e30;
+    --bg-light: #243b55;
+    --gold: #ffd700;
+    --danger: #ff4b2b;
 }
 
-.app-name{
-font-size:34px;
-margin-top:40px;
-font-weight:bold;
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg-dark), var(--bg-light));
+    color: white;
+    text-align: center;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
 }
 
-.subtitle{
-font-size:16px;
-margin-bottom:30px;
+/* 🔥 App Title */
+.app-name {
+    font-size: 36px;
+    margin-top: 40px;
+    font-weight: bold;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
 
-input{
-width:80%;
-padding:12px;
-margin:10px;
-border-radius:25px;
-border:none;
-font-size:16px;
+.subtitle {
+    font-size: 15px;
+    margin-bottom: 30px;
+    opacity: 0.8;
 }
 
-button{
-background:linear-gradient(90deg,#2196f3,#21cbf3);
-color:white;
-border:none;
-padding:12px 25px;
-border-radius:25px;
-font-size:18px;
+/* 🖋️ Inputs */
+input, select {
+    width: 85%;
+    max-width: 350px;
+    padding: 14px;
+    margin: 10px auto;
+    border-radius: 25px;
+    border: 2px solid transparent;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+    background: rgba(255,255,255,0.1);
+    color: white;
 }
 
-.card{
-background:white;
-color:black;
-width:80%;
-margin:10px auto;
-padding:15px;
-border-radius:12px;
-font-size:18px;
-cursor:pointer;
+input::placeholder {
+    color: #ddd;
 }
 
-.card:hover{
-background:#2196f3;
-color:white;
+input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(33,150,243,0.4);
+    background: rgba(255,255,255,0.2);
+}
+
+/* 🚀 Buttons */
+button {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(33,150,243,0.4);
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* 🗂️ Cards */
+.card {
+    background: white;
+    color: #333;
+    width: 85%;
+    max-width: 400px;
+    margin: 15px auto;
+    padding: 20px;
+    border-radius: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: 0.3s;
+}
+
+.card:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-5px) scale(1.02);
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+/* 🚨 Alert Card */
+.card-alert {
+    border: 2px dashed var(--danger);
+    background: #fff5f5;
+    color: var(--danger);
+}
+
+.card-alert:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* 🔢 Period Row */
+.period-row {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 10px;
+    scrollbar-width: none;
+}
+
+.period-row::-webkit-scrollbar {
+    display: none;
+}
+
+.p-box {
+    min-width: 55px;
+    height: 55px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-weight: bold;
+}
+
+/* 🔄 Loader */
+.loader {
+    border: 5px solid rgba(255,255,255,0.2);
+    border-top: 5px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 📱 Responsive */
+@media (max-width: 480px) {
+    .app-name {
+        font-size: 28px;
+    }
+
+    button {
+        font-size: 16px;
+    }
 }
