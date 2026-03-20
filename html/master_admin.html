@@ -65,9 +65,9 @@ td{ padding:15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 <div class="container">
 
     <div class="reg-section">
-        <h3><i class="fas fa-plus-circle"></i> Register New School (Generate ID)</h3>
+        <h3><i class="fas fa-plus-circle"></i> Register New School (Smart ID)</h3>
         <div class="input-group">
-            <input type="text" id="newSchoolName" placeholder="स्कूल का नाम दर्ज करें (e.g. Gyan Academy)">
+            <input type="text" id="newSchoolName" placeholder="स्कूल का नाम (e.g. Bright Public School)">
             <input type="number" id="newOwnerMobile" placeholder="ओनर का मोबाइल नंबर">
             <button class="btn-create" onclick="createNewSchool()">
                 <i class="fas fa-magic"></i> Generate School ID
@@ -101,6 +101,7 @@ td{ padding:15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 </div>
 
 <script>
+// --- 🔥 Firebase Configuration ---
 const config={
     apiKey:"AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL:"https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -109,7 +110,7 @@ const config={
 if(!firebase.apps.length) firebase.initializeApp(config);
 const db=firebase.database();
 
-// 🔐 Master Key Check
+// --- 🔐 Security Gate ---
 let pass = prompt("Enter Master Key:");
 if(pass !== "vikash123"){
     alert("Unauthorized!");
@@ -118,7 +119,34 @@ if(pass !== "vikash123"){
 
 const loader=document.getElementById("loader");
 
-// --- 🚀 Generate & Create School ID ---
+// --- 🆔 Smart ID Generator Logic ---
+function generateSmartID(schoolName) {
+    // 1. शब्दों के पहले अक्षर लो (Initials)
+    let shortName = schoolName
+        .trim()
+        .split(/\s+/)
+        .map(word => word[0])
+        .join("")
+        .toUpperCase();
+
+    // 2. अगर 3 अक्षर से कम है, तो नाम के शुरू के 3 अक्षर लो
+    if(shortName.length < 3){
+        shortName = schoolName.replace(/\s+/g, "")
+                              .toUpperCase()
+                              .slice(0,3);
+    } 
+    // 3. अगर ज्यादा है, तो सिर्फ शुरू के 3 लो
+    else if(shortName.length > 3) {
+        shortName = shortName.slice(0, 3);
+    }
+
+    // 4. 3 अंकों का रैंडम नंबर जोड़ो
+    let number = Math.floor(100 + Math.random() * 899);
+
+    return shortName + number;
+}
+
+// --- 🚀 Create School Function ---
 function createNewSchool() {
     let name = document.getElementById("newSchoolName").value.trim();
     let mobile = document.getElementById("newOwnerMobile").value.trim();
@@ -130,10 +158,10 @@ function createNewSchool() {
 
     loader.style.display="flex";
 
-    // 🆔 ऑटोमैटिक यूनिक आईडी बनाना (SCH + 3 रैंडम नंबर)
-    let schoolID = "SCH-" + Math.floor(100 + Math.random() * 899);
+    // यहाँ आपकी नई स्मार्ट आईडी जनरेट होगी
+    let schoolID = generateSmartID(name);
 
-    // Firebase में डेटा सेव करना
+    // Firebase में डेटा सुरक्षित करना
     db.ref("Schools/" + schoolID).set({
         schoolName: name,
         ownerMobile: mobile,
@@ -141,7 +169,7 @@ function createNewSchool() {
         createdAt: firebase.database.ServerValue.TIMESTAMP
     }).then(() => {
         loader.style.display="none";
-        alert(`सफलता! नई स्कूल आईडी जनरेट हुई: ${schoolID}`);
+        alert(`सफलता! नई प्रोफ़ेशनल आईडी बनी: ${schoolID}`);
         document.getElementById("newSchoolName").value = "";
         document.getElementById("newOwnerMobile").value = "";
     }).catch(e => {
@@ -150,7 +178,7 @@ function createNewSchool() {
     });
 }
 
-// 📡 Load & Display Data
+// --- 📡 Real-time Data Sync ---
 db.ref("Schools").on("value",snap=>{
     let data=snap.val()||{};
     let html="";
@@ -184,25 +212,24 @@ db.ref("Schools").on("value",snap=>{
     document.getElementById("active").innerText=active;
 });
 
-// 🔄 Toggle Block/Unblock
+// --- 🔄 Action Functions ---
 function toggleStatus(id,status){
     let next = status==="active"?"blocked":"active";
-    if(!confirm(`क्या आप ${id} को ${next} करना चाहते हैं?`)) return;
+    let msg = next === "blocked" ? "पेमेंट न मिलने पर ब्लॉक करें?" : "वापस चालू करें?";
+    if(!confirm(`क्या आप ${id} को ${msg}`)) return;
     db.ref(`Schools/${id}`).update({ status:next });
 }
 
-// 🗑 Delete
 function delSchool(id){
-    if(confirm(`क्या आप स्कूल ${id} को हमेशा के लिए हटाना चाहते हैं?`)) {
+    if(confirm(`सावधान! क्या आप स्कूल ${id} का डेटा हमेशा के लिए हटाना चाहते हैं?`)) {
         db.ref(`Schools/${id}`).remove();
     }
 }
 
-// 🚀 Simulate Login
 function loginAs(id){
     localStorage.setItem("activeSchoolID", id);
     alert(`स्कूल ${id} का डैशबोर्ड मोड एक्टिव।`);
-    window.open("index.html", "_blank");
+    window.open("../index.html", "_blank");
 }
 </script>
 
