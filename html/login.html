@@ -1,138 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SchoolSphere</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SchoolSphere - Welcome</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-/* --- आपका 100% ओरिजिनल स्टाइलिंग (बिना किसी बदलाव के) --- */
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
-text-align:center;
+:root { --gold:#ffd700; --error:#ff4d4d; --glass: rgba(255,255,255,0.1); --success:#2ecc71; }
+
+body {
+    margin:0; font-family:'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white; text-align:center; min-height:100vh;
+    display:flex; flex-direction:column; justify-content:center;
+    overflow: hidden;
 }
 
-.app-name{
-font-size:40px;
-margin-top:40px;
-font-weight:bold;
-color:gold;
-letter-spacing:1px;
+.app-name { font-size:42px; font-weight:800; color:var(--gold); text-shadow:0 4px 10px rgba(0,0,0,0.5); margin:0; }
+.tagline { font-size:12px; margin-bottom:20px; color:#aaa; letter-spacing: 1px; }
+
+/* 🟢 Enhanced Input */
+.id-container { margin-bottom: 15px; position: relative; display: inline-block; width: 100%; }
+input {
+    padding:14px; border-radius:30px; border:2px solid #555;
+    width:85%; max-width:280px; text-align:center; font-size:18px;
+    background: var(--glass); color:white; outline:none; transition: 0.3s;
+}
+input:focus { border-color: var(--gold); background: rgba(255,255,255,0.15); }
+input.valid { border-color: var(--success); box-shadow: 0 0 10px rgba(46,204,113,0.3); }
+
+/* 🟢 Role Grid */
+.role-grid {
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+    width:92%; max-width:420px; margin:auto; padding: 5px;
 }
 
-.tagline{
-font-size:16px;
-margin-bottom:40px;
-color:#ddd;
+.role {
+    padding:15px 10px; border-radius:18px; cursor:pointer; font-weight:bold;
+    transition:0.3s; box-shadow:0 8px 15px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px;
+    filter: grayscale(0.4); opacity: 0.8;
 }
+/* जब ID सही हो तो बटन चमके */
+.valid-id .role { filter: grayscale(0); opacity: 1; }
 
-.role-box{
-width:85%;
-margin:auto;
+.role i { font-size: 20px; }
+.role:hover { transform:translateY(-3px); filter: brightness(1.2); }
+
+.owner { background:linear-gradient(45deg,#6a11cb,#2575fc); grid-column:span 2; }
+.principal { background:linear-gradient(45deg,#2575fc,#4facfe); }
+.accountant { background:linear-gradient(45deg,#f2994a,#f2c94c); }
+.teacher { background:linear-gradient(45deg,#11998e,#38ef7d); }
+.driver { background:linear-gradient(45deg,#f093fb,#f5576c); }
+.parent { background:linear-gradient(45deg,#ff5f6d,#ffc371); grid-column:span 2; }
+
+/* 🟢 Overlay Loader */
+#loader {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.85); z-index:2000;
+    flex-direction:column; align-items:center; justify-content:center;
 }
-
-.role{
-padding:16px;
-margin:15px 0;
-border-radius:30px;
-font-size:18px;
-cursor:pointer;
-color:white;
-box-shadow:0 5px 15px rgba(0,0,0,0.3);
-transition:0.3s;
-}
-
-.role:hover{
-transform:scale(1.05);
-}
-
-.owner{ background:linear-gradient(to right,#6a11cb,#2575fc); }
-.principal{ background:linear-gradient(to right,#2575fc,#4facfe); }
-.teacher{ background:linear-gradient(to right,#11998e,#38ef7d); }
-.driver{ background:linear-gradient(to right,#f2994a,#f2c94c); }
-.parent{ background:linear-gradient(to right,#ff5f6d,#ffc371); }
-
-.footer{
-margin-top:40px;
-font-size:12px;
-color:#bbb;
-}
-
-/* School ID इनपुट के लिए स्टाइल (UI कंसिस्टेंसी के लिए) */
-.id-container { margin: 20px auto; }
-#mainSchoolID {
-    padding: 12px;
-    border-radius: 20px;
-    border: 2px solid gold;
-    width: 220px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    text-align: center;
-    font-size: 16px;
-    outline: none;
-}
-#mainSchoolID::placeholder { color: #ccc; }
+#toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#e74c3c; padding:10px 25px; border-radius:30px; display:none; font-weight:bold; z-index:3000; }
 </style>
 </head>
-<body>
+
+<body id="mainBody">
+
+<div id="loader">
+    <i class="fas fa-shield-alt fa-spin" style="font-size:50px;color:var(--gold)"></i>
+    <p style="color:var(--gold); margin-top:15px; font-weight:bold;">ID Verifying...</p>
+</div>
+
+<div id="toast"></div>
 
 <div class="app-name">SchoolSphere</div>
-<div class="tagline">School Management App</div>
+<div class="tagline">The Smart School Hub</div>
 
 <div class="id-container">
-    <input type="text" id="mainSchoolID" placeholder="Enter School ID (e.g. GPS001)">
+    <input type="text" id="mainSchoolID" placeholder="SCHOOL ID (E.G. GPS001)" maxlength="10"
+    oninput="checkVal(this.value)">
 </div>
 
-<div class="role-box">
-    <div class="role owner" onclick="goTo('superadmin.html')">👑 Owner / Super Admin</div>
-    <div class="role principal" onclick="goTo('principal.html')">🏫 Principal</div>
-    <div class="role teacher" onclick="goTo('teacher.html')">👨‍🏫 Teacher</div>
-    <div class="role driver" onclick="goTo('driver.html')">🚌 Driver</div>
-    <div class="role parent" onclick="goTo('parent.html')">👨‍👩‍👧 Parent</div>
+<div class="role-grid">
+    <div class="role owner" onclick="goTo('superadmin.html')"><i class="fas fa-crown"></i> Owner</div>
+    <div class="role principal" onclick="goTo('principal.html')"><i class="fas fa-school"></i> Principal</div>
+    <div class="role accountant" onclick="goTo('accountant.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
+    <div class="role teacher" onclick="goTo('teacher.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
+    <div class="role driver" onclick="goTo('driver.html')"><i class="fas fa-bus"></i> Driver</div>
+    <div class="role parent" onclick="goTo('parent.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
 </div>
-
-<div class="footer">© SchoolSphere ERP</div>
 
 <script>
-// --- FIREBASE CONFIG (प्लस किया गया) ---
-const firebaseConfig = {
-    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
-    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
-    projectId: "schoolsphere-824ca"
-};
-firebase.initializeApp(firebaseConfig);
+// 🔥 Firebase Setup
+const firebaseConfig = { apiKey: "AIzaSy...", databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/", projectId: "schoolsphere-824ca" };
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- सुरक्षित नेविगेशन (प्लस किया गया) ---
-function goTo(page) {
-    let sID = document.getElementById("mainSchoolID").value;
-    if(!sID) {
-        alert("कृपया पहले अपनी School ID दर्ज करें!");
-        return;
+let busy = false;
+
+// 🟢 Real-time Validation UI
+function checkVal(val) {
+    let sID = val.replace(/[^A-Z0-9]/g,'').toUpperCase();
+    document.getElementById("mainSchoolID").value = sID;
+    
+    if(/^[A-Z0-9]{3,10}$/.test(sID)) {
+        document.getElementById("mainSchoolID").classList.add("valid");
+        document.getElementById("mainBody").classList.add("valid-id");
+    } else {
+        document.getElementById("mainSchoolID").classList.remove("valid");
+        document.getElementById("mainBody").classList.remove("valid-id");
     }
-    // ID को सुरक्षित सेव करना ताकि लॉगिन पेजों पर इस्तेमाल हो सके
-    localStorage.setItem("activeSchoolID", sID);
-    window.location.href = page;
 }
 
-/* --- विकास भाई के लिए नोट (3-Try Logic): ---
-   जब यूजर 'Login' बटन दबाएगा, तो हम ये कोड वहां इस्तेमाल करेंगे:
-   
-   let attempts = localStorage.getItem("login_tries") || 0;
-   
-   if(attempts >= 3) {
-       alert("3 बार गलत पासवर्ड! ID बंद है, दोबारा से प्रिंसिपल से संपर्क करें।");
-       // Firebase में स्टेटस 'blocked' कर देंगे
-       db.ref('Schools/'+sID+'/Staff/'+mobile).update({ status: 'blocked' });
-       return;
-   }
-*/
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg; t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 3000);
+}
 
+function vibrate() { if(navigator.vibrate) navigator.vibrate(150); }
+
+window.onload = () => {
+    let id = localStorage.getItem("activeSchoolID");
+    if(id) {
+        document.getElementById("mainSchoolID").value = id;
+        checkVal(id);
+    }
+};
+
+async function goTo(page) {
+    if(busy) return;
+    let input = document.getElementById("mainSchoolID");
+    let sID = input.value.trim().toUpperCase();
+    
+    if(!/^[A-Z0-9]{3,10}$/.test(sID)) {
+        showToast("❌ सही School ID डालें"); vibrate(); return;
+    }
+
+    if(!navigator.onLine) { showToast("📡 इंटरनेट बंद है"); return; }
+
+    busy = true;
+    document.getElementById("loader").style.display = "flex";
+
+    try {
+        const timeout = new Promise((_,rej)=>setTimeout(()=>rej("timeout"),7000));
+        const snap = await Promise.race([db.ref(`Schools/${sID}`).once('value'), timeout]);
+
+        if(snap.exists()){
+            localStorage.setItem("activeSchoolID", sID);
+            localStorage.setItem("schoolName", snap.val().schoolName || "SchoolSphere");
+            window.location.href = page;
+        } else {
+            showToast("❌ ID नहीं मिली"); vibrate();
+        }
+    } catch(e) {
+        showToast(e === "timeout" ? "⏳ सर्वर स्लो है" : "⚠️ Error");
+    } finally {
+        document.getElementById("loader").style.display = "none";
+        busy = false;
+    }
+}
+
+document.getElementById("mainSchoolID").addEventListener("keydown",(e)=>{
+    if(e.key === "Enter") goTo("parent.html");
+});
 </script>
+
 </body>
 </html>
