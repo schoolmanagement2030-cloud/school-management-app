@@ -1,121 +1,123 @@
 // ==========================================
-// 🚌 SchoolSphere Bus Tracking (ULTIMATE PRO)
+// 🚌 SchoolSphere Bus Tracking (FINAL PRO)
 // ==========================================
 
 import { db } from "./firebase.js";
-import { doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { 
+    doc, 
+    onSnapshot, 
+    setDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🗺️ 1. Map Setup (Default: Lucknow)
-var map = L.map('map').setView([26.8467, 80.9462], 14);
+var map = L.map('map').setView([26.8467, 80.9462], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19
 }).addTo(map);
 
-// 🚌 Custom Bus Icon (दिखने में प्रोफेशनल)
-var busIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // बस का आइकन
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-});
-
 // 📍 Bus Marker
-var marker = L.marker([26.8467, 80.9462], { icon: busIcon }).addTo(map);
+var marker = L.marker([26.8467, 80.9462]).addTo(map);
 
 // ==========================================
 // 📊 Tracking Variables
 // ==========================================
+
 let totalDistance = 0;
 let lastLatLng = null;
 let busAverage = 5; // km/l
 
+// 📅 Daily Reset Key
 const todayKey = new Date().toDateString();
 
-// 💾 Local Storage Sync
+// Local Storage से load (app reload पर भी save रहे)
 if(localStorage.getItem("bus_date") === todayKey){
     totalDistance = parseFloat(localStorage.getItem("bus_km")) || 0;
-} else {
+}else{
     localStorage.setItem("bus_date", todayKey);
     localStorage.setItem("bus_km", 0);
-    totalDistance = 0;
 }
 
 // ==========================================
 // 🔥 Firebase Live Listener
 // ==========================================
+
 const busRef = doc(db, "bus", "location");
 
 onSnapshot(busRef, async (docSnap) => {
+
     if (!docSnap.exists()) return;
 
     const data = docSnap.data();
+
     if(!data.lat || !data.lng) return;
 
-    const lat = data.lat;
-    const lng = data.lng;
-    const speed = data.speed || 0; // ड्राइवर के फोन से आने वाली लाइव स्पीड
-    const heading = data.heading || 0; // बस की दिशा (Degrees)
+    let lat = data.lat;
+    let lng = data.lng;
 
     let currentLatLng = L.latLng(lat, lng);
 
     // ======================================
-    // 📏 Distance Calculation (Noise Filtered)
+    // 📏 Distance Calculation (Accurate)
     // ======================================
+
     if (lastLatLng) {
+
         let distance = lastLatLng.distanceTo(currentLatLng) / 1000;
 
-        // 🚫 GPS Noise Filter: 0.03 KM (30 मीटर) से कम और 2 KM से ज्यादा को हटाओ
-        if (distance > 0.03 && distance < 2) {
+        // 🚫 GPS Noise Filter (50 meter से कम ignore)
+        if (distance > 0.05 && distance < 2) {
             totalDistance += distance;
-            localStorage.setItem("bus_km", totalDistance.toFixed(2));
+
+            // 💾 Save locally
+            localStorage.setItem("bus_km", totalDistance);
         }
     }
 
     lastLatLng = currentLatLng;
+
+    // ⛽ Fuel Calculation
     let expectedFuel = totalDistance / busAverage;
 
     // ======================================
-    // 📺 UI Updates (Direct DOM manipulation)
+    // 📺 UI Update
     // ======================================
-    updateUI("liveKm", totalDistance.toFixed(2) + " KM");
-    updateUI("expectedFuel", expectedFuel.toFixed(2) + " L");
-    updateUI("liveSpeed", speed + " KM/H");
+
+    if(document.getElementById("liveKm")){
+        document.getElementById("liveKm").innerText = totalDistance.toFixed(2) + " KM";
+    }
+
+    if(document.getElementById("expectedFuel")){
+        document.getElementById("expectedFuel").innerText = expectedFuel.toFixed(2) + " L";
+    }
 
     // ======================================
-    // 🗺️ Map & Marker Update
+    // 🗺️ Map Update (Smooth)
     // ======================================
+
     marker.setLatLng([lat, lng]);
-    
-    // बस को उसकी दिशा के हिसाब से घुमाना (CSS Rotation)
-    marker.getElement().style.transform += ` rotate(${heading}deg)`;
 
-    map.flyTo([lat, lng], 16, { duration: 1.2 });
+    map.flyTo([lat, lng], 15, {
+        duration: 1.5
+    });
 
-    marker.bindPopup(`
-        <div style="text-align:center;">
-            <b style="color:#1a1c2c;">🚌 बस लाइव ट्रैक</b><br>
-            <hr>
-            स्पीड: <b>${speed} KM/H</b><br>
-            दूरी: <b>${totalDistance.toFixed(2)} KM</b><br>
-            डीजल (अनुमानित): <b>${expectedFuel.toFixed(2)} L</b>
-        </div>
-    `).openPopup();
+    marker.setPopupContent(`
+        <b>🚌 Bus Live</b><br>
+        Distance: ${totalDistance.toFixed(2)} KM<br>
+        Fuel: ${expectedFuel.toFixed(2)} L
+    `);
 
     // ======================================
-    // ☁️ Sync Stats to Firebase
+    // ☁️ Firebase Sync (Optional but Powerful)
     // ======================================
+
     await setDoc(doc(db, "bus", "stats"), {
-        totalKM: totalDistance.toFixed(2),
-        fuelUsed: expectedFuel.toFixed(2),
-        currentSpeed: speed,
+        totalKM: totalDistance,
+        fuelUsed: expectedFuel,
         lastUpdated: Date.now()
-    }, { merge: true });
+    });
+
 });
 
-// Helper Function
-function updateUI(id, val) {
-    const el = document.getElementById(id);
-    if(el) el.innerText = val;
-}
-
-console.log("🚌 Bus Tracking System Active...");
+console.log("🚌 Bus Tracking Started Successfully...");
