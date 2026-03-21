@@ -46,6 +46,7 @@ input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold
 .role i { font-size: 22px; }
 .role:hover { transform:translateY(-4px); filter: brightness(1.1); }
 
+/* Buttons Style */
 .owner { background:linear-gradient(45deg,#6a11cb,#2575fc); grid-column:span 2; }
 .principal { background:linear-gradient(45deg,#2575fc,#4facfe); }
 .accountant { background:linear-gradient(45deg,#f2994a,#f2c94c); }
@@ -78,12 +79,12 @@ input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold
 </div>
 
 <div class="role-grid">
-    <div class="role owner" onclick="validateGo('html/owner-login.html')"><i class="fas fa-crown"></i> Owner</div>
-    <div class="role principal" onclick="validateGo('html/principal-login.html')"><i class="fas fa-school"></i> Principal</div>
-    <div class="role accountant" onclick="validateGo('html/accountant-login.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
-    <div class="role teacher" onclick="validateGo('html/teacher-login.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
-    <div class="role driver" onclick="validateGo('html/driver-login.html')"><i class="fas fa-bus"></i> Driver</div>
-    <div class="role parent" onclick="validateGo('html/parent-login.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
+    <div class="role owner" onclick="validateGo('owner-login.html')"><i class="fas fa-crown"></i> Owner</div>
+    <div class="role principal" onclick="validateGo('principal-login.html')"><i class="fas fa-school"></i> Principal</div>
+    <div class="role accountant" onclick="validateGo('accountant-login.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
+    <div class="role teacher" onclick="validateGo('teacher-login.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
+    <div class="role driver" onclick="validateGo('driver-login.html')"><i class="fas fa-bus"></i> Driver</div>
+    <div class="role parent" onclick="validateGo('parent-login.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
 </div>
 
 <script>
@@ -119,14 +120,13 @@ async function validateGo(targetPage) {
     errorBox.style.display = "none";
 
     try {
-        // ✅ बदलाव 2: Firebase Path को सही किया (Schools का S बड़ा रखा है जैसा आपके DB में है)
         const snap = await db.ref(`Schools/${sID}`).once('value');
 
         if(snap.exists()){
             localStorage.setItem("activeSchoolID", sID);
             localStorage.setItem("schoolName", snap.val().schoolName || "SchoolSphere");
             
-            // ✅ बदलाव 3: पेज को रीडायरेक्ट करने का सही तरीका ताकि Localhost एरर न आए
+            // ✅ Relative Navigation: अब यह 404 नहीं देगा
             window.location.href = targetPage; 
         } else {
             showError("❌ यह स्कूल ID रजिस्टर नहीं है");
