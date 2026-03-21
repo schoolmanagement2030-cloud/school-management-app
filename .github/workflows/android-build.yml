@@ -23,24 +23,35 @@ jobs:
         distribution: 'zulu'
         java-version: '21'
 
-    - name: Initialize Project (Live Mode)
+    - name: Initialize Capacitor Project
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
         mkdir -p html
-        # ✅ 'name' को यहाँ छोटा रखा गया है और 'server-url' जोड़ा गया है
-        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html --server-url=https://schoolmanagement2030-cloud.github.io/school-management-app/
+        # सादा init करें
+        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
+        
+        # ✅ यहाँ जादू है: config फाइल में Live URL डालना
+        echo '{
+          "appId": "com.vikash.schoolapp",
+          "appName": "SchoolSphere",
+          "webDir": "html",
+          "server": {
+            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/",
+            "cleartext": true
+          }
+        }' > capacitor.config.json
 
     - name: Add Android Platform
       run: |
         npx cap add android || echo "Android exists"
         npx cap copy
 
-    - name: Fix Android Cleartext and Kotlin
+    - name: Fix Android Permissions and Kotlin
       run: |
-        # 🌐 WebView को इंटरनेट एक्सेस देने के लिए सेटिंग
+        # 🌐 WebView इंटरनेट परमिशन
         sed -i '/<application/a \        android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml
-        # 🛠️ Kotlin डुप्लीकेट एरर फिक्स
+        # 🛠️ Kotlin Fix
         echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
 
     - name: Build APK
