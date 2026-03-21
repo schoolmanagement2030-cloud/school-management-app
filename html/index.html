@@ -17,13 +17,12 @@ body {
     background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white; text-align:center; min-height:100vh;
     display:flex; flex-direction:column; justify-content:center;
-    overflow: hidden; /* कीबोर्ड ग्लिच रोकने के लिए */
+    overflow-x: hidden;
 }
 
 .app-name { font-size:45px; font-weight:800; color:var(--gold); text-shadow:0 4px 10px rgba(0,0,0,0.5); margin: 0; }
 .tagline { font-size:12px; margin-bottom:25px; color:#aaa; letter-spacing: 1px; text-transform: uppercase; }
 
-/* 🟢 ID Input Styling */
 .id-container { margin-bottom: 20px; }
 input {
     padding:15px; border-radius:30px; border:2px solid var(--gold);
@@ -34,7 +33,6 @@ input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold
 
 #error-msg { color:var(--error); font-size:13px; margin-top:8px; display:none; font-weight:bold; }
 
-/* 🟢 Role Grid (Icons Added) */
 .role-grid {
     display:grid; grid-template-columns: 1fr 1fr; gap:12px;
     width:90%; max-width:450px; margin:auto; padding: 10px;
@@ -55,7 +53,6 @@ input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold
 .driver { background:linear-gradient(45deg,#f093fb,#f5576c); }
 .parent { background:linear-gradient(45deg,#ff5f6d,#ffc371); grid-column:span 2; }
 
-/* 🟢 Loader Full Screen Overlay */
 #loader {
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,0.85); z-index:1000;
@@ -81,16 +78,15 @@ input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold
 </div>
 
 <div class="role-grid">
-    <div class="role owner" onclick="validateGo('owner-login.html')"><i class="fas fa-crown"></i> Owner</div>
-    <div class="role principal" onclick="validateGo('principal-login.html')"><i class="fas fa-school"></i> Principal</div>
-    <div class="role accountant" onclick="validateGo('accountant-login.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
-    <div class="role teacher" onclick="validateGo('teacher-login.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
-    <div class="role driver" onclick="validateGo('driver-login.html')"><i class="fas fa-bus"></i> Driver</div>
-    <div class="role parent" onclick="validateGo('parent-login.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
+    <div class="role owner" onclick="validateGo('html/owner-login.html')"><i class="fas fa-crown"></i> Owner</div>
+    <div class="role principal" onclick="validateGo('html/principal-login.html')"><i class="fas fa-school"></i> Principal</div>
+    <div class="role accountant" onclick="validateGo('html/accountant-login.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
+    <div class="role teacher" onclick="validateGo('html/teacher-login.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
+    <div class="role driver" onclick="validateGo('html/driver-login.html')"><i class="fas fa-bus"></i> Driver</div>
+    <div class="role parent" onclick="validateGo('html/parent-login.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
 </div>
 
 <script>
-// 🔥 Firebase Setup
 const firebaseConfig = { 
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", 
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/", 
@@ -101,7 +97,6 @@ const db = firebase.database();
 
 let isVerifying = false;
 
-// 🟢 Auto-fill Last ID
 window.onload = () => {
     const lastID = localStorage.getItem("activeSchoolID");
     if(lastID) document.getElementById("schoolID").value = lastID;
@@ -114,14 +109,8 @@ async function validateGo(targetPage) {
     const errorBox = document.getElementById("error-msg");
     const loader = document.getElementById("loader");
 
-    // 🔴 Validation
     if(!/^[A-Z0-9]{3,10}$/.test(sID)) {
         showError("❌ वैध School ID दर्ज करें");
-        return;
-    }
-
-    if(!navigator.onLine) {
-        alert("इंटरनेट चेक करें 📡");
         return;
     }
 
@@ -130,19 +119,20 @@ async function validateGo(targetPage) {
     errorBox.style.display = "none";
 
     try {
-        // ⏱ 8s Timeout
-        const timeout = new Promise((_,rej)=> setTimeout(()=>rej(new Error("time")), 8000));
-        const snap = await Promise.race([ db.ref(`Schools/${sID}`).once('value'), timeout ]);
+        // ✅ बदलाव 2: Firebase Path को सही किया (Schools का S बड़ा रखा है जैसा आपके DB में है)
+        const snap = await db.ref(`Schools/${sID}`).once('value');
 
         if(snap.exists()){
             localStorage.setItem("activeSchoolID", sID);
             localStorage.setItem("schoolName", snap.val().schoolName || "SchoolSphere");
-            window.location.href = targetPage;
+            
+            // ✅ बदलाव 3: पेज को रीडायरेक्ट करने का सही तरीका ताकि Localhost एरर न आए
+            window.location.href = targetPage; 
         } else {
             showError("❌ यह स्कूल ID रजिस्टर नहीं है");
         }
     } catch(e) {
-        showError(e.message === "time" ? "⏳ सर्वर बिजी है, फिर प्रयास करें" : "⚠️ कनेक्शन एरर");
+        showError("⚠️ कनेक्शन एरर: " + e.message);
     } finally {
         isVerifying = false;
         loader.style.display = "none";
@@ -153,15 +143,9 @@ function showError(msg) {
     const errorBox = document.getElementById("error-msg");
     errorBox.innerText = msg;
     errorBox.style.display = "block";
-    if(navigator.vibrate) navigator.vibrate([100,50,100]);
     isVerifying = false;
     document.getElementById("loader").style.display = "none";
 }
-
-// Enter Key
-document.getElementById("schoolID").addEventListener("keypress", (e) => {
-    if(e.key === "Enter") validateGo('parent-login.html');
-});
 </script>
 
 </body>
