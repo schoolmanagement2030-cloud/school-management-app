@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolSphere</title>
+
+<style>
+body{
+    font-family: Arial;
+    background: linear-gradient(135deg,#141e30,#243b55);
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.container{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:15px;
+    max-width:350px;
+    margin:auto;
+}
+
+input{
+    width:90%;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:16px;
+}
+
+button{
+    padding:12px 20px;
+    background:#0d1b2a;
+    color:#ffd60a;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+h1{
+    color:#ffd60a;
+}
+</style>
+
+</head>
+<body>
+
+<h1>SchoolSphere</h1>
+
+<div class="container">
+
+    <input type="text" id="schoolName" placeholder="Enter School Name">
+
+    <input type="text" id="schoolId" placeholder="Generated School ID" readonly>
+
+    <br>
+
+    <button onclick="onGenerateClick()">Generate School ID</button>
+
+</div>
+
+<script>
+
+// 🔥 Short School ID Generator
+function generateSchoolID(schoolName){
+
+    // हर word का पहला letter
+    let shortName = schoolName
+        .trim()
+        .split(" ")
+        .map(word => word[0])
+        .join("")
+        .toUpperCase();
+
+    // अगर छोटा है तो 3 letters बनाओ
+    if(shortName.length < 3){
+        shortName = schoolName.replace(/\s+/g,"")
+                              .toUpperCase()
+                              .slice(0,3);
+    }
+
+    // random number
+    let number = Math.floor(100 + Math.random() * 900);
+
+    return shortName + number;
+}
+
+// 🔘 Button Click
+function onGenerateClick(){
+
+    let name = document.getElementById("schoolName").value;
+
+    if(!name){
+        alert("School Name डालो!");
+        return;
+    }
+
+    let id = generateSchoolID(name);
+
+    document.getElementById("schoolId").value = id;
+}
+
+</script>
+
+</body>
+</html>
