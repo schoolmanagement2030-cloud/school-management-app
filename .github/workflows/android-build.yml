@@ -27,17 +27,19 @@ jobs:
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
+        # ✅ 'html' फोल्डर बनाना ज़रूरी है क्योंकि Capacitor इसे वेब डायरेक्टरी मानता है
         mkdir -p html
-        # सादा init करें
+        
         npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
         
-        # ✅ 'url' के अंत में /index.html जोड़ा गया है और 'allowNavigation' इनेबल किया है
+        # 🔥 यहाँ सुधार किया गया है: URL अब फोल्डर (/html/) पर खत्म होता है
+        # इससे index.html लोड होगी और उसके बाद वाले सारे बटन (owner, teacher) भी काम करेंगे
         echo '{
           "appId": "com.vikash.schoolapp",
           "appName": "SchoolSphere",
           "webDir": "html",
           "server": {
-            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/index.html",
+            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/",
             "cleartext": true,
             "allowNavigation": ["schoolmanagement2030-cloud.github.io"]
           }
@@ -50,10 +52,10 @@ jobs:
 
     - name: Fix Android Permissions and Kotlin
       run: |
-        # 🌐 WebView इंटरनेट परमिशन (AndroidManifest में सही जगह इन्सर्ट करना)
+        # 🌐 WebView को इंटरनेट चलाने की परमिशन देना
         sed -i "/<application/a \        android:usesCleartextTraffic=\"true\"" android/app/src/main/AndroidManifest.xml
         
-        # 🛠️ Kotlin Fix (Duplicate Class Error रोकने के लिए)
+        # 🛠️ Kotlin Duplicate Class Error का पक्का इलाज
         echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
 
     - name: Build APK
