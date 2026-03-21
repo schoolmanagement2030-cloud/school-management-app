@@ -1,4 +1,4 @@
-name: Build Android APK
+Name: Build Android APK (Live System)
 
 on:
   push:
@@ -23,13 +23,13 @@ jobs:
         distribution: 'zulu'
         java-version: '21'
 
-    - name: Initialize Project
+    - name: Initialize Project (Live Mode)
+    # ✅ यहाँ हमने --web-dir के साथ आपका Live Link जोड़ दिया है
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
-        # यहाँ 'html' फोल्डर पक्का होना चाहिए, वरना एरर आएगा
         mkdir -p html
-        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
+        npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html --server-url=https://schoolmanagement2030-cloud.github.io/school-management-app/
 
     - name: Add Android Platform
       run: |
@@ -38,8 +38,9 @@ jobs:
 
     - name: Fix Kotlin Duplicate Issues
       run: |
-        # यह लाइन बहुत ज़रूरी है duplicate class एरर को रोकने के लिए
         echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
+        # 🌐 WebView को इंटरनेट एक्सेस देने के लिए (Cleartext Traffic)
+        sed -i '/<application/a \        android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml
 
     - name: Build APK
       run: |
@@ -47,7 +48,6 @@ jobs:
         echo "android.useAndroidX=true" > gradle.properties
         echo "android.enableJetifier=true" >> gradle.properties
         chmod +x gradlew
-        # यहाँ 'assembleDebug' की जगह 'assembleRelease' करना होगा अगर आप फाइनल ऐप चाहते हैं
         ./gradlew assembleDebug -x lint --no-daemon 
         
     - name: Upload APK
