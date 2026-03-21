@@ -31,14 +31,15 @@ jobs:
         # सादा init करें
         npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
         
-        # ✅ यहाँ जादू है: config फाइल में Live URL डालना
+        # ✅ 'url' के अंत में /index.html जोड़ा गया है और 'allowNavigation' इनेबल किया है
         echo '{
           "appId": "com.vikash.schoolapp",
           "appName": "SchoolSphere",
           "webDir": "html",
           "server": {
-            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html",
-            "cleartext": true
+            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/index.html",
+            "cleartext": true,
+            "allowNavigation": ["schoolmanagement2030-cloud.github.io"]
           }
         }' > capacitor.config.json
 
@@ -49,9 +50,10 @@ jobs:
 
     - name: Fix Android Permissions and Kotlin
       run: |
-        # 🌐 WebView इंटरनेट परमिशन
-        sed -i '/<application/a \        android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml
-        # 🛠️ Kotlin Fix
+        # 🌐 WebView इंटरनेट परमिशन (AndroidManifest में सही जगह इन्सर्ट करना)
+        sed -i "/<application/a \        android:usesCleartextTraffic=\"true\"" android/app/src/main/AndroidManifest.xml
+        
+        # 🛠️ Kotlin Fix (Duplicate Class Error रोकने के लिए)
         echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
 
     - name: Build APK
