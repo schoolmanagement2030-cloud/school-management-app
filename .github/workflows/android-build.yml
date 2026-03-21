@@ -37,7 +37,7 @@ jobs:
           "appName": "SchoolSphere",
           "webDir": "html",
           "server": {
-            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/index.html",
+            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html",
             "cleartext": true
           }
         }' > capacitor.config.json
