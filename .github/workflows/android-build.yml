@@ -1,4 +1,4 @@
-name: Build Android APK (Original Folder Setup)
+name: Build Android APK (Live System Final)
 
 on:
   push:
@@ -27,16 +27,17 @@ jobs:
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
-        # ✅ 'html' फोल्डर पहले से है, इसलिए हम उसे ही वेब-डायरेक्टरी बनाएंगे
+        # ✅ 'html' फोल्डर को ही मुख्य वेब डायरेक्टरी सेट किया
         npx cap init SchoolSphere com.vikash.schoolapp --web-dir=html
         
-        # 🚀 जैसा पहले था: सीधा फोल्डर वाला URL लोड करना
+        # 🎯 मुख्य सेटिंग: URL के अंत में /html/ रखा है (बिना index.html के)
+        # इससे ऐप को पता चलेगा कि उसे इसी फोल्डर के अंदर घूमना है
         echo '{
           "appId": "com.vikash.schoolapp",
           "appName": "SchoolSphere",
           "webDir": "html",
           "server": {
-            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/index.html",
+            "url": "https://schoolmanagement2030-cloud.github.io/school-management-app/html/",
             "cleartext": true,
             "allowNavigation": ["schoolmanagement2030-cloud.github.io"]
           }
@@ -46,10 +47,17 @@ jobs:
       run: |
         npx cap add android || echo "Android exists"
         npx cap copy
+        
+        # 🚀 Android के अंदर की फाइल को भी मजबूर करना ताकि 404 का नामोनिशान न रहे
+        mkdir -p android/app/src/main/assets
+        cp capacitor.config.json android/app/src/main/assets/capacitor.config.json
 
     - name: Fix Android Permissions and Kotlin
       run: |
+        # WebView को इंटरनेट और Cleartext की अनुमति देना
         sed -i "/<application/a \        android:usesCleartextTraffic=\"true\"" android/app/src/main/AndroidManifest.xml
+        
+        # Kotlin Version को फिक्स करना ताकि एरर न आए
         echo "configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } }" >> android/app/build.gradle
 
     - name: Build APK
@@ -65,4 +73,3 @@ jobs:
       with:
         name: school-app-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
-        
