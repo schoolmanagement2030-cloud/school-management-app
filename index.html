@@ -3,116 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SchoolSphere Pro</title>
+<title>SchoolSphere Pro - Digital Hub</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0f2027">
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-:root { --gold: #FFD54F; }
-
-body {
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background: radial-gradient(circle at center, #2c5364, #203a43, #0f2027);
-    color:white;
-    text-align:center;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
+:root { 
+    --gold: #FFD54F; 
+    --bg-dark: #0f2027;
 }
 
-.logo { width: 100px; margin-bottom: 10px; }
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center, #2c5364, #203a43, #0f2027);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+}
+
+/* --- Top Branding Section --- */
+.branding {
+    text-align: center;
+    margin-bottom: 40px;
+}
 
 .app-name {
-    font-size: 42px;
+    font-size: 52px; /* बड़ा और बोल्ड नाम */
     font-weight: 900;
     color: var(--gold);
+    margin: 0;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    letter-spacing: -1px;
 }
 
 .tagline {
-    font-size: 14px;
-    margin-bottom: 40px;
+    font-size: 16px;
+    letter-spacing: 3px;
     color: #BDC3C7;
+    margin-top: -5px;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
+/* --- Role Grid - Screen जैसा डिज़ाइन --- */
 .role-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    width: 90%;
-    max-width: 420px;
+    width: 92%;
+    max-width: 450px;
 }
 
 .role {
-    padding: 20px;
-    border-radius: 20px;
+    position: relative;
+    padding: 35px 15px; /* बटन बड़े और साफ़ */
+    border-radius: 25px;
     border: none;
     color: white;
-    font-size: 16px;
+    font-size: 18px;
+    font-weight: 700;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
 }
 
-.owner { background: purple; grid-column: span 2; }
-.principal { background: blue; }
-.accountant { background: orange; }
-.teacher { background: green; }
-.driver { background: pink; }
-.parent { background: red; grid-column: span 2; }
+.role:active { transform: scale(0.95); }
 
-#status-msg { margin-top: 15px; color: var(--gold); }
+.role i { font-size: 32px; } /* बड़े आइकन */
+
+/* Gradients as per your Screenshot */
+.owner { 
+    background: linear-gradient(135deg, #a445ed, #6225e6); 
+    grid-column: span 2; 
+}
+.principal { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+.accountant { background: linear-gradient(135deg, #f7971e, #ffd200); }
+.teacher { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.driver { background: linear-gradient(135deg, #ee0979, #ff6a00); }
+.parent { 
+    background: linear-gradient(135deg, #ff9966, #ff5e62); 
+    grid-column: span 2; 
+}
+
+/* Status Message */
+#status-msg {
+    margin-top: 30px;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 500;
+    min-height: 25px;
+}
 </style>
 </head>
 
 <body>
 
-<img src="icon.png" class="logo">
-
-<h1 class="app-name">SchoolSphere Pro</h1>
-<p class="tagline">THE DIGITAL SCHOOL HUB</p>
+<div class="branding">
+    <h1 class="app-name">SchoolSphere</h1>
+    <p class="tagline">THE DIGITAL SCHOOL HUB</p>
+</div>
 
 <div class="role-grid">
 
-<button class="role owner" onclick="go('owner')">👑 Owner</button>
-<button class="role principal" onclick="go('principal')">🏢 Principal</button>
-<button class="role accountant" onclick="go('accountant')">💰 Accountant</button>
-<button class="role teacher" onclick="go('teacher')">👨‍🏫 Teacher</button>
-<button class="role driver" onclick="go('driver')">🚌 Driver</button>
-<button class="role parent" onclick="go('parent')">🎓 Student</button>
+    <button class="role owner" onclick="go('owner')">
+        <i class="fas fa-crown"></i>
+        Owner
+    </button>
+
+    <button class="role principal" onclick="go('principal')">
+        <i class="fas fa-university"></i>
+        Principal
+    </button>
+
+    <button class="role accountant" onclick="go('accountant')">
+        <i class="fas fa-sack-dollar"></i>
+        Accountant
+    </button>
+
+    <button class="role teacher" onclick="go('teacher')">
+        <i class="fas fa-chalkboard-user"></i>
+        Teacher
+    </button>
+
+    <button class="role driver" onclick="go('driver')">
+        <i class="fas fa-bus"></i>
+        Driver
+    </button>
+
+    <button class="role parent" onclick="go('parent')">
+        <i class="fas fa-user-graduate"></i>
+        Parent / Student
+    </button>
 
 </div>
 
 <div id="status-msg"></div>
 
 <script>
-// Firebase config (fill later)
-const firebaseConfig = {
-    apiKey: "",
-    authDomain: "",
-    databaseURL: "",
-    projectId: ""
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
-// Navigation
+// Navigation function
 function go(role){
-    document.getElementById("status-msg").innerText =
-    role.toUpperCase() + " पेज खुल रहा है...";
+    const msg = document.getElementById("status-msg");
+    const roleNames = {
+        'owner': 'OWNER लॉगिन पेज पर जा रहे हैं...',
+        'principal': 'PRINCIPAL पोर्टल खुल रहा है...',
+        'accountant': 'ACCOUNTANT लॉगिन...',
+        'teacher': 'TEACHER सेक्शन लोड हो रहा है...',
+        'driver': 'DRIVER मोड ऑन हो रहा है...',
+        'parent': 'STUDENT/PARENT पेज खुल रहा है...'
+    };
+
+    msg.innerText = roleNames[role] || "लोड हो रहा है...";
 
     setTimeout(()=>{
         window.location.href = "pages/" + role + ".html";
-    }, 1000);
+    }, 800);
 }
 
 // Service Worker
