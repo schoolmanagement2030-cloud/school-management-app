@@ -1,59 +1,105 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Owner Master Control - SchoolSphere Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>School Owner - SchoolSphere Pro</title>
 
-<!-- ✅ PWA ADD -->
-<link rel="manifest" href="../manifest.json">
-<meta name="theme-color" content="#000000">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --owner-primary: #2c3e50; --gold: #f1c40f; --accent: #34495e; }
+        body { margin:0; font-family: 'Poppins', sans-serif; background: #f0f2f5; color: #2c3e50; }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        /* Header Style */
+        .owner-header {
+            background: var(--owner-primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--gold);
+        }
+        .owner-header h1 { font-size: 20px; margin: 0; }
 
-<style>
-/* 🔥 तुम्हारा पूरा CSS SAME */
-:root { --owner-bg: #1a1c2c; --gold: #ffd700; --card-bg: #ffffff; --text: #2d3436; }
-body { margin:0; font-family: 'Segoe UI', sans-serif; background:#f0f3f7; color: var(--text); }
+        .container { padding: 15px; max-width: 500px; margin: auto; }
 
-.nav {
- background: var(--owner-bg);
- color: white;
- padding: 15px 20px;
- display: flex;
- justify-content: space-between;
- align-items: center;
- position: sticky;
- top:0;
-}
+        /* Quick Stats Card */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .stat-card i { font-size: 24px; color: var(--gold); margin-bottom: 5px; }
+        .stat-card b { display: block; font-size: 18px; }
 
-.nav .logo { font-size: 24px; font-weight: bold; color: var(--gold); }
+        /* Action Cards */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .card h3 { margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center; gap: 10px; color: var(--owner-primary); }
 
-/* बाकी CSS तुम जैसा है वैसा ही रहेगा */
-</style>
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1.5px solid #eee; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-hire { background: var(--owner-primary); color: white; }
+        .btn-notice { background: var(--gold); color: black; }
+
+        /* Principal List */
+        .p-item {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--gold);
+        }
+        .p-info b { font-size: 16px; display: block; }
+        .p-info span { font-size: 13px; color: #777; }
+    </style>
 </head>
 
 <body>
 
-<!-- 🔥 NAV में सिर्फ button add किया -->
-<div class="nav">
-    <div class="logo">👑 SchoolSphere Owner</div>
-
-    <div>
-        <button onclick="history.back()">⬅</button>
-        <button onclick="logout()">Logout</button>
-    </div>
+<div class="owner-header">
+    <h1><i class="fas fa-user-tie"></i> School Owner</h1>
+    <button onclick="logout()" style="background:none; border:none; color:white; font-size: 20px;"><i class="fas fa-power-off"></i></button>
 </div>
 
-<!-- 🔥 यहाँ तुम्हारा पूरा original HTML SAME रहेगा -->
-<!-- (principal management + notice + table सब कुछ जैसा है वैसा ही रखना है) -->
+<div class="container">
+
+    <div class="stats-row">
+        <div class="stat-card"><i class="fas fa-university"></i> <b>1</b> <span>स्कूल</span></div>
+        <div class="stat-card"><i class="fas fa-users"></i> <b id="pCount">0</b> <span>प्रिंसिपल</span></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-user-plus"></i> प्रिंसिपल नियुक्त करें</h3>
+        <input type="text" id="pName" placeholder="प्रिंसिपल का नाम">
+        <input type="number" id="pPhone" placeholder="प्रिंसिपल का मोबाइल नंबर">
+        <button class="btn btn-hire" onclick="hirePrincipal()">Hire & Create Access</button>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-envelope-open-text"></i> स्कूल के लिए नोटिस</h3>
+        <input type="text" id="schoolNotice" placeholder="सभी स्टाफ को मैसेज भेजें...">
+        <button class="btn btn-notice" onclick="sendSchoolNotice()">Push Notice</button>
+    </div>
+
+    <h3 style="padding-left: 10px;">मेरी मैनेजमेंट टीम</h3>
+    <div id="pList">
+        </div>
+
+</div>
 
 <script>
-
-// 🔥 Firebase config SAME
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     authDomain: "schoolsphere-824ca.firebaseapp.com",
@@ -63,30 +109,61 @@ const firebaseConfig = {
     appId: "1:698409232180:android:7b25559d225a001d9f6761"
 };
 
-// ✅ FIX (duplicate crash से बचने के लिए)
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
-// 🔥 तुम्हारे सारे functions SAME रहेंगे
-// hirePrincipal()
-// sendBroadcast()
-// updateStatus()
-// आदि
+// Hire Principal
+function hirePrincipal() {
+    const name = document.getElementById('pName').value;
+    const phone = document.getElementById('pPhone').value;
 
-// ✅ Logout ADD
-function logout(){
-    localStorage.clear();
-    window.location.href="../index.html";
+    if(!name || !phone) return alert("नाम और नंबर ज़रूरी है!");
+
+    db.ref('principals/' + phone).set({
+        name: name,
+        phone: phone,
+        status: 'Active',
+        role: 'principal',
+        hiredBy: 'SchoolOwner_1' // यहाँ स्कूल की ID आएगी
+    }).then(() => {
+        alert("प्रिंसिपल नियुक्त कर दिया गया है!");
+        document.getElementById('pName').value = "";
+        document.getElementById('pPhone').value = "";
+    });
 }
 
-// ✅ Service Worker ADD
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('../service-worker.js');
+// Load List
+db.ref('principals').on('value', snap => {
+    const list = document.getElementById('pList');
+    const count = document.getElementById('pCount');
+    list.innerHTML = "";
+    let i = 0;
+    snap.forEach(child => {
+        const p = child.val();
+        i++;
+        list.innerHTML += `
+            <div class="p-item">
+                <div class="p-info">
+                    <b>${p.name}</b>
+                    <span>Mobile: ${p.phone}</span>
+                </div>
+                <div style="color:green; font-weight:bold;">● Live</div>
+            </div>
+        `;
+    });
+    count.innerText = i;
+});
+
+function sendSchoolNotice() {
+    const msg = document.getElementById('schoolNotice').value;
+    if(!msg) return;
+    db.ref('school_notices').push({ msg: msg, date: Date.now() }).then(() => {
+        alert("स्कूल नोटिस जारी कर दिया गया!");
+        document.getElementById('schoolNotice').value = "";
+    });
 }
 
+function logout() { localStorage.clear(); window.location.href="../index.html"; }
 </script>
 
 </body>
