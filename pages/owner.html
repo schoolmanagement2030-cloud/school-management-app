@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Master Control - SchoolSphere Pro</title>
+
+<!-- ✅ PWA ADD -->
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+/* 🔥 तुम्हारा पूरा CSS SAME */
+:root { --owner-bg: #1a1c2c; --gold: #ffd700; --card-bg: #ffffff; --text: #2d3436; }
+body { margin:0; font-family: 'Segoe UI', sans-serif; background:#f0f3f7; color: var(--text); }
+
+.nav {
+ background: var(--owner-bg);
+ color: white;
+ padding: 15px 20px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ position: sticky;
+ top:0;
+}
+
+.nav .logo { font-size: 24px; font-weight: bold; color: var(--gold); }
+
+/* बाकी CSS तुम जैसा है वैसा ही रहेगा */
+</style>
+</head>
+
+<body>
+
+<!-- 🔥 NAV में सिर्फ button add किया -->
+<div class="nav">
+    <div class="logo">👑 SchoolSphere Owner</div>
+
+    <div>
+        <button onclick="history.back()">⬅</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<!-- 🔥 यहाँ तुम्हारा पूरा original HTML SAME रहेगा -->
+<!-- (principal management + notice + table सब कुछ जैसा है वैसा ही रखना है) -->
+
+<script>
+
+// 🔥 Firebase config SAME
+const firebaseConfig = {
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+    authDomain: "schoolsphere-824ca.firebaseapp.com",
+    projectId: "schoolsphere-824ca",
+    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
+    storageBucket: "schoolsphere-824ca.firebasestorage.app",
+    appId: "1:698409232180:android:7b25559d225a001d9f6761"
+};
+
+// ✅ FIX (duplicate crash से बचने के लिए)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.database();
+
+// 🔥 तुम्हारे सारे functions SAME रहेंगे
+// hirePrincipal()
+// sendBroadcast()
+// updateStatus()
+// आदि
+
+// ✅ Logout ADD
+function logout(){
+    localStorage.clear();
+    window.location.href="../index.html";
+}
+
+// ✅ Service Worker ADD
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('../service-worker.js');
+}
+
+</script>
+
+</body>
+</html>
