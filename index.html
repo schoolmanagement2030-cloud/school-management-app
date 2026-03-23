@@ -2,150 +2,122 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SchoolSphere - Welcome</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolSphere Pro</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-:root { --gold:#ffd700; --error:#ff4d4d; --glass: rgba(255,255,255,0.1); }
+:root { --gold: #FFD54F; }
 
 body {
-    margin:0; font-family:'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color:white; text-align:center; min-height:100vh;
-    display:flex; flex-direction:column; justify-content:center;
-    overflow-x: hidden;
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background: radial-gradient(circle at center, #2c5364, #203a43, #0f2027);
+    color:white;
+    text-align:center;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
 }
 
-.app-name { font-size:45px; font-weight:800; color:var(--gold); text-shadow:0 4px 10px rgba(0,0,0,0.5); margin: 0; }
-.tagline { font-size:12px; margin-bottom:25px; color:#aaa; letter-spacing: 1px; text-transform: uppercase; }
+.logo { width: 100px; margin-bottom: 10px; }
 
-.id-container { margin-bottom: 20px; }
-input {
-    padding:15px; border-radius:30px; border:2px solid var(--gold);
-    width:80%; max-width:300px; text-align:center; font-size:18px;
-    background: var(--glass); color:white; outline:none; transition: 0.3s;
+.app-name {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--gold);
 }
-input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--gold); }
 
-#error-msg { color:var(--error); font-size:13px; margin-top:8px; display:none; font-weight:bold; }
+.tagline {
+    font-size: 14px;
+    margin-bottom: 40px;
+    color: #BDC3C7;
+}
 
 .role-grid {
-    display:grid; grid-template-columns: 1fr 1fr; gap:12px;
-    width:90%; max-width:450px; margin:auto; padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 90%;
+    max-width: 420px;
 }
 
 .role {
-    padding:20px 10px; border-radius:20px; cursor:pointer; font-weight:bold;
-    transition:0.3s; box-shadow:0 8px 15px rgba(0,0,0,0.2);
-    display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 14px;
+    padding: 20px;
+    border-radius: 20px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
 }
-.role i { font-size: 22px; }
-.role:hover { transform:translateY(-4px); filter: brightness(1.1); }
 
-/* Role Colors */
-.owner { background:linear-gradient(45deg,#6a11cb,#2575fc); grid-column:span 2; }
-.principal { background:linear-gradient(45deg,#2575fc,#4facfe); }
-.accountant { background:linear-gradient(45deg,#f2994a,#f2c94c); }
-.teacher { background:linear-gradient(45deg,#11998e,#38ef7d); }
-.driver { background:linear-gradient(45deg,#f093fb,#f5576c); }
-.parent { background:linear-gradient(45deg,#ff5f6d,#ffc371); grid-column:span 2; }
+.owner { background: purple; grid-column: span 2; }
+.principal { background: blue; }
+.accountant { background: orange; }
+.teacher { background: green; }
+.driver { background: pink; }
+.parent { background: red; grid-column: span 2; }
 
-#loader {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,0.85); z-index:1000;
-    flex-direction:column; align-items:center; justify-content:center;
-}
+#status-msg { margin-top: 15px; color: var(--gold); }
 </style>
 </head>
 
 <body>
 
-<div id="loader">
-    <i class="fas fa-shield-alt fa-spin" style="font-size:50px;color:var(--gold)"></i>
-    <p style="color:var(--gold); margin-top:15px; font-weight:bold;">Security Check: Verifying ID...</p>
-</div>
+<img src="icon.png" class="logo">
 
-<div class="app-name">SchoolSphere</div>
-<div class="tagline">The Digital School Hub</div>
-
-<div class="id-container">
-    <input type="text" id="schoolID" placeholder="SCHOOL ID (E.G. GPS001)" maxlength="10"
-    oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
-    <div id="error-msg"></div>
-</div>
+<h1 class="app-name">SchoolSphere Pro</h1>
+<p class="tagline">THE DIGITAL SCHOOL HUB</p>
 
 <div class="role-grid">
-    <div class="role owner" onclick="validateGo('owner-login.html')"><i class="fas fa-crown"></i> Owner</div>
-    <div class="role principal" onclick="validateGo('principal-login.html')"><i class="fas fa-school"></i> Principal</div>
-    <div class="role accountant" onclick="validateGo('accountant-login.html')"><i class="fas fa-file-invoice-dollar"></i> Accountant</div>
-    <div class="role teacher" onclick="validateGo('teacher-login.html')"><i class="fas fa-chalkboard-teacher"></i> Teacher</div>
-    <div class="role driver" onclick="validateGo('driver-login.html')"><i class="fas fa-bus"></i> Driver</div>
-    <div class="role parent" onclick="validateGo('parent-login.html')"><i class="fas fa-user-graduate"></i> Parent / Student</div>
+
+<button class="role owner" onclick="go('owner')">👑 Owner</button>
+<button class="role principal" onclick="go('principal')">🏢 Principal</button>
+<button class="role accountant" onclick="go('accountant')">💰 Accountant</button>
+<button class="role teacher" onclick="go('teacher')">👨‍🏫 Teacher</button>
+<button class="role driver" onclick="go('driver')">🚌 Driver</button>
+<button class="role parent" onclick="go('parent')">🎓 Student</button>
+
 </div>
 
+<div id="status-msg"></div>
+
 <script>
-const firebaseConfig = { 
-    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", 
-    databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/", 
-    projectId: "schoolsphere-824ca" 
-};
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let isVerifying = false;
-
-window.onload = () => {
-    const lastID = localStorage.getItem("activeSchoolID");
-    if(lastID) document.getElementById("schoolID").value = lastID;
+// Firebase config (fill later)
+const firebaseConfig = {
+    apiKey: "",
+    authDomain: "",
+    databaseURL: "",
+    projectId: ""
 };
 
-async function validateGo(targetPage) {
-    if(isVerifying) return;
-
-    const sID = document.getElementById("schoolID").value.trim().toUpperCase();
-    const errorBox = document.getElementById("error-msg");
-    const loader = document.getElementById("loader");
-
-    if(!/^[A-Z0-9]{3,10}$/.test(sID)) {
-        showError("❌ वैध School ID दर्ज करें");
-        return;
-    }
-
-    isVerifying = true;
-    loader.style.display = "flex";
-    errorBox.style.display = "none";
-
-    try {
-        // Firebase Check
-        const snap = await db.ref(`Schools/${sID}`).once('value');
-
-        if(snap.exists()){
-            localStorage.setItem("activeSchoolID", sID);
-            localStorage.setItem("schoolName", snap.val().schoolName || "SchoolSphere");
-            
-            // ✅ Relative Navigation: अब यह उसी फोल्डर (html) में अगली फाइल खोलेगा
-            window.location.href = targetPage; 
-        } else {
-            showError("❌ यह स्कूल ID रजिस्टर नहीं है");
-        }
-    } catch(e) {
-        showError("⚠️ कनेक्शन एरर: " + e.message);
-    } finally {
-        isVerifying = false;
-        loader.style.display = "none";
-    }
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
 
-function showError(msg) {
-    const errorBox = document.getElementById("error-msg");
-    errorBox.innerText = msg;
-    errorBox.style.display = "block";
-    isVerifying = false;
-    document.getElementById("loader").style.display = "none";
+// Navigation
+function go(role){
+    document.getElementById("status-msg").innerText =
+    role.toUpperCase() + " पेज खुल रहा है...";
+
+    setTimeout(()=>{
+        window.location.href = "pages/" + role + ".html";
+    }, 1000);
+}
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
 }
 </script>
 
