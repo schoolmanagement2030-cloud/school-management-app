@@ -12,13 +12,15 @@ window.login = async function () {
     let mobile = document.getElementById("mobile").value.trim();
     let password = document.getElementById("password").value.trim();
 
+    // ✅ Input clean (कोई unwanted space या गलत input नहीं)
+    mobile = mobile.replace(/\D/g, ""); // सिर्फ नंबर allow
+
     if(!mobile || !password){
         alert("कृपया मोबाइल और पासवर्ड डालें!");
         return;
     }
 
-    // ⭐ SPECIAL ADD-ON: Master Admin Check (विकास भाई के लिए)
-    // यहाँ आप अपना नंबर और पासवर्ड बदल सकते हैं
+    // ⭐ SPECIAL ADD-ON: Master Admin Check (same रखा)
     if(mobile === "9999999999" && password === "master123") {
         localStorage.setItem("role", "master");
         localStorage.setItem("uid", "MASTER_ADMIN");
@@ -26,8 +28,8 @@ window.login = async function () {
         return;
     }
 
-    // 📧 Mobile → Email (पुराना लॉजिक)
-    let email = mobile.replace(/\s+/g, '') + "@schoolsphere.com";
+    // 📧 Mobile → Email (same logic)
+    let email = mobile + "@schoolsphere.com";
 
     try {
         // 🔐 1. Firebase Login
@@ -76,7 +78,7 @@ window.login = async function () {
             await updateDoc(userRef, { device: device });
         }
 
-        // 💾 6. Save Session
+        // 💾 6. Save Session (clean)
         localStorage.setItem("uid", uid);
         localStorage.setItem("role", data.role);
         localStorage.setItem("schoolID", schoolID || "");
@@ -92,7 +94,7 @@ window.login = async function () {
 };
 
 // ==========================================
-// 🔀 Redirect System (Master Route Added)
+// 🔀 Redirect System (same रखा)
 // ==========================================
 function redirectUser(role){
     const routes = {
@@ -100,7 +102,7 @@ function redirectUser(role){
         "teacher": "teacher.html",
         "driver": "driver.html",
         "parent": "parent.html",
-        "master": "master_admin.html" // मास्टर रूट यहाँ है
+        "master": "master_admin.html"
     };
 
     if(routes[role]){
@@ -111,10 +113,11 @@ function redirectUser(role){
 }
 
 // ==========================================
-// ❌ Error Handling (Old Logic Kept)
+// ❌ Error Handling (FIXED)
 // ==========================================
 function handleAuthErrors(error){
     console.error("Auth Error:", error.code);
+
     if(error.code === "auth/user-not-found" || error.code === "auth/invalid-credential"){
         alert("मोबाइल या पासवर्ड गलत है!");
     }
@@ -122,9 +125,6 @@ function handleAuthErrors(error){
         alert("बहुत ज्यादा कोशिश! 5 मिनट बाद ट्राय करें");
     }
     else {
-        alert("Login Error: " + error.message);
-    }
-}
         alert("Login Error: " + error.message);
     }
 }
