@@ -5,48 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>👑 Principal Master Control - SchoolSphere Pro</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    :root { --primary: #1a1c2c; --gold: #ffd700; --accent: #2ecc71; --danger: #e74c3c; }
-    body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding-bottom: 50px; }
-    
-    #masterLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 28, 44, 0.9); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gold); }
-
-    .top { background: var(--primary); color: #fff; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-    .top b { color: var(--gold); }
-
-    .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
-    .stat-card { background: #fff; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-    .stat-card h3 { margin: 0; font-size: 20px; color: var(--primary); }
-
-    .box { padding: 15px; }
-    .row { background: #fff; padding: 15px; margin: 10px 0; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; border-left: 5px solid var(--primary); }
-    
-    input, select { padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; outline: none; }
-    
-    button { padding: 8px 12px; margin: 4px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 13px; }
-    .btn-main { background: var(--primary); color: white; width: 100%; font-size: 16px; margin-top: 10px; padding: 12px; }
-    .btn-reset { background: #3498db; color: white; }
-    .btn-block { background: var(--danger); color: white; }
-    .btn-unblock { background: var(--accent); color: white; }
-    .btn-net { background: #9b59b6; color: white; }
-    .btn-del { background: #555; color: white; }
-
-    #errorToast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px 20px; border-radius: 30px; display: none; z-index: 10001; }
+:root { --primary:#1a1c2c; --gold:#ffd700; --accent:#2ecc71; --danger:#e74c3c; }
+body { font-family:sans-serif; background:#f4f7f6; margin:0; padding-bottom:50px; }
+#masterLoader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(26,28,44,0.9); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold); }
+.top { background:var(--primary); color:#fff; padding:20px; text-align:center; position:sticky; top:0; z-index:1000; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
+.stats-bar { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:15px; }
+.stat-card { background:#fff; padding:15px; border-radius:12px; text-align:center; box-shadow:0 4px 8px rgba(0,0,0,0.05); }
+.stat-card h3 { margin:0; font-size:20px; color:var(--primary); }
+.box { padding:15px; }
+.row { background:#fff; padding:15px; margin:10px 0; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); position:relative; border-left:5px solid var(--primary); }
+input, select { padding:12px; margin:8px 0; width:100%; border-radius:10px; border:1px solid #ddd; outline:none; box-sizing:border-box; }
+button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.3s; font-size:13px; }
+.btn-main { background:var(--primary); color:white; width:100%; font-size:16px; margin-top:10px; padding:12px; }
+.btn-reset { background:#3498db; color:white; }
+.btn-block { background:var(--danger); color:white; }
+.btn-unblock { background:var(--accent); color:white; }
+.btn-net { background:#9b59b6; color:white; }
+.btn-del { background:#555; color:white; }
+#toast { position: fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--danger); color:white; padding:10px 20px; border-radius:30px; display:none; z-index:10001; }
 </style>
 </head>
 
 <body>
-
 <div id="masterLoader">
-    <i class="fas fa-crown fa-spin" style="font-size: 40px; margin-bottom: 15px;"></i>
+    <i class="fas fa-crown fa-spin" style="font-size:40px; margin-bottom:15px;"></i>
     <b>डेटा सुरक्षित लोड हो रहा है...</b>
 </div>
 
-<div id="errorToast"></div>
+<div id="toast"></div>
 
 <div class="top">
     <h2>👑 Principal Panel</h2>
@@ -71,7 +64,7 @@
     </select>
     <button class="btn-main" onclick="createUser()">Create User ✅</button>
 
-    <hr style="margin: 25px 0;">
+    <hr style="margin:25px 0;">
 
     <h3>🔍 Search Records</h3>
     <input id="search" onkeyup="searchUser()" placeholder="नाम, रोल या मोबाइल से खोजें...">
@@ -80,136 +73,102 @@
 </div>
 
 <script>
-// --- CONFIG & AUTH ---
-const sID = localStorage.getItem("activeSchoolID") || "demoSchool";
-const pID = localStorage.getItem("principalID") || "admin";
-
+// ===== Firebase Config =====
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+    authDomain: "schoolsphere-824ca.firebaseapp.com",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
     projectId: "schoolsphere-824ca"
 };
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.database();
 
-let masterData = {};
-let loaded = false;
+// ===== User Info / Session =====
+const sID = localStorage.getItem("activeSchoolID") || "demoSchool";
+const pID = localStorage.getItem("principalID") || "admin";
+let masterData = {}, loaded=false;
+document.getElementById("displaySID").innerText = sID;
 
-// ================= 🔐 PASSWORD HASH =================
-function hashPassword(pass){
-    return btoa(pass + "_School@123"); // Salted Base64
+// ===== SHA-256 HASH =====
+async function hashPassword(pass){
+    const msgUint8 = new TextEncoder().encode(pass+"_School@123");
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-// ================= 🔐 AUTH CHECK =================
+// ===== AUTH CHECK =====
 function checkPrincipalAuth(){
-    db.ref(`Schools/${sID}/Principals/${pID}`).once("value", snap => {
+    db.ref(`Schools/${sID}/Principals/${pID}`).once("value").then(snap=>{
         if(!snap.exists()){
-            alert("Unauthorized Access ❌");
-            window.location.href = "login.html";
+            alert("Unauthorized Access ❌"); window.location.href="login.html";
         }
     });
 }
 
-// ================= ➕ CREATE USER =================
-function createUser(){
+// ===== CREATE USER =====
+async function createUser(){
     let name = document.getElementById("name").value.trim();
     let mobile = document.getElementById("mobile").value.trim();
     let role = document.getElementById("role").value;
+    if(!name || mobile.length !== 10){ alert("सही 10 digit मोबाइल डालें ❌"); return; }
 
-    if(!name || mobile.length !== 10){
-        alert("सही 10 digit मोबाइल डालें ❌");
-        return;
-    }
+    // Duplicate check
+    let exists = masterData[role] && masterData[role][mobile];
+    if(exists){ alert("यह ID पहले से मौजूद है ❌"); return; }
 
-    let userID = mobile;
-    
-    // 🔴 GLOBAL DUPLICATE CHECK
-    let roles = ["Students","Parents","Teachers","Buses"];
-    let exists = false;
-    roles.forEach(r=>{
-        if(masterData[r] && masterData[r][userID]){
-            exists = true;
-        }
-    });
-
-    if(exists){
-        alert("यह ID पहले से मौजूद है ❌");
-        return;
-    }
-
+    // Password hash
     let rawPass = Math.random().toString(36).slice(-8);
-    let password = hashPassword(rawPass);
+    let password = await hashPassword(rawPass);
 
-    let dataObj = {
-        name: name,
-        mobile: mobile,
-        role: role, 
-        password: password,
-        status: "active",
-        createdAt: Date.now()
-    };
+    let dataObj = { name, mobile, role, password, status:"active", createdAt:Date.now() };
+    if(role==="Buses") dataObj.liveLocation = {lat:0,lng:0};
 
-    if(role === "Buses"){
-        dataObj.liveLocation = { lat: 0, lng: 0 };
-    }
-
-    db.ref(`Schools/${sID}/${role}/${userID}`).set(dataObj).then(() => {
-        alert(`User Created ✅\nID: ${userID}\nPassword: ${rawPass}`);
-        document.getElementById("name").value = "";
-        document.getElementById("mobile").value = "";
+    db.ref(`Schools/${sID}/${role}/${mobile}`).set(dataObj).then(()=>{
+        alert(`User Created ✅\nID: ${mobile}\nPassword: ${rawPass}`);
+        document.getElementById("name").value="";
+        document.getElementById("mobile").value="";
     });
 }
 
-// ================= ⚡ SAFE LOAD =================
+// ===== LOAD MASTER DATA =====
 function safeLoad(){
-    document.getElementById("displaySID").innerText = sID;
-    db.ref(`Schools/${sID}`).on('value', snap => {
+    db.ref(`Schools/${sID}`).on("value", snap=>{
         masterData = snap.val() || {};
         calculateFees();
         renderAll();
-        if(!loaded){
-            document.getElementById("masterLoader").style.display = "none";
-            loaded = true;
-        }
-    }, error => { 
-        document.getElementById("masterLoader").style.display = "none";
-        showError("Network Error ❌"); 
-    });
+        if(!loaded){ document.getElementById("masterLoader").style.display="none"; loaded=true; }
+    }, err=>{ showToast("Network Error ❌"); document.getElementById("masterLoader").style.display="none"; });
 }
 
+// ===== CALCULATE FEES =====
 function calculateFees(){
-    let totalPaid = 0;
-    let studentData = masterData.Students || {};
-    Object.values(studentData).forEach(s => { totalPaid += Number(s.paid || 0); });
+    let totalPaid=0;
+    let students = masterData.Students || {};
+    Object.values(students).forEach(s=>{ totalPaid+=Number(s.paid || 0); });
     document.getElementById("totalFees").innerText = totalPaid.toLocaleString('hi-IN');
 }
 
-// ================= 📊 RENDER =================
+// ===== RENDER USERS =====
 function renderAll(){
-    let html = "";
-    let count = 0;
-    let nodes = ["Students", "Parents", "Teachers", "Buses"];
-    
-    nodes.forEach(node => {
+    let html="", count=0;
+    ["Students","Parents","Teachers","Buses"].forEach(node=>{
         let data = masterData[node] || {};
-        Object.keys(data).forEach(id => {
-            let u = data[id];
-            count++;
-            let isBlocked = u.status === "blocked";
-            
-            html += `
-            <div class="row" style="border-left-color: ${isBlocked ? 'red' : '#2ecc71'}">
+        Object.keys(data).forEach(id=>{
+            let u=data[id]; count++;
+            let blocked = u.status==="blocked";
+            html+=`<div class="row" style="border-left-color:${blocked?'red':'#2ecc71'}">
                 <b>${u.name}</b> <small>(${node})</small><br>
                 <small>ID: ${id} | Pass: ********</small><br>
-                
                 <div style="margin-top:10px;">
-                    <button class="btn-reset" onclick="resetLogin('${node}', '${id}')">Reset</button>
-                    <button class="btn-block" onclick="blockUser('${node}', '${id}')">Block</button>
-                    <button class="btn-unblock" onclick="unblockUser('${node}', '${id}')">Unblock</button>
-                    <button class="btn-net" onclick="markNetworkIssue('${node}', '${id}')">Net</button>
-                    <button class="btn-del" onclick="delUser('${node}', '${id}')">Delete</button>
-                    <button style="background:#f39c12;color:white" onclick="editEntry('${node}', '${id}')">Edit</button>
+                    <button class="btn-reset" onclick="resetLogin('${node}','${id}')">Reset</button>
+                    <button class="btn-block" onclick="blockUser('${node}','${id}')">Block</button>
+                    <button class="btn-unblock" onclick="unblockUser('${node}','${id}')">Unblock</button>
+                    <button class="btn-net" onclick="markNetworkIssue('${node}','${id}')">Net</button>
+                    <button class="btn-del" onclick="delUser('${node}','${id}')">Delete</button>
+                    <button style="background:#f39c12;color:white" onclick="editEntry('${node}','${id}')">Edit</button>
                 </div>
             </div>`;
         });
@@ -218,68 +177,55 @@ function renderAll(){
     document.getElementById("userCount").innerText = count;
 }
 
-// ================= 🔍 SEARCH =================
+// ===== SEARCH =====
 function searchUser(){
-    let val = document.getElementById("search").value.toLowerCase();
-    let rows = document.querySelectorAll(".row");
-    rows.forEach(r=>{
-        let text = r.innerText.toLowerCase();
+    let val=document.getElementById("search").value.toLowerCase();
+    document.querySelectorAll(".row").forEach(r=>{
+        let text=r.innerText.toLowerCase();
         r.style.display = text.includes(val) ? "" : "none";
     });
 }
 
-// ================= 🔄 RESET PASSWORD =================
-function resetLogin(node, id){
-    let rawPass = Math.random().toString(36).slice(-8);
-    let newPass = hashPassword(rawPass);
-    db.ref(`Schools/${sID}/${node}/${id}`).update({ password: newPass });
-    alert("New Password: " + rawPass);
+// ===== PASSWORD RESET =====
+async function resetLogin(node,id){
+    let rawPass=Math.random().toString(36).slice(-8);
+    let newPass = await hashPassword(rawPass);
+    db.ref(`Schools/${sID}/${node}/${id}`).update({ password:newPass });
+    alert("New Password: "+rawPass);
 }
 
-// ================= 📡 ISSUE HISTORY =================
-function markNetworkIssue(node, id){
-    db.ref(`Schools/${sID}/${node}/${id}/issues`).push({
-        type: "network",
-        time: new Date().toLocaleString()
-    });
+// ===== BLOCK / UNBLOCK =====
+function blockUser(node,id){
+    let reason=prompt("Block reason?");
+    if(reason) db.ref(`Schools/${sID}/${node}/${id}`).update({ status:"blocked", reason:reason });
+}
+function unblockUser(node,id){
+    db.ref(`Schools/${sID}/${node}/${id}`).update({ status:"active", reason:"" });
+}
+
+// ===== NETWORK ISSUE =====
+function markNetworkIssue(node,id){
+    db.ref(`Schools/${sID}/${node}/${id}/issues`).push({ type:"network", time:new Date().toLocaleString() });
     alert("Network issue saved ✅");
 }
 
-function blockUser(node, id){
-    let reason = prompt("Block reason?");
-    if(reason) db.ref(`Schools/${sID}/${node}/${id}`).update({ status: "blocked", reason: reason });
+// ===== EDIT / DELETE =====
+function editEntry(node,id){
+    let newName=prompt("नया नाम दर्ज करें:", masterData[node][id].name);
+    if(newName) db.ref(`Schools/${sID}/${node}/${id}`).update({ name:newName });
+}
+function delUser(node,id){
+    if(confirm("सावधान! हमेशा के लिए डिलीट करें?")) db.ref(`Schools/${sID}/${node}/${id}`).remove();
 }
 
-function unblockUser(node, id){
-    db.ref(`Schools/${sID}/${node}/${id}`).update({ status: "active", reason: "" });
-}
+// ===== TOAST =====
+function showToast(msg){ let t=document.getElementById("toast"); t.innerText=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",3000); }
 
-function editEntry(node, id){
-    let newName = prompt("नया नाम दर्ज करें:", masterData[node][id].name);
-    if(newName) db.ref(`Schools/${sID}/${node}/${id}`).update({ name: newName });
-}
+// ===== SESSION PROTECTION =====
+window.onunload=function(){ localStorage.removeItem("principalID"); };
 
-function delUser(node, id){
-    if(confirm("सावधान! हमेशा के लिए डिलीट करें?")) {
-        db.ref(`Schools/${sID}/${node}/${id}`).remove();
-    }
-}
-
-function showError(msg) {
-    let t = document.getElementById("errorToast");
-    t.innerText = msg; t.style.display = "block";
-    setTimeout(() => t.style.display = "none", 3000);
-}
-
-// 🔴 SESSION PROTECTION
-window.onunload = function(){
-    localStorage.removeItem("principalID");
-};
-
-window.onload = function(){
-    checkPrincipalAuth(); 
-    safeLoad();           
-};
+// ===== ON LOAD =====
+window.onload=function(){ checkPrincipalAuth(); safeLoad(); };
 </script>
 
 </body>
