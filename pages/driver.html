@@ -6,6 +6,7 @@
 <title>Driver Dashboard - SchoolSphere Pro</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -14,50 +15,51 @@
 
 <style>
 :root { --primary: #1a1c2c; --gold: #ffd700; --success: #2ecc71; --danger: #e74c3c; --bg: #f4f7f6; }
-body { margin:0; font-family: 'Segoe UI', sans-serif; background:var(--bg); padding-bottom: 30px; }
+body { margin:0; font-family: 'Segoe UI', sans-serif; background:var(--bg); padding-bottom: 30px; overflow-x: hidden; }
 
-/* 🏫 School Branding Header (New Plus) */
-.school-header { 
-    background: white; padding: 15px; text-align: center; 
-    border-bottom: 2px solid var(--gold); box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-.school-header h1 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 700; }
-.school-header small { color: #888; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+/* 🏫 Header */
+.school-header { background: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--gold); box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: sticky; top:0; z-index: 1000; }
+.school-header h1 { margin: 0; font-size: 18px; color: var(--primary); text-transform: uppercase; }
 
-/* 🗺️ Map Section */
-#map { height: 180px; width: 100%; border-bottom: 4px solid var(--primary); }
+#masterLoader { position: fixed; inset: 0; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; color: var(--gold); flex-direction: column; }
+
+/* 🗺️ Map */
+#map { height: 200px; width: 100%; border-bottom: 4px solid var(--primary); }
 
 /* 🔘 Trip Control */
-.trip-panel { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 0 0 30px 30px; }
-.btn-trip { 
-    width: 100%; padding: 18px; border-radius: 50px; border: none; 
-    font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; 
-}
-.start { background: var(--success); color: white; box-shadow: 0 10px 20px rgba(46,204,113,0.3); }
-.stop { background: var(--danger); color: white; box-shadow: 0 10px 20px rgba(231,76,60,0.3); }
+.trip-panel { background: var(--primary); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 35px 35px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.btn-trip { width: 100%; padding: 18px; border-radius: 50px; border: none; font-size: 22px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+.start { background: var(--success); color: white; box-shadow: 0 8px 15px rgba(46,204,113,0.4); }
+.stop { background: var(--danger); color: white; box-shadow: 0 8px 15px rgba(231,76,60,0.4); }
 
-.status-bar { background: #000; color: var(--gold); padding: 5px; font-size: 11px; text-align: center; }
+.status-bar { background: #000; color: var(--gold); padding: 8px; font-size: 12px; text-align: center; font-family: monospace; }
 
-/* 👨‍🎓 Students List */
-.card { background: white; padding: 15px; margin: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-.student-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
-.btn-stu { padding: 12px; width: 45%; border: none; border-radius: 10px; font-weight: bold; color: white; }
+/* 👨‍🎓 Student Card */
+.card { background: white; padding: 20px; margin: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.student-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f1f1; }
+.student-row:last-child { border: none; }
+.btn-stu { padding: 12px; width: 48%; border: none; border-radius: 12px; font-weight: bold; color: white; font-size: 13px; }
 
-/* 🔔 Msg Box */
-#msg-box { background: #fff3cd; border-left: 5px solid #ffa000; padding: 15px; margin: 15px; border-radius: 12px; display: none; }
+#msg-box { background: #fff3cd; border-left: 6px solid #ffa000; padding: 15px; margin: 15px; border-radius: 15px; display: none; animation: shake 0.5s; }
+@keyframes shake { 0% {transform: translateX(0)} 25% {transform: translateX(5px)} 50% {transform: translateX(-5px)} 100% {transform: translateX(0)} }
 </style>
 </head>
 <body>
 
-<div class="school-header">
-    <h1 id="displaySchoolName">Driver Terminal</h1>
-    <small>by SchoolSphere Pro</small>
+<div id="masterLoader">
+    <i class="fas fa-bus fa-spin" style="font-size: 50px; margin-bottom: 15px;"></i>
+    <b>GPS सिंक हो रहा है...</b>
 </div>
 
-<div class="status-bar" id="gps-status">GPS: Offline | Background: Off</div>
+<div class="school-header">
+    <h1 id="displaySchoolName">Driver Dashboard</h1>
+    <small id="busLabel">Bus ID: --</small>
+</div>
+
+<div class="status-bar" id="gps-status">GPS: Offline | Speed: 0 km/h</div>
 
 <div class="trip-panel">
-    <h3 id="trip-label" style="margin:0 0 10px 0;">Trip Status: Stopped</h3>
+    <h3 id="trip-label" style="margin:0 0 12px 0; font-size: 16px; opacity: 0.9;">Trip: Stopped</h3>
     <button id="mainTripBtn" class="btn-trip start" onclick="toggleTrip()">START TRIP 🚌</button>
 </div>
 
@@ -66,12 +68,12 @@ body { margin:0; font-family: 'Segoe UI', sans-serif; background:var(--bg); padd
 <div id="msg-box"></div>
 
 <div class="card">
-    <h3 style="margin:0 0 15px 0;"><i class="fas fa-users"></i> Student Pickup/Drop</h3>
+    <h3 style="margin:0 0 15px 0; color: var(--primary);"><i class="fas fa-id-badge"></i> Student Attendance</h3>
     <div id="student-list">लोड हो रहा है...</div>
 </div>
 
 <script>
-// 🔥 Firebase Init
+// ===== Firebase Config =====
 const firebaseConfig = { 
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", 
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/", 
@@ -79,32 +81,54 @@ const firebaseConfig = {
 };
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
-const sID = localStorage.getItem("activeSchoolID") || "demo01";
-const busID = localStorage.getItem("busID") || "BUS001";
+let activeSID = ""; 
+let activeBusID = "";
 const today = new Date().toISOString().slice(0, 10);
 
-// 🏫 NEW: Fetch School Name for Header
+// 🛡️ SECURITY & SESSION (Automatic Detection)
+auth.onAuthStateChanged(user => {
+    if(user) {
+        db.ref("users/" + user.uid).once("value", snap => {
+            const uData = snap.val();
+            if(uData && uData.role === "Buses") {
+                activeSID = uData.schoolID;
+                activeBusID = uData.mobile; // मोबाइल ही बस ID है
+                document.getElementById("busLabel").innerText = "Bus ID: " + activeBusID;
+                updateBranding();
+                loadStudents();
+                listenToMessages();
+                document.getElementById("masterLoader").style.display = "none";
+            } else {
+                alert("Unauthorized! आप ड्राइवर नहीं हैं।");
+                window.location.href = "login.html";
+            }
+        });
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
 function updateBranding() {
-    db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
-        const name = snap.val() || "SchoolSphere";
-        document.getElementById("displaySchoolName").innerText = name;
+    db.ref(`Schools/${activeSID}/schoolName`).on('value', snap => {
+        document.getElementById("displaySchoolName").innerText = snap.val() || "SchoolSphere";
     });
 }
 
-// 🛠️ Background Tools
+// 🛠️ Control Vars
 let noSleep = new NoSleep();
 let isTripRunning = false;
 let watchID = null;
-let wakeLock = null;
+let lastLatLng = null;
+let totalTripKm = 0;
 
-// 🗺️ Map Init
+// 🗺️ Map
 let map = L.map('map', {zoomControl: false}).setView([26.8, 80.9], 15);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 let busMarker = L.marker([26.8, 80.9]).addTo(map);
-let polyline = L.polyline([], {color: 'blue', weight: 4}).addTo(map);
+let polyline = L.polyline([], {color: '#1a1c2c', weight: 5}).addTo(map);
 
-// 🔊 Voice
 function speak(text) {
     window.speechSynthesis.cancel();
     let msg = new SpeechSynthesisUtterance(text);
@@ -112,111 +136,113 @@ function speak(text) {
     window.speechSynthesis.speak(msg);
 }
 
-// 🔴 1. TRIP CONTROL
+// 🔴 TRIP CONTROL (KM Tracking Plus)
 async function toggleTrip() {
     const btn = document.getElementById("mainTripBtn");
     const label = document.getElementById("trip-label");
 
     if (!isTripRunning) {
         isTripRunning = true;
+        totalTripKm = 0;
         btn.innerText = "STOP TRIP 🛑";
         btn.classList.replace("start", "stop");
-        label.innerText = "Trip Status: Running (Background Active)";
-        
+        label.innerText = "Trip: Running | Km: 0.00";
         noSleep.enable(); 
-        requestWakeLock(); 
         startTracking();
-        speak("ट्रिप शुरू हो गई है, अब आप स्क्रीन बंद कर सकते हैं");
+        speak("ट्रिप शुरू हो गई है, गाड़ी सावधानी से चलाएं");
     } else {
         isTripRunning = false;
         btn.innerText = "START TRIP 🚌";
         btn.classList.replace("stop", "start");
-        label.innerText = "Trip Status: Stopped";
-        
+        label.innerText = "Trip: Stopped";
         noSleep.disable();
-        if(wakeLock) wakeLock.release();
         stopTracking();
-        speak("ट्रिप समाप्त हो गई है");
+        
+        // ट्रिप खत्म होने पर किलोमीटर डेटाबेस में भेजना
+        db.ref(`Schools/${activeSID}/Buses/${activeBusID}`).update({
+            lastTripKm: totalTripKm.toFixed(2),
+            todayKm: firebase.database.ServerValue.increment(Number(totalTripKm.toFixed(2)))
+        });
+        
+        speak(`ट्रिप समाप्त। आज आपने ${totalTripKm.toFixed(2)} किलोमीटर गाड़ी चलाई`);
     }
 }
 
-// 📡 2. GPS TRACKING LOGIC
 function startTracking() {
-    if (!("geolocation" in navigator)) return;
-
     watchID = navigator.geolocation.watchPosition(pos => {
         let lat = pos.coords.latitude;
         let lng = pos.coords.longitude;
+        let speed = (pos.coords.speed * 3.6) || 0; // KM/H
 
-        document.getElementById("gps-status").innerText = `GPS: Live | Lat: ${lat.toFixed(4)} | Lng: ${lng.toFixed(4)}`;
+        // KM Calculation
+        if(lastLatLng) {
+            let dist = map.distance(lastLatLng, [lat, lng]) / 1000;
+            if(dist > 0.01) { // 10 meter movement
+                totalTripKm += dist;
+                document.getElementById("trip-label").innerText = `Trip: Running | Km: ${totalTripKm.toFixed(2)}`;
+            }
+        }
+        lastLatLng = [lat, lng];
+
+        document.getElementById("gps-status").innerText = `GPS: Live | Speed: ${speed.toFixed(0)} km/h`;
         busMarker.setLatLng([lat, lng]);
         map.panTo([lat, lng]);
         polyline.addLatLng([lat, lng]);
 
-        let locData = { lat, lng, time: Date.now() };
-        if(navigator.onLine) {
-            db.ref(`Schools/${sID}/Buses/${busID}/liveLocation`).set(locData);
-            db.ref(`Schools/${sID}/GPSLogs/${busID}/${today}`).push(locData);
-        }
-    }, err => {
-        document.getElementById("gps-status").innerText = "GPS Error ❌";
-    }, { enableHighAccuracy: true, maximumAge: 0 });
+        db.ref(`Schools/${activeSID}/Buses/${activeBusID}/liveLocation`).set({
+            lat, lng, speed, time: Date.now()
+        });
+    }, null, { enableHighAccuracy: true });
 }
 
 function stopTracking() {
     if (watchID) navigator.geolocation.clearWatch(watchID);
-    db.ref(`Schools/${sID}/Buses/${busID}/liveLocation`).remove();
+    db.ref(`Schools/${activeSID}/Buses/${activeBusID}/liveLocation`).update({ speed: 0 });
+    lastLatLng = null;
 }
 
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            wakeLock = await navigator.wakeLock.request('screen');
-        }
-    } catch (err) { console.log("WakeLock Failed"); }
+// 👨‍🎓 ATTENDANCE (Student Filter Plus)
+function loadStudents() {
+    // सिर्फ वही छात्र जो इस बस ID से जुड़े हैं
+    db.ref(`Schools/${activeSID}/Students`).orderByChild('busID').equalTo(activeBusID).on('value', snap => {
+        const list = document.getElementById("student-list");
+        list.innerHTML = "";
+        if(!snap.exists()) { list.innerHTML = "इस बस में कोई छात्र नहीं है।"; return; }
+        
+        snap.forEach(child => {
+            let s = child.val();
+            list.innerHTML += `
+            <div class="student-row">
+                <b>${s.name}</b>
+                <div style="width:55%; display:flex; gap:8px;">
+                    <button class="btn-stu" style="background:var(--success)" onclick="markAttendance('${child.key}','${s.name}','PICK')">PICK ✅</button>
+                    <button class="btn-stu" style="background:var(--danger)" onclick="markAttendance('${child.key}','${s.name}','DROP')">DROP 🏠</button>
+                </div>
+            </div>`;
+        });
+    });
 }
 
-// 👨‍🎓 3. ATTENDANCE & STUDENTS
 function markAttendance(stuID, stuName, type) {
-    db.ref(`Schools/${sID}/Attendance/${today}/${stuID}`).update({
+    db.ref(`Schools/${activeSID}/Attendance/${today}/${stuID}`).update({
         [type]: new Date().toLocaleTimeString(),
-        name: stuName,
-        bus: busID
+        name: stuName, bus: activeBusID
     }).then(() => {
-        speak(`${stuName} ${type === 'PICK' ? 'बोर्डेड' : 'ड्रॉप्ड'}`);
+        speak(`${stuName} को ${type === 'PICK' ? 'ले लिया गया है' : 'छोड़ दिया गया है'}`);
     });
 }
 
-db.ref(`Schools/${sID}/Students`).orderByChild('busID').equalTo(busID).on('value', snap => {
-    const list = document.getElementById("student-list");
-    list.innerHTML = "";
-    snap.forEach(child => {
-        let s = child.val();
-        list.innerHTML += `
-        <div class="student-row">
-            <b>${s.name}</b>
-            <div style="width:55%; display:flex; gap:5px;">
-                <button class="btn-stu" style="background:var(--success)" onclick="markAttendance('${child.key}','${s.name}','PICK')">PICK</button>
-                <button class="btn-stu" style="background:var(--danger)" onclick="markAttendance('${child.key}','${s.name}','DROP')">DROP</button>
-            </div>
-        </div>`;
+function listenToMessages() {
+    db.ref(`Schools/${activeSID}/Messages/${activeBusID}`).limitToLast(1).on('child_added', snap => {
+        let m = snap.val();
+        if(m && m.time > Date.now() - 10000) {
+            let box = document.getElementById("msg-box");
+            box.style.display = "block";
+            box.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <b>Admin Msg:</b> ${m.text}`;
+            speak("सावधान, ऑफिस से संदेश आया है: " + m.text);
+        }
     });
-});
-
-// 🔔 MESSAGES
-db.ref(`Schools/${sID}/Messages/${busID}`).limitToLast(1).on('child_added', snap => {
-    let m = snap.val();
-    if(m && m.time > Date.now() - 5000) {
-        let box = document.getElementById("msg-box");
-        box.style.display = "block";
-        box.innerHTML = `<b>Message:</b> ${m.text}`;
-        speak("सावधान, प्रिंसिपल का संदेश: " + m.text);
-    }
-});
-
-// Auto-run on load
-window.onload = updateBranding;
-
+}
 </script>
 </body>
 </html>
