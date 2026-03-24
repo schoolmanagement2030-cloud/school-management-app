@@ -1,123 +1,129 @@
 // ==========================================
-// 🚌 SchoolSphere Bus Tracking (FINAL PRO)
+// 🚌 SchoolSphere Bus Tracking (FINAL PRO UPDATED)
 // ==========================================
-
 import { db } from "./firebase.js";
-
 import { 
     doc, 
     onSnapshot, 
-    setDoc 
+    setDoc,
+    updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🗺️ 1. Map Setup (Default: Lucknow)
-var map = L.map('map').setView([26.8467, 80.9462], 13);
+// 🛡️ 0. Session Check (Multi-Owner Plus)
+const sID = localStorage.getItem("activeSchoolID") || "demoSchool";
+const busID = localStorage.getItem("selectedBusID") || "BUS001";
+
+// 🗺️ 1. Map Setup (Default Center)
+var map = L.map('map', { zoomControl: false }).setView([26.8467, 80.9462], 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
+    maxZoom: 19,
+    attribution: 'SchoolSphere Live'
 }).addTo(map);
 
-// 📍 Bus Marker
-var marker = L.marker([26.8467, 80.9462]).addTo(map);
+// 📍 Custom Bus Icon (Plus)
+var busIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // या आपकी अपनी इमेज
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+});
+
+var marker = L.marker([26.8467, 80.9462], { icon: busIcon }).addTo(map);
+var polyline = L.polyline([], { color: '#1a1c2c', weight: 5 }).addTo(map);
 
 // ==========================================
 // 📊 Tracking Variables
 // ==========================================
-
 let totalDistance = 0;
 let lastLatLng = null;
-let busAverage = 5; // km/l
+const BUS_AVERAGE = 5; // 5 km/l (डीजल का हिसाब)
 
-// 📅 Daily Reset Key
-const todayKey = new Date().toDateString();
-
-// Local Storage से load (app reload पर भी save रहे)
-if(localStorage.getItem("bus_date") === todayKey){
+// 📅 Daily Reset Logic (Plus)
+const todayKey = new Date().toLocaleDateString();
+if(localStorage.getItem("last_track_date") !== todayKey){
+    localStorage.setItem("last_track_date", todayKey);
+    localStorage.setItem("bus_km", "0");
+    totalDistance = 0;
+} else {
     totalDistance = parseFloat(localStorage.getItem("bus_km")) || 0;
-}else{
-    localStorage.setItem("bus_date", todayKey);
-    localStorage.setItem("bus_km", 0);
 }
 
 // ==========================================
-// 🔥 Firebase Live Listener
+// 🔥 Firebase Live Listener (Cloud Sync Plus)
 // ==========================================
-
-const busRef = doc(db, "bus", "location");
+// अब यह Schools/ID/Buses/BusID वाले पाथ से डेटा उठाएगा
+const busRef = doc(db, `Schools/${sID}/Buses`, busID);
 
 onSnapshot(busRef, async (docSnap) => {
-
-    if (!docSnap.exists()) return;
+    if (!docSnap.exists()) {
+        console.log("Waiting for Bus Signal...");
+        return;
+    }
 
     const data = docSnap.data();
+    // ड्राइवर ऐप से 'liveLocation' ऑब्जेक्ट के अंदर डेटा आएगा
+    if(!data.liveLocation || !data.liveLocation.lat) return;
 
-    if(!data.lat || !data.lng) return;
-
-    let lat = data.lat;
-    let lng = data.lng;
-
+    let lat = data.liveLocation.lat;
+    let lng = data.liveLocation.lng;
     let currentLatLng = L.latLng(lat, lng);
 
     // ======================================
-    // 📏 Distance Calculation (Accurate)
+    // 📏 Distance & Fuel Logic
     // ======================================
-
     if (lastLatLng) {
-
         let distance = lastLatLng.distanceTo(currentLatLng) / 1000;
 
-        // 🚫 GPS Noise Filter (50 meter से कम ignore)
-        if (distance > 0.05 && distance < 2) {
+        // 🚫 GPS Filter: 30 meter से कम हलचल को शोर (Noise) मानकर छोड़ दें
+        if (distance > 0.03 && distance < 1.5) {
             totalDistance += distance;
-
-            // 💾 Save locally
-            localStorage.setItem("bus_km", totalDistance);
+            localStorage.setItem("bus_km", totalDistance.toFixed(3));
+            
+            // रास्ते की लाइन (Trail) बनाना
+            polyline.addLatLng(currentLatLng);
         }
     }
 
     lastLatLng = currentLatLng;
-
-    // ⛽ Fuel Calculation
-    let expectedFuel = totalDistance / busAverage;
+    let expectedFuel = totalDistance / BUS_AVERAGE;
 
     // ======================================
-    // 📺 UI Update
+    // 📺 UI Updates (Safe Check)
     // ======================================
+    const updateUI = (id, val) => {
+        let el = document.getElementById(id);
+        if(el) el.innerText = val;
+    };
 
-    if(document.getElementById("liveKm")){
-        document.getElementById("liveKm").innerText = totalDistance.toFixed(2) + " KM";
-    }
-
-    if(document.getElementById("expectedFuel")){
-        document.getElementById("expectedFuel").innerText = expectedFuel.toFixed(2) + " L";
-    }
+    updateUI("liveKm", totalDistance.toFixed(2) + " KM");
+    updateUI("expectedFuel", expectedFuel.toFixed(2) + " Ltr");
 
     // ======================================
-    // 🗺️ Map Update (Smooth)
+    // 🗺️ Map Movement (Smooth)
     // ======================================
-
     marker.setLatLng([lat, lng]);
+    map.flyTo([lat, lng], 16, { duration: 2, easeLinearity: 0.1 });
 
-    map.flyTo([lat, lng], 15, {
-        duration: 1.5
-    });
-
-    marker.setPopupContent(`
-        <b>🚌 Bus Live</b><br>
-        Distance: ${totalDistance.toFixed(2)} KM<br>
-        Fuel: ${expectedFuel.toFixed(2)} L
-    `);
+    marker.bindPopup(`
+        <div style="text-align:center">
+            <b>🚌 ${data.name || 'School Bus'}</b><br>
+            दूरी: ${totalDistance.toFixed(2)} KM<br>
+            डीजल: ${expectedFuel.toFixed(2)} L
+        </div>
+    `).openPopup();
 
     // ======================================
-    // ☁️ Firebase Sync (Optional but Powerful)
+    // ☁️ Sync Stats back to Firebase (For Accountant)
     // ======================================
-
-    await setDoc(doc(db, "bus", "stats"), {
-        totalKM: totalDistance,
-        fuelUsed: expectedFuel,
-        lastUpdated: Date.now()
-    });
-
+    try {
+        await updateDoc(busRef, {
+            todayKm: totalDistance.toFixed(2),
+            fuelUsed: expectedFuel.toFixed(2),
+            lastSync: Date.now()
+        });
+    } catch(e) {
+        console.error("Sync Error:", e);
+    }
 });
 
-console.log("🚌 Bus Tracking Started Successfully...");
+console.log(`🚌 SchoolSphere Tracking Active for School: ${sID}`);
