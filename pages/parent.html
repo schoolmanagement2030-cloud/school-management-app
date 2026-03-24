@@ -24,6 +24,10 @@
             border-radius: 0 0 25px 25px; text-align: center; position: sticky; top: 0; z-index: 1000;
         }
 
+        /* 🏫 Branding Styles (New Plus) */
+        .branding-text { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; display: block; }
+        .branding-sub { font-size: 11px; opacity: 0.7; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 15px; }
+
         .student-picker {
             display: flex; overflow-x: auto; gap: 15px; justify-content: center; padding: 10px;
             scrollbar-width: none;
@@ -68,9 +72,12 @@
 </div>
 
 <div class="top-nav">
+    <span id="displaySchoolName" class="branding-text">SchoolSphere Pro</span>
+    <span class="branding-sub">by SchoolSphere Pro</span>
+    
     <div id="picker" class="student-picker"></div>
     <h2 id="name" style="margin: 10px 0 0; color: var(--gold);">Loading...</h2>
-    <p id="class" style="margin: 0; opacity: 0.8; font-size: 14px;">SchoolSphere Pro</p>
+    <p id="class" style="margin: 0; opacity: 0.8; font-size: 14px;">Student Dashboard</p>
 </div>
 
 <div class="grid">
@@ -101,9 +108,9 @@ if(!sID || !mobile){
     location.href = "login.html";
 }
 
-// 🔴 FIREBASE (API KEY FIXED)
+// 🔴 FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", // ✅ FIXED
+    apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", 
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
     projectId: "schoolsphere-824ca"
 };
@@ -112,8 +119,17 @@ const db = firebase.database();
 
 let students = [], current = 0, refs = [];
 
+// 🏫 NEW: Fetch School Name for Branding
+function updateBranding() {
+    db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
+        const sName = snap.val() || "SchoolSphere Pro";
+        document.getElementById("displaySchoolName").innerText = sName;
+    });
+}
+
 // 🔴 LOAD STUDENTS
 async function load() {
+    updateBranding(); // Branding call
     if(!navigator.onLine){ 
         document.getElementById("name").innerText = "ऑफलाइन मोड";
         return; 
@@ -171,7 +187,7 @@ function show(i) {
     sync(s.id);
 }
 
-// 🔴 SILENT SYNC (STORAGE SIZE FIXED)
+// 🔴 SILENT SYNC
 function sync(id) {
     refs.forEach(r => r.off());
     refs = [];
@@ -188,7 +204,6 @@ function sync(id) {
     paths.forEach(p => {
         let r = db.ref(`Schools/${sID}/${p.path}`);
         r.on("value", snap => {
-            // ✅ SAFE VERSION FOR STORAGE
             const data = JSON.stringify(snap.val() || {});
             localStorage.setItem(p.key, data.slice(0, 40000)); 
         });
