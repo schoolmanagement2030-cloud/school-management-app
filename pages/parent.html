@@ -2,113 +2,106 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SchoolSphere Pro - Dashboard</title>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root { --primary: #1a1c2c; --gold: #ffd700; --bg: #f4f7f6; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); user-select: none; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); user-select: none; overflow-x: hidden; }
 
         #loader {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(26, 28, 44, 0.95); color: var(--gold);
+            display: none; position: fixed; inset: 0;
+            background: rgba(26, 28, 44, 0.98); color: var(--gold);
             z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
         }
 
         .top-nav {
-            background: var(--primary); color: white; padding: 20px;
-            border-radius: 0 0 25px 25px; text-align: center; position: sticky; top: 0; z-index: 1000;
+            background: var(--primary); color: white; padding: 25px 15px;
+            border-radius: 0 0 35px 35px; text-align: center; position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        /* 🏫 Branding Styles (New Plus) */
-        .branding-text { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; display: block; }
-        .branding-sub { font-size: 11px; opacity: 0.7; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 15px; }
+        .branding-text { font-size: 22px; font-weight: 800; color: white; margin-bottom: 5px; display: block; letter-spacing: 1px; }
+        .branding-sub { font-size: 10px; opacity: 0.6; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 20px; }
 
         .student-picker {
-            display: flex; overflow-x: auto; gap: 15px; justify-content: center; padding: 10px;
+            display: flex; overflow-x: auto; gap: 15px; justify-content: center; padding: 10px 5px;
             scrollbar-width: none;
         }
         .student-picker::-webkit-scrollbar { display: none; }
 
         .student-thumb {
-            width: 65px; height: 65px; border-radius: 50%;
-            cursor: pointer; border: 3px solid transparent; transition: 0.3s; object-fit: cover;
-            background: #333;
+            width: 70px; height: 70px; border-radius: 50%;
+            cursor: pointer; border: 4px solid rgba(255,255,255,0.1); transition: 0.4s; object-fit: cover;
+            background: #2a2d3e;
         }
-        .active { border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 10px var(--gold); }
+        .active { border-color: var(--gold); transform: scale(1.15); box-shadow: 0 0 15px var(--gold); }
 
         .grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 15px; padding: 20px;
+            gap: 15px; padding: 25px 15px;
         }
 
         .card {
-            background: white; padding: 20px 5px; text-align: center;
-            border-radius: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: 0.2s;
+            background: white; padding: 22px 5px; text-align: center;
+            border-radius: 25px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            transition: 0.3s; position: relative;
         }
-        .card:active { transform: scale(0.95); background: #eee; }
-        .card i { display: block; font-size: 24px; margin-bottom: 8px; }
-        .card span { font-size: 11px; font-weight: bold; color: #444; }
+        .card:active { transform: scale(0.92); background: #f1f1f1; }
+        .card i { display: block; font-size: 26px; margin-bottom: 10px; }
+        .card span { font-size: 12px; font-weight: bold; color: #333; }
+
+        /* Notification Badge */
+        .badge { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: #e74c3c; border-radius: 50%; display: none; }
 
         .bus-float {
-            position: fixed; bottom: 25px; right: 25px; background: var(--gold);
-            width: 60px; height: 60px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; font-size: 24px;
-            color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999;
+            position: fixed; bottom: 30px; right: 25px; background: var(--gold);
+            width: 65px; height: 65px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 28px;
+            color: var(--primary); box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 999;
+            animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,215,0,0.7)} 70% {box-shadow: 0 0 0 15px rgba(255,215,0,0)} 100% {box-shadow: 0 0 0 0 rgba(255,215,0,0)} }
     </style>
 </head>
 
 <body>
 
 <div id="loader">
-    <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; margin-bottom: 15px;"></i>
-    <span>डेटा सिंक हो रहा है...</span>
+    <i class="fas fa-graduation-cap fa-bounce" style="font-size: 50px; margin-bottom: 20px;"></i>
+    <span style="font-weight: bold; letter-spacing: 1px;">डिजिटल स्कूल डायरी लोड हो रही है...</span>
 </div>
 
 <div class="top-nav">
     <span id="displaySchoolName" class="branding-text">SchoolSphere Pro</span>
-    <span class="branding-sub">by SchoolSphere Pro</span>
+    <span class="branding-sub">Smart Parental Control</span>
     
     <div id="picker" class="student-picker"></div>
-    <h2 id="name" style="margin: 10px 0 0; color: var(--gold);">Loading...</h2>
-    <p id="class" style="margin: 0; opacity: 0.8; font-size: 14px;">Student Dashboard</p>
+    <h2 id="name" style="margin: 15px 0 2px; color: var(--gold); font-size: 24px;">लोड हो रहा है...</h2>
+    <p id="class" style="margin: 0; opacity: 0.9; font-size: 13px; font-weight: 600;">Student Portal</p>
 </div>
 
 <div class="grid">
     <div class="card" onclick="go('attendance')"><i class="fas fa-calendar-check" style="color:#2ecc71;"></i><span>Attendance</span></div>
-    <div class="card" onclick="go('homework')"><i class="fas fa-book" style="color:#3498db;"></i><span>Homework</span></div>
-    <div class="card" onclick="go('fees')"><i class="fas fa-receipt" style="color:#f39c12;"></i><span>Fees</span></div>
-    <div class="card" onclick="go('notices')"><i class="fas fa-bullhorn" style="color:#e74c3c;"></i><span>Notices</span></div>
-    <div class="card" onclick="go('timetable')"><i class="fas fa-clock" style="color:#9b59b6;"></i><span>TimeTable</span></div>
-    <div class="card" onclick="go('leave')"><i class="fas fa-paper-plane" style="color:#1abc9c;"></i><span>Leave</span></div>
-    <div class="card" onclick="logout()"><i class="fas fa-power-off"></i><span>Logout</span></div>
+    <div class="card" onclick="go('homework')"><i class="fas fa-edit" style="color:#3498db;"></i><span>Homework</span><div id="hw-badge" class="badge"></div></div>
+    <div class="card" onclick="go('fees')"><i class="fas fa-money-check-alt" style="color:#f39c12;"></i><span>Fees</span></div>
+    <div class="card" onclick="go('notices')"><i class="fas fa-bullhorn" style="color:#e74c3c;"></i><span>Notices</span><div id="notice-badge" class="badge"></div></div>
+    <div class="card" onclick="go('timetable')"><i class="fas fa-table" style="color:#9b59b6;"></i><span>TimeTable</span></div>
+    <div class="card" onclick="go('leave')"><i class="fas fa-paper-plane" style="color:#1abc9c;"></i><span>Leave App</span></div>
+    <div class="card" onclick="go('results')"><i class="fas fa-chart-bar" style="color:#ff7675;"></i><span>Results</span></div>
+    <div class="card" onclick="go('gallery')"><i class="fas fa-images" style="color:#fdcb6e;"></i><span>Gallery</span></div>
+    <div class="card" onclick="logout()" style="background:#fff0f0;"><i class="fas fa-power-off" style="color:#d63031;"></i><span style="color:#d63031;">Logout</span></div>
 </div>
 
-<div class="bus-float" onclick="go('tracking')"><i class="fas fa-bus"></i></div>
+<div class="bus-float" onclick="go('bus_tracking')"><i class="fas fa-bus"></i></div>
 
 <script>
-// 🔴 VERSION RESET
-const VERSION = "2.2"; 
-if(localStorage.getItem("v") !== VERSION){
-    localStorage.clear();
-    localStorage.setItem("v", VERSION);
-}
-
-// 🔴 LOGIN CHECK
-const sID = localStorage.getItem("activeSchoolID");
-const mobile = localStorage.getItem("parentMobile");
-
-if(!sID || !mobile){
-    location.href = "login.html";
-}
-
-// 🔴 FIREBASE
+// 🔴 FIREBASE SETUP
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw", 
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -116,110 +109,104 @@ const firebaseConfig = {
 };
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
+const auth = firebase.auth();
 
-let students = [], current = 0, refs = [];
+// 🔴 SESSION DATA
+const sID = localStorage.getItem("activeSchoolID");
+const parentMobile = localStorage.getItem("parentMobile"); // मोबाइल ही यूजर की ID है
 
-// 🏫 NEW: Fetch School Name for Branding
+let students = [], currentIdx = 0;
+
+// 🏫 NEW: Branding Update
 function updateBranding() {
     db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
-        const sName = snap.val() || "SchoolSphere Pro";
-        document.getElementById("displaySchoolName").innerText = sName;
+        document.getElementById("displaySchoolName").innerText = snap.val() || "SchoolSphere Pro";
     });
 }
 
-// 🔴 LOAD STUDENTS
+// 🔴 LOAD STUDENTS (Multi-Child Logic)
 async function load() {
-    updateBranding(); // Branding call
-    if(!navigator.onLine){ 
-        document.getElementById("name").innerText = "ऑफलाइन मोड";
-        return; 
-    }
-
+    if(!sID || !parentMobile) { location.href = "login.html"; return; }
+    
     showLoader();
-    try {
-        let snap = await db.ref(`Schools/${sID}/Parents/${mobile}/students`).once('value');
-        let list = snap.val();
+    updateBranding();
 
-        if(!list || !Array.isArray(list)){
-            document.getElementById("name").innerText = "डेटा नहीं मिला";
+    try {
+        // पेरेंट के अंदर 'students' की लिस्ट (जैसे: ["stu01", "stu02"])
+        let snap = await db.ref(`Schools/${sID}/Parents/${parentMobile}/students`).once('value');
+        let idList = snap.val();
+
+        if(!idList) {
+            document.getElementById("name").innerText = "डाटा नहीं मिला";
             hideLoader(); return;
         }
 
-        let data = await Promise.all(
-            list.map(id => db.ref(`Schools/${sID}/Students/${id}`).once('value'))
-        );
+        // सभी बच्चों का डाटा एक साथ लोड करना
+        let dataPromises = idList.map(id => db.ref(`Schools/${sID}/Students/${id}`).once('value'));
+        let results = await Promise.all(dataPromises);
 
-        students = data.map((s, i) => {
-            let v = s.val();
-            if(v){ v.id = list[i]; return v; }
-        }).filter(Boolean);
+        students = results.map(r => {
+            let val = r.val();
+            if(val) val.id = r.key;
+            return val;
+        }).filter(s => s !== null);
 
         if(students.length > 0) {
-            render();
-            show(0);
+            renderPicker();
+            showStudent(0);
         }
     } catch(e) {
-        setTimeout(load, 5000);
+        console.error("Load Error", e);
     }
     hideLoader();
 }
 
-function render(){
+function renderPicker() {
     let html = "";
     students.forEach((s, i) => {
-        html += `<img src="${s.photo || 'https://via.placeholder.com/100?text=User'}" 
-                 onerror="this.src='https://via.placeholder.com/100?text=User'"
-                 class="student-thumb ${i == 0 ? 'active' : ''}" 
-                 onclick="show(${i})" id="t${i}">`;
+        let img = s.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.name}`;
+        html += `<img src="${img}" class="student-thumb" onclick="showStudent(${i})" id="st-${i}">`;
     });
     document.getElementById("picker").innerHTML = html;
 }
 
-function show(i) {
-    current = i;
+function showStudent(i) {
+    currentIdx = i;
     let s = students[i];
-    document.getElementById("name").innerText = s.name || "Student";
-    document.getElementById("class").innerText = `कक्षा: ${s.class || '--'} | रोल नंबर: ${s.rollNo || '--'}`;
-    document.querySelectorAll(".student-thumb").forEach(x => x.classList.remove("active"));
-    document.getElementById("t" + i).classList.add("active");
+    
+    document.getElementById("name").innerText = s.name;
+    document.getElementById("class").innerText = `कक्षा: ${s.class} | रोल: ${s.rollNo || '--'}`;
+    
+    // UI Update
+    document.querySelectorAll(".student-thumb").forEach(el => el.classList.remove("active"));
+    document.getElementById("st-"+i).classList.add("active");
 
-    localStorage.setItem("studentID", s.id);
-    sync(s.id);
+    // Save for other pages
+    localStorage.setItem("selectedStudentID", s.id);
+    localStorage.setItem("studentClass", s.class);
+    
+    checkNotifications(s.id, s.class);
 }
 
-// 🔴 SILENT SYNC
-function sync(id) {
-    refs.forEach(r => r.off());
-    refs = [];
-
-    let cls = students[current].class || "default";
-
-    let paths = [
-        {key: "att", path: `Attendance/${id}`},
-        {key: "hw", path: `Homework/${cls}`},
-        {key: "fees", path: `Fees/${id}`},
-        {key: "notice", path: `Notices/${cls}`}
-    ];
-
-    paths.forEach(p => {
-        let r = db.ref(`Schools/${sID}/${p.path}`);
-        r.on("value", snap => {
-            const data = JSON.stringify(snap.val() || {});
-            localStorage.setItem(p.key, data.slice(0, 40000)); 
-        });
-        refs.push(r);
+// 🔔 NEW: Live Notification Badges
+function checkNotifications(stuID, stuClass) {
+    // Homework Check
+    db.ref(`Schools/${sID}/Homework/${stuClass}`).limitToLast(1).on('value', snap => {
+        if(snap.exists()) document.getElementById("hw-badge").style.display = "block";
+    });
+    // Notice Check
+    db.ref(`Schools/${sID}/Notices/${stuClass}`).limitToLast(1).on('value', snap => {
+        if(snap.exists()) document.getElementById("notice-badge").style.display = "block";
     });
 }
 
-function go(p) {
-    if(!students[current]) return;
+function go(page) {
     showLoader();
-    setTimeout(() => location.href = p + ".html", 150);
+    setTimeout(() => location.href = page + ".html", 200);
 }
 
 function logout() {
-    if(confirm("Logout करना चाहते हैं?")){
-        refs.forEach(r => r.off());
+    if(confirm("लॉग आउट करना चाहते हैं?")) {
         localStorage.clear();
         location.href = "login.html";
     }
@@ -228,9 +215,7 @@ function logout() {
 function showLoader() { document.getElementById("loader").style.display = "flex"; }
 function hideLoader() { document.getElementById("loader").style.display = "none"; }
 
-window.addEventListener("online", load);
 window.onload = load;
-
 </script>
 
 </body>
