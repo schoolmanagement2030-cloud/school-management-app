@@ -68,6 +68,10 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
+    /* School Branding Styles */
+    .branding-box h1 { margin:0; font-size: 20px; font-weight: 700; }
+    .branding-box small { font-size: 11px; opacity: 0.8; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: block; }
+
     .container { padding: 15px; max-width: 600px; margin: auto; }
 
     /* Colourful Stats Cards */
@@ -124,7 +128,10 @@
 
 <div id="dashboard" class="hidden">
     <div class="owner-header">
-        <h1 style="font-size: 20px; margin:0;"><i class="fas fa-user-shield"></i> SchoolSphere <small>Owner</small></h1>
+        <div class="branding-box">
+            <h1 id="displaySchoolName">SchoolSphere</h1>
+            <small>by SchoolSphere Pro</small>
+        </div>
         <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 12px; border-radius:10px; cursor:pointer;"><i class="fas fa-power-off"></i></button>
     </div>
 
@@ -177,9 +184,6 @@
 </div>
 
 <script>
-// --- यहाँ आपका ओरिजिनल Firebase वाला पूरा Script रहेगा ---
-// (Firebase Config और Functions में कोई बदलाव नहीं किया है)
-
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     authDomain: "schoolsphere-824ca.firebaseapp.com",
@@ -220,9 +224,28 @@ authBtn.addEventListener("click", ()=>{
     }
 });
 
+// 🏫 NEW: Fetch and Display School Name
+function updateSchoolBranding() {
+    const user = auth.currentUser;
+    if(user) {
+        db.ref("users/" + user.uid).once("value", snap => {
+            const userData = snap.val();
+            if(userData && userData.schoolID) {
+                db.ref("schools/" + userData.schoolID).once("value", sSnap => {
+                    const schoolData = sSnap.val();
+                    if(schoolData && schoolData.name) {
+                        document.getElementById("displaySchoolName").innerText = schoolData.name;
+                    }
+                });
+            }
+        });
+    }
+}
+
 function showDashboard(){
     document.getElementById("authContainer").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
+    updateSchoolBranding(); // Call branding update
     loadAnalytics();
     loadSchoolsDropdown();
     loadPrincipals();
