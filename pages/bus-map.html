@@ -1,91 +1,159 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
+<meta charset="UTF-8">
 <title>School Sphere - Bus Tracking</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-text-align:center;
-}
+:root { --primary: #1a1c2c; --gold: #ffd700; }
+body { margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#f4f7f6; }
 
-h1{
-background:#FFD700;
-margin:0;
-padding:15px;
-font-size: 20px;
-box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* 🏫 Professional Header */
+header {
+    background: var(--primary);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
+header h1 { margin: 0; font-size: 18px; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+header small { display: block; font-size: 10px; opacity: 0.8; margin-top: 4px; font-weight: bold; }
 
-#map{
-height:90vh; /* थोड़ा बढ़ा दिया ताकि पूरी स्क्रीन कवर हो */
-width:100%;
-}
+#map { height: calc(100vh - 75px); width: 100%; z-index: 1; }
 
-/* बस का आइकन स्टाइल */
+/* 🚌 Bus Marker Styling */
 .bus-icon {
-    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+    background: var(--gold);
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    text-align: center;
+    color: var(--primary);
+    line-height: 32px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    font-size: 16px;
+}
+
+/* 🔄 Refresh Button */
+.fab-refresh {
+    position: fixed; bottom: 25px; right: 25px;
+    background: var(--primary); color: var(--gold);
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999;
+    cursor: pointer; border: none;
 }
 </style>
 </head>
 
 <body>
 
-<h1><i class="fas fa-bus"></i> Live School Bus Tracking</h1>
+<header>
+    <h1 id="displaySchoolName">Live Bus Tracking</h1>
+    <small id="appBranding">SchoolSphere Pro • Real-time GPS Sync</small>
+</header>
 
 <div id="map"></div>
+
+<button class="fab-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-    // --- FIREBASE CONFIG (आपके google-services.json से) ---
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
-        authDomain: "schoolsphere-824ca.firebaseapp.com",
-        projectId: "schoolsphere-824ca",
         databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
-        appId: "1:698409232180:android:7b25559d225a001d9f6761"
+        projectId: "schoolsphere-824ca"
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // स्कूल आईडी और बस आईडी (लॉगिन से मिलेगी)
-    const sID = localStorage.getItem("activeSchoolID") || "GPS001";
+    // 🛡️ SECURITY & SESSION (Multi-Owner Plus)
+    const sID = localStorage.getItem("activeSchoolID");
+    const oID = localStorage.getItem("activeOwnerID");
+
+    if(!sID) {
+        alert("सत्र समाप्त! कृपया फिर से लॉगिन करें।");
+        window.location.href = "login.html";
+    }
     
-    // मैप सेटअप (आपका ओरिजिनल)
-    var map = L.map('map').setView([26.8467, 80.9462], 15);
+    // 🗺️ MAP SETUP
+    // शुरुआत में मैप को इंडिया के सेंटर पर रखें
+    var map = L.map('map', { zoomControl: false }).setView([26.8467, 80.9462], 14);
+    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'SchoolSphere Live'
     }).addTo(map);
 
-    // बस का मार्कर (निशान)
-    var busMarker = L.marker([26.8467, 80.9462]).addTo(map)
-        .bindPopup('बस अभी यहाँ है').openPopup();
-
-    // --- लाइव लोकेशन अपडेट (Firebase से प्लस किया गया) ---
-    // ड्राइवर की ऐप जहाँ भी 'Location' अपडेट करेगी, यह मैप उसे तुरंत पकड़ेगा
-    db.ref('Schools/' + sID + '/LiveBuses').on('value', (snapshot) => {
-        const buses = snapshot.val();
-        for (let id in buses) {
-            let lat = buses[id].latitude;
-            let lng = buses[id].longitude;
-            let busNum = buses[id].busNumber || "School Bus";
-
-            // मार्कर की पोजीशन अपडेट करना
-            busMarker.setLatLng([lat, lng]);
-            busMarker.getPopup().setContent("<b>" + busNum + "</b><br>Speed: " + (buses[id].speed || 0) + " km/h");
-            
-            // मैप को बस के साथ-साथ चलाना (Optional)
-            map.panTo([lat, lng]);
-        }
+    // 🏫 स्कूल का नाम सिंक करना (Branding Plus)
+    db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
+        if(snap.exists()) document.getElementById("displaySchoolName").innerText = snap.val();
     });
+
+    // 🚌 मल्टी-बस ट्रैकिंग सिस्टम
+    var markers = {}; 
+
+    // डेटाबेस से बसों की लाइव लोकेशन उठाना
+    db.ref(`Schools/${sID}/Buses`).on('value', (snapshot) => {
+        const buses = snapshot.val();
+        
+        if(!buses) {
+            console.log("No active buses found.");
+            return;
+        }
+
+        Object.keys(buses).forEach(id => {
+            let bus = buses[id];
+            
+            // चेक करें कि क्या बस का लाइव लोकेशन डेटा मौजूद है
+            if(bus.liveLocation && bus.liveLocation.lat) {
+                let { lat, lng, speed } = bus.liveLocation;
+                let busName = bus.name || "School Bus (" + id + ")";
+
+                // 📍 अगर इस बस का मार्कर मैप पर नहीं है, तो नया बनाओ
+                if (!markers[id]) {
+                    markers[id] = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'bus-icon',
+                            html: '<i class="fas fa-bus"></i>',
+                            iconSize: [32, 32]
+                        })
+                    }).addTo(map).bindPopup("");
+                }
+
+                // 🚀 मार्कर को नई लोकेशन पर अपडेट करो
+                markers[id].setLatLng([lat, lng]);
+                
+                // पॉपअप में बस का नाम और रीयल-टाइम स्पीड दिखाओ
+                markers[id].getPopup().setContent(`
+                    <div style="text-align:center;">
+                        <b style="color:#1a1c2c;">🚌 ${busName}</b><br>
+                        <span style="color:#2ecc71; font-weight:bold;">गति: ${Math.round(speed || 0)} km/h</span>
+                    </div>
+                `);
+                
+                // अगर सिर्फ एक बस ऑनलाइन है, तो मैप उसे फॉलो करेगा
+                if (Object.keys(buses).length === 1) {
+                    map.panTo([lat, lng]);
+                }
+            }
+        });
+    });
+
+    // मैप पर जूम कंट्रोल को मोबाइल के हिसाब से नीचे सेट करना (Optional)
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
 </script>
 
