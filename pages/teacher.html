@@ -2,219 +2,196 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Teacher Dashboard - SchoolSphere</title>
+<title>Teacher Dashboard - SchoolSphere Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-body { font-family:'Segoe UI'; background:#f0f2f5; margin:0; padding:15px; }
+:root { --primary: #1a1c2c; --gold: #ffd700; --accent: #2ecc71; --danger: #e74c3c; --bg: #f4f7f6; }
+body { font-family:'Segoe UI', sans-serif; background:var(--bg); margin:0; padding:15px; overflow-x: hidden; }
 
+/* 🏫 School Branding Header */
 .header {
-    background:#1a1c2c;
-    color:#ffd700;
-    padding:25px 20px;
-    border-radius:15px;
-    text-align:center;
-    margin-bottom:20px;
-    position:relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    border-bottom: 3px solid #ffd700;
+    background:var(--primary); color:white; padding:30px 20px; border-radius:25px;
+    text-align:center; margin-bottom:25px; position:relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-bottom: 4px solid var(--gold);
 }
+#displaySchoolName { margin:0; font-size: 20px; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+.branding-sub { font-size: 10px; opacity: 0.7; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; display: block; margin-top: 5px; }
 
-/* 🏫 School Branding Styles (New Plus) */
-#displaySchoolName { margin:0; font-size: 22px; display: block; }
-.branding-sub { font-size: 11px; color: #fff; opacity: 0.7; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 10px; }
+#masterLoader { position: fixed; inset: 0; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; color: var(--gold); flex-direction: column; }
 
 .logout-btn{
-    position:absolute;
-    right:10px;
-    top:10px;
-    background:#e74c3c;
-    color:white;
-    border:none;
-    padding:5px 10px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size: 11px;
-    font-weight: bold;
+    position:absolute; right:15px; top:15px; background:rgba(255,255,255,0.1);
+    color:white; border:none; padding:8px; border-radius:12px; cursor:pointer; font-size: 16px;
 }
 
-.grid {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
+.teacher-info {
+    background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 50px;
+    display: inline-block; margin-top: 15px; font-size: 13px; font-weight: 600;
 }
+
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
 
 .menu-card {
-    background:white;
-    padding:25px 10px;
-    border-radius:20px;
-    text-align:center;
-    box-shadow:0 5px 15px rgba(0,0,0,0.08);
-    cursor:pointer;
-    transition:0.2s;
+    background:white; padding:25px 10px; border-radius:25px; text-align:center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05); cursor:pointer; transition:0.3s;
+    border: 1px solid #eee;
 }
+.menu-card:active { transform:scale(0.95); background: #fafafa; }
+.menu-card i { font-size:32px; color:var(--accent); margin-bottom:12px; display:block; }
+.menu-card span { font-weight:bold; color:var(--primary); font-size: 13px; }
 
-.menu-card:hover { transform:scale(1.05); }
+/* 🚨 Emergency Alert Button */
+.emergency-btn { grid-column:span 2; background:#fff5f5; border:2px dashed var(--danger); }
+.emergency-btn i { color:var(--danger); }
 
-.menu-card i {
-    font-size:30px;
-    color:#2ecc71;
-    margin-bottom:10px;
-    display:block;
-}
-
-.menu-card span {
-    font-weight:bold;
-    color:#2c3e50;
-    font-size: 14px;
-}
-
-/* Emergency Button */
-.emergency-btn {
-    grid-column:span 2;
-    background:#fff5f5;
-    border:2px dashed #e74c3c;
-}
-
-.emergency-btn i { color:#e74c3c; }
-
-.footer{
-    margin-top:20px;
-    text-align:center;
-    font-size:12px;
-    color:#777;
-}
+.footer { margin-top:30px; text-align:center; font-size:11px; color:#999; font-weight: bold; }
 </style>
 </head>
 
 <body>
 
+<div id="masterLoader">
+    <i class="fas fa-chalkboard-teacher fa-spin" style="font-size:50px; margin-bottom:15px;"></i>
+    <b>क्लास सिंक हो रही है...</b>
+</div>
+
 <div class="header">
-    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    
+    <button class="logout-btn" onclick="logout()"><i class="fas fa-power-off"></i></button>
     <h2 id="displaySchoolName">SchoolSphere Teacher</h2>
-    <small class="branding-sub">by SchoolSphere Pro</small>
+    <small class="branding-sub">Smart Teaching Terminal</small>
     
-    <div style="background: rgba(255,255,255,0.1); padding: 5px; border-radius: 8px; display: inline-block; margin-top: 5px;">
-        <i class="fas fa-user-tie" style="font-size: 12px;"></i> 
-        <small id="teacherName" style="font-weight: bold;">Loading...</small>
+    <div class="teacher-info">
+        <i class="fas fa-user-circle"></i> <span id="teacherName">Loading...</span>
     </div>
 </div>
 
 <div class="grid">
-
     <div class="menu-card" onclick="go('attendance.html')">
-        <i class="fas fa-user-check"></i>
+        <i class="fas fa-calendar-check" style="color: #2ecc71;"></i>
         <span>Take Attendance</span>
     </div>
 
     <div class="menu-card" onclick="go('homework.html')">
-        <i class="fas fa-book-open"></i>
-        <span>Upload Homework</span>
+        <i class="fas fa-pencil-alt" style="color: #3498db;"></i>
+        <span>Daily Homework</span>
     </div>
 
     <div class="menu-card" onclick="go('marks.html')">
-        <i class="fas fa-chart-line"></i>
-        <span>Enter Marks</span>
+        <i class="fas fa-star" style="color: #f1c40f;"></i>
+        <span>Exam Marks</span>
     </div>
 
     <div class="menu-card" onclick="go('notices.html')">
-        <i class="fas fa-bullhorn"></i>
-        <span>General Notice</span>
+        <i class="fas fa-megaphone" style="color: #e67e22;"></i>
+        <span>Class Notice</span>
+    </div>
+
+    <div class="menu-card" onclick="go('timetable.html')">
+        <i class="fas fa-clock" style="color: #9b59b6;"></i>
+        <span>My TimeTable</span>
+    </div>
+
+    <div class="menu-card" onclick="go('leave_requests.html')">
+        <i class="fas fa-envelope-open-text" style="color: #1abc9c;"></i>
+        <span>Leave Requests</span>
     </div>
 
     <div class="menu-card emergency-btn" onclick="sendEarlyLeaveAlert()">
-        <i class="fas fa-running"></i>
-        <span>Student Leaving Early?<br><small style="color:#e74c3c">(Alert Bus Driver)</small></span>
+        <i class="fas fa-bus-alt"></i>
+        <span>Student Leaving Early?<br><small style="color:var(--danger)">Click to Alert Bus Driver</small></span>
     </div>
-
 </div>
 
-<div class="footer">SchoolSphere ERP v20 🚀</div>
+<div class="footer">SchoolSphere ERP v2.5 • Developed for Rural Growth 🚀</div>
 
 <script>
-
-// 🔥 Firebase Config
+// 🔥 Firebase Init
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
     projectId: "schoolsphere-824ca"
 };
-
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
+const auth = firebase.auth();
 
-// 📦 Load Teacher Info
-const schoolID = localStorage.getItem("activeSchoolID");
-const mobile = localStorage.getItem("teacherMobile");
+let activeSID = ""; 
+let teacherMob = "";
 
-if(!schoolID || !mobile){
-    alert("पहले लॉगिन करें!");
-    window.location.href="teacher-login.html";
+// 🛡️ SECURITY & SESSION (Automatic Detection)
+auth.onAuthStateChanged(user => {
+    if(user) {
+        db.ref("users/" + user.uid).once("value", snap => {
+            const uData = snap.val();
+            if(uData && uData.role === "Teachers") {
+                activeSID = uData.schoolID;
+                teacherMob = uData.phone;
+                updateBranding();
+                loadTeacherProfile();
+                document.getElementById("masterLoader").style.display = "none";
+            } else {
+                alert("Unauthorized! आप शिक्षक नहीं हैं।");
+                window.location.href = "login.html";
+            }
+        });
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+function updateBranding() {
+    db.ref(`Schools/${activeSID}/schoolName`).on('value', snap => {
+        document.getElementById("displaySchoolName").innerText = snap.val() || "Teacher Dashboard";
+    });
 }
 
-// 🏫 NEW: Branding & Teacher Name Load
-function loadTeacherData() {
-    // School Name Sync
-    db.ref(`Schools/${schoolID}/schoolName`).on("value", snap => {
+function loadTeacherProfile() {
+    db.ref(`Schools/${activeSID}/Teachers/${teacherMob}`).once("value", snap => {
         if(snap.exists()){
-            document.getElementById("displaySchoolName").innerText = snap.val();
-        }
-    });
-
-    // Teacher Name Sync
-    db.ref(`Schools/${schoolID}/Teachers/${mobile}`).once("value")
-    .then(snap=>{
-        if(snap.exists()){
-            document.getElementById("teacherName").innerText = snap.val().name || "Teacher";
+            document.getElementById("teacherName").innerText = snap.val().name + " (Sir/Ma'am)";
         }
     });
 }
 
-// 🔗 Page Navigation
 function go(page){
     window.location.href = page;
 }
 
-// 🚨 Emergency Alert
+// 🚨 Emergency Alert (Connected to Driver Panel)
 async function sendEarlyLeaveAlert(){
     let studentName = prompt("बच्चे का नाम लिखें:");
-    let reason = prompt("जाने का कारण:");
+    let busID = prompt("बस नंबर / ड्राइवर मोबाइल डालें:");
 
-    if(!studentName || !reason){
-        alert("पूरा विवरण भरें!");
+    if(!studentName || !busID){
+        alert("विवरण अधूरा है!");
         return;
     }
 
-    try{
-        await db.ref(`Schools/${schoolID}/Alerts/Driver`).push({
-            student: studentName,
-            reason: reason,
-            msg: `${studentName} आज जल्दी घर गया (${reason})`,
+    try {
+        // यह मैसेज ड्राइवर के डैशबोर्ड पर तुरंत 'Flash' होगा
+        await db.ref(`Schools/${activeSID}/Messages/${busID}`).push({
+            text: `सावधान: ${studentName} आज छुट्टी के पहले ही घर जा रहा है।`,
+            sender: "Teacher",
             time: Date.now()
         });
-        alert("Bus Driver को Alert भेज दिया गया! ✅");
-    }catch(e){
-        alert("Error: "+e.message);
+        alert("✅ ड्राइवर को अलर्ट भेज दिया गया है!");
+    } catch(e) {
+        alert("Error: " + e.message);
     }
 }
 
-// 🚪 Logout
 function logout(){
-    if(confirm("Logout करना चाहते हैं?")){
+    if(confirm("लॉग आउट करना चाहते हैं?")){
         localStorage.clear();
-        window.location.href = "teacher-login.html";
+        auth.signOut().then(() => { window.location.href = "login.html"; });
     }
 }
-
-// Start
-window.onload = loadTeacherData;
-
 </script>
 
 </body>
