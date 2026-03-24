@@ -27,8 +27,11 @@
 
         .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 25px; box-sizing: border-box; width: calc(100% - var(--sidebar-width)); }
         
+        /* Updated Header Style */
         .header { background: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
+        .school-info-top h2 { margin:0; color: var(--primary); font-size: 22px; }
+        .school-info-top small { color: #888; font-size: 12px; font-weight: bold; }
+
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 25px 0; }
         .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border-top: 5px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .stat-card h4 { margin: 0; color: #777; font-size: 14px; }
@@ -60,7 +63,7 @@
 </div>
 
 <div class="sidebar">
-    <h2>SchoolSphere</h2>
+    <h2 id="sidebarSchoolName">SchoolSphere</h2>
     <div class="nav-item">📊 Dashboard</div>
     <div class="nav-item">💰 Fees Management</div>
     <div class="nav-item">🚌 Bus Expenses</div>
@@ -70,7 +73,10 @@
 
 <div class="main-content">
     <div class="header">
-        <h2 style="margin:0;">Accountant Portal</h2>
+        <div class="school-info-top">
+            <h2 id="displaySchoolName">Accountant Portal</h2>
+            <small>by SchoolSphere Pro</small>
+        </div>
         <div id="schoolDisplay" style="font-weight: bold; color: #e67e22;">Account Panel</div>
     </div>
 
@@ -122,8 +128,20 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// Get active school ID from local storage
 const sID = localStorage.getItem("activeSchoolID") || "demo01";
 const FUEL_AVG = 5;
+
+// 🏫 NEW: Fetch and Display School Name
+function fetchSchoolName() {
+    db.ref(`Schools/${sID}/schoolName`).on('value', (snap) => {
+        const name = snap.val() || "SchoolSphere";
+        document.getElementById("displaySchoolName").innerText = name;
+        document.getElementById("sidebarSchoolName").innerText = name;
+        document.getElementById("schoolDisplay").innerText = "Admin: " + name;
+        localStorage.setItem("schoolName", name); // For PDF use
+    });
+}
 
 // 🗺️ LEAFLET MAP
 let map = L.map('map').setView([26.8467, 80.9462], 12);
@@ -155,8 +173,6 @@ function syncBusData() {
 
         document.getElementById("liveKm").innerText = totalKm.toFixed(2) + " KM";
         document.getElementById("expectedFuel").innerText = (totalKm / FUEL_AVG).toFixed(2) + " Ltr";
-    }, () => {
-        alert("Network Error ❌");
     });
 }
 
@@ -180,14 +196,16 @@ function checkStatus() {
         if (snap.val() === "blocked") {
             document.getElementById("blockScreen").style.display = "block";
             document.querySelector(".main-content").style.display = "none";
+            document.querySelector(".sidebar").style.display = "none";
         } else {
             document.getElementById("blockScreen").style.display = "none";
             document.querySelector(".main-content").style.display = "block";
+            if(window.innerWidth > 768) document.querySelector(".sidebar").style.display = "block";
         }
     });
 }
 
-// 🔴 4. PDF GENERATOR & AUTO PRINT (FIXED)
+// 🔴 4. PDF GENERATOR & AUTO PRINT
 function generateSlip() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -196,22 +214,24 @@ function generateSlip() {
     let role = document.getElementById("staffRole").value;
     let amount = document.getElementById("amt").value;
     let bus = document.getElementById("busId").value || "N/A";
+    let currentSchool = document.getElementById("displaySchoolName").innerText;
 
     if (!name || !amount) {
         alert("पूरा फॉर्म भरो ❌");
         return;
     }
 
-    // PDF Design
     doc.setFillColor(26, 28, 44);
     doc.rect(0, 0, 210, 40, 'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(22);
-    doc.text("SALARY VOUCHER", 105, 25, { align: 'center' });
+    doc.text("SALARY VOUCHER", 105, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(currentSchool, 105, 30, { align: 'center' });
 
     doc.setTextColor(0,0,0);
     doc.setFontSize(14);
-    doc.text("School: " + (localStorage.getItem("schoolName") || "SchoolSphere"), 20, 60);
+    doc.text("School: " + currentSchool, 20, 60);
     doc.text("Date: " + new Date().toLocaleString(), 20, 70);
     doc.line(20, 75, 190, 75);
 
@@ -221,11 +241,9 @@ function generateSlip() {
     doc.text("Reference No: " + bus, 20, 120);
     doc.text("Signature: ____________", 140, 160);
 
-    // ✅ AUTO PRINT FIX
     let pdfBlob = doc.output("bloburl");
     window.open(pdfBlob);
 
-    // SAVE DATA
     db.ref(`Schools/${sID}/Expenses`).push({
         name, role, amt: amount, bus, time: Date.now()
     });
@@ -234,10 +252,10 @@ function generateSlip() {
 }
 
 window.onload = () => {
+    fetchSchoolName(); // New function called here
     checkStatus();
     syncBusData();
     syncExpenses();
-    document.getElementById("schoolDisplay").innerText = localStorage.getItem("schoolName") || "Pro Accountant Panel";
 };
 </script>
 
