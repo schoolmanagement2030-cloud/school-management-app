@@ -80,7 +80,9 @@
     .stat-card { 
         padding:20px; border-radius:18px; text-align:center; color: white;
         box-shadow: 0 8px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+        cursor: pointer; transition: 0.3s;
     }
+    .stat-card:active { transform: scale(0.95); }
     .stat-card:nth-child(1) { background: var(--primary-grad); }
     .stat-card:nth-child(2) { background: var(--success-grad); color: #1d432a; }
     .stat-card:nth-child(3) { background: var(--warning-grad); grid-column: span 2; color: #5a3e00; }
@@ -113,6 +115,23 @@
         background: var(--success-grad); color: #111; font-size: 10px;
         padding: 3px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px;
     }
+
+    /* 🟢 Custom Modal Styles (No GitHub Alerts) */
+    .modal-overlay { 
+        position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+        z-index: 10000; display: none; align-items: center; 
+        justify-content: center; padding: 20px; overflow-y: auto; 
+    }
+    .modal-content { 
+        background: white; width: 100%; max-width: 450px; 
+        border-radius: 25px; padding: 25px; position: relative; 
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    #myToast { 
+        display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); 
+        background:#2ecc71; color:white; padding:12px 25px; border-radius:50px; 
+        font-weight:bold; z-index: 11000; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
 </style>
 </head>
 <body>
@@ -137,12 +156,12 @@
 
     <div class="container">
         <div class="stats-row">
-            <div class="stat-card">
+            <div class="stat-card" onclick="showOwnerList('schools')">
                 <i class="fas fa-university"></i> 
                 <b id="schoolCount">0</b>
                 <span>कुल स्कूल</span>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="showOwnerList('principals')">
                 <i class="fas fa-user-tie"></i> 
                 <b id="pCount">0</b>
                 <span>प्रिंसिपल</span>
@@ -156,7 +175,7 @@
 
         <div class="card" style="border-left-color: #43e97b;">
             <h3><i class="fas fa-plus-circle"></i> नया स्कूल रजिस्टर करें</h3>
-            <button class="btn btn-login" style="background: var(--success-grad); color: #1d432a;" onclick="registerSchool()">Register Now</button>
+            <button class="btn btn-login" style="background: var(--success-grad); color: #1d432a;" onclick="openRegistrationModal()">Register Now</button>
         </div>
 
         <div class="card" style="border-left-color: #2a5298;">
@@ -182,6 +201,31 @@
         <div id="pList"></div>
     </div>
 </div>
+
+<div id="dataListModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="listModalTitle" style="color:#1e3c72; margin-top:0;">List</h3>
+        <div id="listDataContainer" style="max-height: 400px; overflow-y: auto;"></div>
+        <button class="btn" style="background:#eee; color:#333; margin-top:15px;" onclick="closeModal('dataListModal')">बंद करें</button>
+    </div>
+</div>
+
+<div id="schoolRegModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color:#1e3c72; margin-top:0;"><i class="fas fa-school"></i> स्कूल विवरण भरें</h3>
+        <input type="text" id="newInName" placeholder="स्कूल का पूरा नाम">
+        <input type="text" id="newInAddr" placeholder="स्कूल का पता (शहर/गाँव)">
+        <input type="number" id="newInMob" placeholder="ओनर का मोबाइल नंबर">
+        <div style="background:#f1f2f6; padding:12px; border-radius:12px; text-align:center; margin:10px 0;">
+            <small>ऑटो-जेनरेटेड ID:</small>
+            <b id="newInID" style="display:block; font-size:20px; color:#1e3c72;">--</b>
+        </div>
+        <button class="btn btn-login" onclick="finalSaveSchool()">ID जेनरेट और सेव करें</button>
+        <button class="btn" style="background:#eee; color:#333; margin-top:5px;" onclick="closeModal('schoolRegModal')">रद्द करें</button>
+    </div>
+</div>
+
+<div id="myToast">✅ सफलतापूर्वक हो गया!</div>
 
 <script>
 const firebaseConfig = {
@@ -224,18 +268,16 @@ authBtn.addEventListener("click", ()=>{
     }
 });
 
-// 🏫 NEW: Fetch and Display School Name
+// 🏫 Multi-Owner Branding Logic
 function updateSchoolBranding() {
     const user = auth.currentUser;
     if(user) {
-        db.ref("users/" + user.uid).once("value", snap => {
-            const userData = snap.val();
-            if(userData && userData.schoolID) {
-                db.ref("schools/" + userData.schoolID).once("value", sSnap => {
-                    const schoolData = sSnap.val();
-                    if(schoolData && schoolData.name) {
-                        document.getElementById("displaySchoolName").innerText = schoolData.name;
-                    }
+        // ओनर की अपनी पहली स्कूल का नाम दिखाएँ
+        db.ref(`Owners/${user.uid}/MySchools`).limitToFirst(1).once("value", snap => {
+            if(snap.exists()) {
+                const firstID = Object.keys(snap.val())[0];
+                db.ref("Schools/" + firstID + "/schoolName").once("value", nameSnap => {
+                    document.getElementById("displaySchoolName").innerText = nameSnap.val() || "My Dashboard";
                 });
             }
         });
@@ -245,7 +287,7 @@ function updateSchoolBranding() {
 function showDashboard(){
     document.getElementById("authContainer").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
-    updateSchoolBranding(); // Call branding update
+    updateSchoolBranding();
     loadAnalytics();
     loadSchoolsDropdown();
     loadPrincipals();
@@ -255,91 +297,163 @@ function showDashboard(){
 function logout(){ auth.signOut().then(()=>{ location.reload(); }); }
 function generatePassword(){ return Math.floor(100000 + Math.random()*900000).toString(); }
 
-function registerSchool(){
-    const name = prompt("स्कूल का नाम डालें:");
-    if(!name) return;
-    const id = "SCH_"+Date.now();
-    db.ref("schools/"+id).set({ name, createdAt:Date.now(), status:"active" });
-    alert("✅ स्कूल जोड़ दिया गया!");
+// --- 🛡️ SMART REGISTRATION (Points 1 & 2) ---
+function openRegistrationModal() {
+    document.getElementById("schoolRegModal").style.display = "flex";
+    // रैंडम यूनिक ID
+    let smartID = "SS-" + Math.floor(100 + Math.random() * 899);
+    document.getElementById("newInID").innerText = smartID;
 }
 
-function loadSchoolsDropdown(){
-    const select = document.getElementById("schoolSelect");
-    if(!select) return;
-    db.ref("schools").on("value", snap=>{
-        select.innerHTML = `<option value="">स्कूल चुनें</option>`;
-        snap.forEach(child=> select.innerHTML += `<option value="${child.key}">${child.val().name}</option>`);
+function finalSaveSchool() {
+    const user = auth.currentUser;
+    const name = document.getElementById("newInName").value.trim();
+    const addr = document.getElementById("newInAddr").value.trim();
+    const mob = document.getElementById("newInMob").value.trim();
+    const sID = document.getElementById("newInID").innerText;
+
+    if(!name || !user || mob.length < 10) { showCustomToast("विवरण सही भरें!", "#ff4757"); return; }
+
+    // Multi-Owner Structure (Point 4)
+    db.ref("Schools/" + sID).set({
+        schoolName: name, address: addr, ownerMobile: mob, ownerUID: user.uid, status: "active", createdAt: Date.now()
+    });
+
+    db.ref(`Owners/${user.uid}/MySchools/${sID}`).set(true).then(() => {
+        closeModal('schoolRegModal');
+        showCustomToast("✅ " + name + " रजिस्टर हो गया!");
+        loadAnalytics();
+        loadSchoolsDropdown();
     });
 }
 
-async function hirePrincipal(){
-    const name = document.getElementById("pName").value;
-    const phone = document.getElementById("pPhone").value;
-    const schoolID = document.getElementById("schoolSelect").value;
-    if(!name||!phone||!schoolID){ alert("सभी विवरण भरें!"); return; }
-    const password = generatePassword();
-    const email = phone+"@schoolsphere.com";
+// --- 📋 INTERACTIVE DATA LISTS (Point 3) ---
+function showOwnerList(type) {
+    const user = auth.currentUser;
+    const modal = document.getElementById("dataListModal");
+    const title = document.getElementById("listModalTitle");
+    const container = document.getElementById("listDataContainer");
+    
+    modal.style.display = "flex";
+    container.innerHTML = "<p style='text-align:center;'>लोड हो रहा है...</p>";
 
-    try{
-        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({ email, password })
+    if(type === 'schools') {
+        title.innerText = "🏫 मेरी स्कूल लिस्ट";
+        db.ref(`Owners/${user.uid}/MySchools`).once("value", snap => {
+            let html = "";
+            let keys = snap.val() ? Object.keys(snap.val()) : [];
+            if(keys.length === 0) container.innerHTML = "कोई स्कूल नहीं मिला।";
+            
+            keys.forEach(id => {
+                db.ref(`Schools/${id}`).once("value", sSnap => {
+                    let s = sSnap.val();
+                    html += `<div class="p-item" style="cursor:pointer;" onclick="viewFullBio('${id}')">
+                        <div class="p-info"><b>${s.schoolName}</b><span>ID: ${id} | 📱 ${s.ownerMobile}</span></div>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>`;
+                    container.innerHTML = html;
+                });
+            });
         });
-        const data = await res.json();
-        if(data.localId){
-            db.ref("users/"+data.localId).set({ name, phone, role:"principal", schoolID, status:"active" });
-            db.ref("principals/"+schoolID+"/"+phone).set({ name, phone });
-            alert(`✅ Principal Created!\n📱 ID: ${phone}\n🔑 Password: ${password}`);
-            document.getElementById('pName').value="";
-            document.getElementById('pPhone').value="";
-            loadPrincipals();
-        }
-    } catch(e){ alert("Error creating principal!"); }
-}
-
-async function resetPrincipalPassword(){
-    const phone = prompt("Principal का मोबाइल नंबर डालें:");
-    if(!phone) return;
-    const newPassword = generatePassword();
-    const email = phone+"@schoolsphere.com";
-    try {
-        await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({ email, password:newPassword })
+    } else {
+        title.innerText = "👨‍💼 मेरे प्रिंसिपल";
+        db.ref("users").orderByChild("role").equalTo("principal").once("value", snap => {
+            let html = "";
+            snap.forEach(child => {
+                let p = child.val();
+                // सिर्फ वही प्रिंसिपल दिखाएँ जो इस ओनर की किसी स्कूल में हैं
+                db.ref(`Owners/${user.uid}/MySchools/${p.schoolID}`).once("value", exist => {
+                    if(exist.exists()) {
+                        html += `<div class="p-item">
+                            <div class="p-info"><b>${p.name}</b><span>स्कूल ID: ${p.schoolID} | 📱 ${p.phone}</span></div>
+                        </div>`;
+                        container.innerHTML = html;
+                    }
+                });
+            });
+            if(!html) container.innerHTML = "कोई प्रिंसिपल नहीं मिला।";
         });
-        alert(`🔑 नया पासवर्ड सेट हो गया:\n📱 ID: ${phone}\nPassword: ${newPassword}`);
-    } catch(e){ alert("Reset failed!"); }
+    }
 }
 
-function sendSchoolNotice(){
-    const msg = document.getElementById("schoolNotice").value;
-    if(!msg) return;
-    db.ref("notices").push({ msg, time: Date.now() });
-    alert("Notice भेज दिया गया!");
-    document.getElementById("schoolNotice").value="";
+function viewFullBio(sID) {
+    const container = document.getElementById("listDataContainer");
+    container.innerHTML = "बायोडाटा लोड हो रहा है...";
+    db.ref("Schools/" + sID).once("value", snap => {
+        let s = snap.val();
+        db.ref(`Schools/${sID}/Students`).once('value', stu => {
+            db.ref(`Schools/${sID}/Teachers`).once('value', tea => {
+                container.innerHTML = `
+                    <div style="text-align:center;">
+                        <h2 style="color:#1e3c72; margin-bottom:5px;">${s.schoolName}</h2>
+                        <small>${s.address}</small>
+                        <div class="stats-row" style="margin-top:20px;">
+                            <div class="stat-card" style="background:#6c5ce7; padding:10px;"><b>${stu.numChildren()}</b><br>छात्र</div>
+                            <div class="stat-card" style="background:#fdcb6e; color:#333; padding:10px;"><b>${tea.numChildren()}</b><br>टीचर्स</div>
+                        </div>
+                        <div class="card" style="margin-top:10px; border-left-color:#2ecc71; text-align:left;">
+                            <b>💰 अकाउंट (Accountant)</b><br>
+                            <small>फीस और खर्च का पूरा विवरण यहाँ सिंक है।</small>
+                        </div>
+                        <button class="btn" style="background:#eee; color:#333;" onclick="showOwnerList('schools')">पीछे जाएँ</button>
+                    </div>`;
+            });
+        });
+    });
 }
+
+// --- Utility Functions ---
+function showCustomToast(msg, color) {
+    const t = document.getElementById("myToast");
+    t.innerText = msg; t.style.background = color || "#2ecc71";
+    t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000);
+}
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
 function loadAnalytics(){
-    db.ref("schools").on("value", s=>{ document.getElementById("schoolCount").innerText=s.numChildren(); });
-    db.ref("principals").on("value", p=>{
-        let count=0;
-        p.forEach(s=> count+=s.numChildren());
+    const user = auth.currentUser;
+    db.ref(`Owners/${user.uid}/MySchools`).on("value", s=>{ 
+        document.getElementById("schoolCount").innerText = s.numChildren(); 
+    });
+    // प्रिंसिपल काउंट का लॉजिक
+    db.ref("users").orderByChild("role").equalTo("principal").on("value", snap => {
+        let count = 0;
+        snap.forEach(p => {
+             db.ref(`Owners/${user.uid}/MySchools/${p.val().schoolID}`).once("value", ex => { if(ex.exists()) count++; });
+        });
         document.getElementById("pCount").innerText = count;
     });
 }
 
+function loadSchoolsDropdown(){
+    const user = auth.currentUser;
+    const select = document.getElementById("schoolSelect");
+    db.ref(`Owners/${user.uid}/MySchools`).on("value", snap => {
+        select.innerHTML = `<option value="">स्कूल चुनें</option>`;
+        snap.forEach(child => {
+            db.ref(`Schools/${child.key}/schoolName`).once("value", nameSnap => {
+                select.innerHTML += `<option value="${child.key}">${nameSnap.val()}</option>`;
+            });
+        });
+    });
+}
+
 function loadPrincipals(){
+    const user = auth.currentUser;
     const list = document.getElementById("pList");
-    db.ref("principals").on("value", snap=>{
-        list.innerHTML="";
-        snap.forEach(school=> school.forEach(p=>{
-            list.innerHTML += `<div class="p-item">
-                <div class="p-info"><b>${p.val().name}</b><span>Mobile: ${p.val().phone}</span></div>
-                <div style="color:#43e97b; font-weight:bold; font-size:12px;"><i class="fas fa-circle"></i> Online</div>
-            </div>`;
-        }));
+    db.ref("users").orderByChild("role").equalTo("principal").on("value", snap => {
+        list.innerHTML = "";
+        snap.forEach(pSnap => {
+            let p = pSnap.val();
+            db.ref(`Owners/${user.uid}/MySchools/${p.schoolID}`).once("value", ex => {
+                if(ex.exists()) {
+                    list.innerHTML += `<div class="p-item">
+                        <div class="p-info"><b>${p.name}</b><span>Mobile: ${p.phone}</span></div>
+                        <div style="color:#43e97b; font-weight:bold; font-size:12px;"><i class="fas fa-circle"></i> Online</div>
+                    </div>`;
+                }
+            });
+        });
     });
 }
 
