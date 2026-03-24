@@ -5,16 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SchoolSphere Pro Login</title>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
 :root {
     --primary: #2ecc71;
     --dark: #1a1c2c;
     --gold: #ffd700;
+    --glass: rgba(255, 255, 255, 0.95);
 }
 
 body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background-attachment: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,52 +28,87 @@ body {
 }
 
 .login-container {
-    background: white;
+    background: var(--glass);
     padding: 40px 30px;
-    border-radius: 25px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    border-radius: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     width: 100%;
-    max-width: 350px;
+    max-width: 380px;
     text-align: center;
-    animation: fadeIn 0.5s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: slideUp 0.6s ease-out;
 }
 
-h2 { margin-bottom: 25px; color: #2c3e50; font-size: 28px; }
+.logo-icon {
+    font-size: 45px;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+h2 { 
+    margin-bottom: 30px; 
+    color: var(--dark); 
+    font-size: 26px; 
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    color: #7f8c8d;
+    font-size: 18px;
+}
 
 input, select {
     width: 100%;
-    padding: 15px;
-    margin: 12px 0;
-    border: 2px solid #f0f0f0;
+    padding: 14px 15px 14px 45px; /* लेफ्ट साइड में जगह छोड़ी आइकन के लिए */
+    border: 2px solid #edf2f7;
     border-radius: 15px;
     box-sizing: border-box;
-    font-size: 16px;
-    background: #f9f9f9;
-    transition: 0.3s;
+    font-size: 15px;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+    color: var(--dark);
 }
 
 input:focus, select:focus {
     border-color: var(--primary);
     background: white;
-    box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.15);
     outline: none;
 }
 
 button {
     width: 100%;
     padding: 16px;
-    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
     color: white;
     border: none;
     border-radius: 15px;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 18px;
+    font-weight: 700;
+    font-size: 17px;
     margin-top: 15px;
-    box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+    box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+    transition: all 0.3s ease;
 }
 
-button:active { transform: translateY(2px); }
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px rgba(46, 204, 113, 0.4);
+}
+
+button:active { 
+    transform: scale(0.97); 
+}
 
 .toggle {
     margin-top: 25px;
@@ -77,11 +116,24 @@ button:active { transform: translateY(2px); }
     color: #3498db;
     cursor: pointer;
     font-weight: 600;
+    display: inline-block;
+    padding: 5px 10px;
+    transition: 0.3s;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+.toggle:hover {
+    color: var(--dark);
+    text-decoration: underline;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* मोबाइल के लिए छोटे सुधार */
+@media (max-width: 400px) {
+    .login-container { padding: 30px 20px; }
 }
 </style>
 </head>
@@ -89,111 +141,122 @@ button:active { transform: translateY(2px); }
 <body>
 
 <div class="login-container">
+    <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+    <h2 id="title">लॉगिन करें</h2>
 
-<h2 id="title">Login</h2>
+    <div id="loginBox">
+        <div class="input-group">
+            <i class="fas fa-user-shield"></i>
+            <select id="loginRole">
+                <option value="owner">Owner / Admin</option>
+                <option value="teacher">Teacher</option>
+            </select>
+        </div>
 
-<!-- LOGIN -->
-<div id="loginBox">
+        <div class="input-group">
+            <i class="fas fa-mobile-alt"></i>
+            <input id="loginMobile" type="number" placeholder="मोबाइल नंबर">
+        </div>
 
-<select id="loginRole">
-    <option value="owner">Owner / Admin</option>
-    <option value="teacher">Teacher</option>
-</select>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input id="loginPass" type="password" placeholder="पासवर्ड">
+        </div>
 
-<input id="loginMobile" placeholder="Mobile Number">
-<input id="loginPass" type="password" placeholder="Password">
+        <button onclick="login()">Dashboard खोलें 🚀</button>
+    </div>
 
-<button onclick="login()">Login 🚀</button>
+    <div id="registerBox" style="display:none;">
+        <div class="input-group">
+            <i class="fas fa-user-tag"></i>
+            <select id="regRole">
+                <option value="owner">Owner / Admin</option>
+                <option value="teacher">Teacher</option>
+            </select>
+        </div>
 
-</div>
+        <div class="input-group">
+            <i class="fas fa-school"></i>
+            <input id="regSchool" placeholder="स्कूल का नाम">
+        </div>
 
-<!-- REGISTER -->
-<div id="registerBox" style="display:none;">
+        <div class="input-group">
+            <i class="fas fa-mobile-alt"></i>
+            <input id="regMobile" type="number" placeholder="मोबाइल नंबर">
+        </div>
 
-<select id="regRole">
-    <option value="owner">Owner / Admin</option>
-    <option value="teacher">Teacher</option>
-</select>
+        <div class="input-group">
+            <i class="fas fa-key"></i>
+            <input id="regPass" type="password" placeholder="नया पासवर्ड">
+        </div>
 
-<input id="regSchool" placeholder="School Name">
-<input id="regMobile" placeholder="Mobile Number">
-<input id="regPass" type="password" placeholder="Password">
+        <button onclick="register()">रजिस्टर करें ✅</button>
+    </div>
 
-<button onclick="register()">Register ✅</button>
-
-</div>
-
-<div class="toggle" onclick="toggle()">New user? Register</div>
+    <div class="toggle" id="toggleText" onclick="toggle()">नया अकाउंट? रजिस्टर करें</div>
 
 </div>
 
 <script>
-
-// Toggle
+// Toggle Function
 function toggle(){
-let login=document.getElementById("loginBox");
-let reg=document.getElementById("registerBox");
-let title=document.getElementById("title");
+    let login = document.getElementById("loginBox");
+    let reg = document.getElementById("registerBox");
+    let title = document.getElementById("title");
+    let toggleText = document.getElementById("toggleText");
 
-if(login.style.display==="none"){
-login.style.display="block";
-reg.style.display="none";
-title.innerText="Login";
-}else{
-login.style.display="none";
-reg.style.display="block";
-title.innerText="Register";
-}
+    if(login.style.display === "none"){
+        login.style.display = "block";
+        reg.style.display = "none";
+        title.innerText = "लॉगिन करें";
+        toggleText.innerText = "नया अकाउंट? रजिस्टर करें";
+    } else {
+        login.style.display = "none";
+        reg.style.display = "block";
+        title.innerText = "रजिस्ट्रेशन";
+        toggleText.innerText = "पुराना अकाउंट? लॉगिन करें";
+    }
 }
 
-// Register
+// बाकी के फंक्शन्स वैसे ही काम करेंगे जैसे पहले थे...
 function register(){
+    let role = document.getElementById("regRole").value;
+    let school = document.getElementById("regSchool").value;
+    let mobile = document.getElementById("regMobile").value;
+    let pass = document.getElementById("regPass").value;
 
-let role=document.getElementById("regRole").value;
-let school=document.getElementById("regSchool").value;
-let mobile=document.getElementById("regMobile").value;
-let pass=document.getElementById("regPass").value;
+    if(!school || !mobile || !pass){
+        alert("सभी जानकारी भरें!");
+        return;
+    }
 
-if(!school || !mobile || !pass){
-alert("सभी जानकारी भरें!");
-return;
+    localStorage.setItem(role+"_mobile", mobile);
+    localStorage.setItem(role+"_pass", pass);
+    localStorage.setItem("schoolName", school);
+
+    alert("Registration Successful! अब लॉगिन करें।");
+    toggle();
 }
 
-// अलग-अलग roles के लिए save
-localStorage.setItem(role+"_mobile",mobile);
-localStorage.setItem(role+"_pass",pass);
-localStorage.setItem("schoolName",school);
-
-alert("Registration Successful!");
-toggle();
-}
-
-// Login
 function login(){
+    let role = document.getElementById("loginRole").value;
+    let mobile = document.getElementById("loginMobile").value;
+    let pass = document.getElementById("loginPass").value;
 
-let role=document.getElementById("loginRole").value;
-let mobile=document.getElementById("loginMobile").value;
-let pass=document.getElementById("loginPass").value;
+    let savedMobile = localStorage.getItem(role+"_mobile");
+    let savedPass = localStorage.getItem(role+"_pass");
 
-let savedMobile=localStorage.getItem(role+"_mobile");
-let savedPass=localStorage.getItem(role+"_pass");
-
-if(mobile===savedMobile && pass===savedPass){
-
-alert("Welcome " + role);
-
-// अलग-अलग dashboard
-if(role==="owner"){
-window.location.href="superadmin.html";
-}else{
-window.location.href="teacher-dashboard.html";
+    if(mobile === savedMobile && pass === savedPass){
+        alert("स्वागत है " + role + "!");
+        if(role === "owner"){
+            window.location.href = "superadmin.html";
+        } else {
+            window.location.href = "teacher-dashboard.html";
+        }
+    } else {
+        alert("गलत जानकारी! कृपया दोबारा चेक करें।");
+    }
 }
-
-}else{
-alert("गलत जानकारी!");
-}
-}
-
 </script>
 
 </body>
