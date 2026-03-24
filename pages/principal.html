@@ -36,7 +36,6 @@ button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:po
 .btn-reset { background:#3498db; color:white; }
 .btn-block { background:var(--danger); color:white; }
 .btn-unblock { background:var(--accent); color:white; }
-.btn-net { background:#9b59b6; color:white; }
 .btn-del { background:#555; color:white; }
 .btn-wa { background:#25d366; color:white; } /* WhatsApp Share */
 
@@ -51,7 +50,7 @@ button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:po
 <body>
 <div id="masterLoader">
     <i class="fas fa-crown fa-spin" style="font-size:40px; margin-bottom:15px;"></i>
-    <b>डेटा क्लाउड से सिंक हो रहा है...</b>
+    <b id="loaderText">डेटा क्लाउड से सिंक हो रहा है...</b>
 </div>
 
 <div id="toast"></div>
@@ -86,7 +85,7 @@ button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:po
         <option value="Parents">Parent</option>
         <option value="Teachers">Teacher</option>
         <option value="Buses">Driver (Bus)</option>
-    </select>
+        <option value="Accountants">Accountant (एकाउंटेंट)</option> </select>
     <button class="btn-main" onclick="createUser()">Create User & Generate Pass ✅</button>
 
     <hr style="margin:25px 0;">
@@ -113,7 +112,7 @@ const db = firebase.database();
 let activeSID = ""; 
 let masterData = {}, loaded=false;
 
-// 🔐 NEW: Secure Mixed Password Generator (Point 5 Plus)
+// 🔐 Secure Mixed Password Generator
 function generateSecurePass() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     let pass = "";
@@ -121,9 +120,10 @@ function generateSecurePass() {
     return pass;
 }
 
-// 📡 Session Check: No LocalStorage, Only Firebase Auth (Point 4 Plus)
+// 📡 Sahi Login Check: Ab Loading pe nahi atkega
 auth.onAuthStateChanged(user => {
     if(user) {
+        // UID se School ID dhoondhna
         db.ref("users/" + user.uid).once("value", snap => {
             const uData = snap.val();
             if(uData && uData.schoolID) {
@@ -131,6 +131,18 @@ auth.onAuthStateChanged(user => {
                 document.getElementById("displaySID").innerText = activeSID;
                 updateBranding();
                 safeLoad();
+            } else {
+                // Agar users folder me na mile to Managers me check karega
+                db.ref("Managers/" + user.uid).once("value", mSnap => {
+                    if(mSnap.exists()){
+                        activeSID = mSnap.val().schoolID;
+                        document.getElementById("displaySID").innerText = activeSID;
+                        updateBranding();
+                        safeLoad();
+                    } else {
+                        document.getElementById("loaderText").innerHTML = "❌ स्कूल आईडी नहीं मिली! ओनर से संपर्क करें।";
+                    }
+                });
             }
         });
     } else {
@@ -144,7 +156,7 @@ function updateBranding() {
     });
 }
 
-// ===== CREATE USER (Point 1 & 2 Plus) =====
+// ===== CREATE USER =====
 async function createUser(){
     let name = document.getElementById("name").value.trim();
     let mobile = document.getElementById("mobile").value.trim();
@@ -154,7 +166,7 @@ async function createUser(){
     let exists = masterData[role] && masterData[role][mobile];
     if(exists){ alert("यह ID पहले से मौजूद है ❌"); return; }
 
-    let rawPass = generateSecurePass(); // New Strong Pass
+    let rawPass = generateSecurePass();
 
     let dataObj = { name, mobile, role, password: rawPass, status:"active", createdAt:Date.now() };
     if(role==="Buses") dataObj.liveLocation = {lat:0,lng:0};
@@ -166,7 +178,6 @@ async function createUser(){
     });
 }
 
-// 📱 Success Modal & WhatsApp Share (Point 2 Plus)
 function showSuccessModal(name, id, role, pass) {
     const modal = document.getElementById("successModal");
     const info = document.getElementById("infoBox");
@@ -182,41 +193,45 @@ function showSuccessModal(name, id, role, pass) {
 function safeLoad(){
     db.ref(`Schools/${activeSID}`).on("value", snap=>{
         masterData = snap.val() || {};
-        calculateFees();
+        calculateStats();
         renderAll();
         if(!loaded){ document.getElementById("masterLoader").style.display="none"; loaded=true; }
     }, err=>{ showToast("Network Error ❌"); });
 }
 
-function calculateFees(){
-    let totalPaid=0;
-    let students = masterData.Students || {};
-    Object.values(students).forEach(s=>{ totalPaid+=Number(s.paid || 0); });
+function calculateStats(){
+    let totalPaid=0, count=0;
+    ["Students","Parents","Teachers","Buses","Accountants"].forEach(node => {
+        let data = masterData[node] || {};
+        Object.values(data).forEach(u => {
+            count++;
+            if(node === "Students") totalPaid += Number(u.paid || 0);
+        });
+    });
     document.getElementById("totalFees").innerText = totalPaid.toLocaleString('hi-IN');
+    document.getElementById("userCount").innerText = count;
 }
 
 function renderAll(){
-    let html="", count=0;
-    ["Students","Parents","Teachers","Buses"].forEach(node=>{
+    let html="";
+    ["Students","Parents","Teachers","Buses","Accountants"].forEach(node=>{
         let data = masterData[node] || {};
         Object.keys(data).forEach(id=>{
-            let u=data[id]; count++;
+            let u=data[id];
             let blocked = u.status==="blocked";
             html+=`<div class="row" style="border-left-color:${blocked?'red':'#2ecc71'}">
                 <b>${u.name}</b> <small>(${node})</small><br>
                 <small>ID: ${id} | Pass: <span style="color:blue">${u.password}</span></small><br>
                 <div style="margin-top:10px;">
-                    <button class="btn-wa" onclick="showSuccessModal('${u.name}','${id}','${node}','${u.password}')">Share</button>
+                    <button class="btn-wa" onclick="showSuccessModal('${u.name}','${id}','${node}','${u.password}')"><i class="fab fa-whatsapp"></i></button>
                     <button class="btn-reset" onclick="resetLogin('${node}','${id}')">Reset</button>
-                    <button class="btn-block" onclick="blockUser('${node}','${id}')">Block</button>
-                    <button class="btn-unblock" onclick="unblockUser('${node}','${id}')">Unblock</button>
+                    <button class="${blocked?'btn-unblock':'btn-block'}" onclick="toggleStatus('${node}','${id}','${u.status}')">${blocked?'Unblock':'Block'}</button>
                     <button class="btn-del" onclick="delUser('${node}','${id}')">Delete</button>
                 </div>
             </div>`;
         });
     });
     document.getElementById("list").innerHTML = html || "<p style='text-align:center'>कोई रिकॉर्ड नहीं मिला</p>";
-    document.getElementById("userCount").innerText = count;
 }
 
 function searchUser(){
@@ -229,15 +244,12 @@ function searchUser(){
 async function resetLogin(node,id){
     let rawPass = generateSecurePass();
     db.ref(`Schools/${activeSID}/${node}/${id}`).update({ password:rawPass });
-    alert("New Password: "+rawPass);
+    alert("नया पासवर्ड: "+rawPass);
 }
 
-function blockUser(node,id){
-    let reason=prompt("Block reason?");
-    if(reason) db.ref(`Schools/${activeSID}/${node}/${id}`).update({ status:"blocked", reason:reason });
-}
-function unblockUser(node,id){
-    db.ref(`Schools/${activeSID}/${node}/${id}`).update({ status:"active", reason:"" });
+function toggleStatus(node,id,current){
+    let next = current === "blocked" ? "active" : "blocked";
+    db.ref(`Schools/${activeSID}/${node}/${id}`).update({ status:next });
 }
 
 function delUser(node,id){
