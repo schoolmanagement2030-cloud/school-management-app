@@ -3,118 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SchoolSphere Dashboard</title>
+    <title>Login - SchoolSphere Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
+        :root { --primary: #1a1c2c; --gold: #ffd700; --blue: #0072ff; }
         body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            text-align: center;
-            padding: 40px;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f7f6;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        h1 {
-            margin-bottom: 30px;
-        }
-
-        /* लॉगिन बॉक्स के लिए थोड़ा स्टाइल प्लस किया है */
-        .login-box {
+        .login-card {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            width: 90%;
+            max-width: 400px;
+            padding: 35px 25px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 5px solid var(--primary);
         }
 
-        input {
-            display: block;
-            width: 200px;
-            padding: 10px;
-            margin: 10px auto;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+        .login-card i.logo {
+            font-size: 50px;
+            color: var(--primary);
+            margin-bottom: 15px;
         }
 
-        button {
-            width: 220px;
-            padding: 15px;
-            margin: 10px;
+        h2 { color: var(--primary); margin-bottom: 25px; font-weight: 700; }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 14px;
+            color: #888;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border-radius: 12px;
+            border: 2px solid #eee;
+            box-sizing: border-box;
+            outline: none;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--blue);
+            background: #fff;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            margin-top: 10px;
             border: none;
-            background: #0072ff;
-            color: white;
-            font-size: 16px;
-            border-radius: 10px;
+            background: var(--primary);
+            color: var(--gold);
+            font-size: 17px;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
         }
 
-        button:hover {
-            background: #0056b3;
+        .btn-login:active { transform: scale(0.98); }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #777;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <h1>Welcome to SchoolSphere</h1>
+    <div class="login-card">
+        <i class="fas fa-graduation-cap logo"></i>
+        <h2>SchoolSphere Pro</h2>
 
-    <div class="login-box">
-        <h3 style="margin-top:0;">Login Access</h3>
-        <input type="text" id="schoolID" placeholder="School ID (जैसे GPS001)">
-        <input type="number" id="userMobile" placeholder="Mobile Number">
-        <input type="password" id="userPass" placeholder="Password">
+        <div class="input-group">
+            <i class="fas fa-user-shield"></i>
+            <input type="number" id="ownerID" placeholder="Owner ID (ओनर मोबाइल)">
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-school"></i>
+            <input type="text" id="schoolID" placeholder="School ID (जैसे SS-101)">
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-user-tag"></i>
+            <select id="userRole">
+                <option value="">अपना रोल चुनें</option>
+                <option value="principal">Principal (प्रिंसिपल)</option>
+                <option value="accountant">Accountant (एकाउंटेंट)</option>
+                <option value="teacher">Teacher (शिक्षक)</option>
+                <option value="parent">Parent (अभिभावक)</option>
+                <option value="driver">Driver (ड्राइवर)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-mobile-alt"></i>
+            <input type="number" id="userMobile" placeholder="आपका मोबाइल नंबर">
+        </div>
+
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="userPass" placeholder="पासवर्ड">
+        </div>
+
+        <button class="btn-login" onclick="handleLogin()">सुरक्षित लॉगिन करें ✅</button>
+
+        <div class="footer-text">v2.5 • Smart School Management</div>
     </div>
 
-    <br>
-
-    <button onclick="loginUser('Students')">Students Panel</button>
-    <button onclick="loginUser('Teachers')">Teachers Panel</button>
-    <button onclick="loginUser('Bus')">Bus Tracking (Driver)</button>
-    <button onclick="loginUser('Accountant')">Fees (Accountant)</button>
-
     <script>
-        // --- FIREBASE CONFIG (आपके google-services.json से) ---
         const firebaseConfig = {
             apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
             authDomain: "schoolsphere-824ca.firebaseapp.com",
             projectId: "schoolsphere-824ca",
-            databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
-            appId: "1:698409232180:android:7b25559d225a001d9f6761"
+            databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function loginUser(panel) {
-            const sID = document.getElementById('schoolID').value;
-            const mobile = document.getElementById('userMobile').value;
+        async function handleLogin() {
+            const oID = document.getElementById('ownerID').value.trim();
+            const sID = document.getElementById('schoolID').value.trim();
+            const role = document.getElementById('userRole').value;
+            const mobile = document.getElementById('userMobile').value.trim();
             const pass = document.getElementById('userPass').value;
 
-            if(!sID || !mobile || !pass) {
-                alert("कृपया School ID, Mobile और Password भरें!");
+            if(!oID || !sID || !role || !mobile || !pass) {
+                alert("❌ कृपया सभी बॉक्स भरें!");
                 return;
             }
 
-            // --- लॉगिन चेक (Firebase से प्लस किया गया) ---
-            db.ref('Schools/' + sID + '/Staff/' + mobile).once('value', (snap) => {
-                const userData = snap.val();
+            // 🕵️‍♂️ स्टेप 1: पहले स्कूल चेक करें कि वह इसी ओनर की है या नहीं
+            db.ref(`Schools/${sID}`).once('value', (snap) => {
+                const school = snap.val();
 
-                if (userData && userData.password === pass) {
-                    // डेटा को लोकल सेव करना ताकि अगले पेज पर काम आए
-                    localStorage.setItem("activeSchoolID", sID);
-                    localStorage.setItem("userRole", panel);
+                if (school && (school.ownerMobile == oID || school.ownerUID == oID)) {
                     
-                    alert(panel + " में आपका स्वागत है!");
-                    
-                    // यहाँ से सही पेज पर भेज देगा (जैसे accountant.html)
-                    if(panel === 'Accountant') window.location.href = "accountant.html";
-                    else if(panel === 'Teachers') window.location.href = "teacher.html";
-                    else if(panel === 'Bus') window.location.href = "driver.html";
-                    else alert("Students panel अभी तैयार हो रहा है!");
+                    // स्टेप 2: अब सही फोल्डर (Principal, Teacher आदि) में लॉगिन चेक करें
+                    // नोट: डेटाबेस में टीचर्स और स्टाफ को अलग-अलग नोड्स में रखा गया है
+                    let path = `Schools/${sID}/Teachers/${mobile}`;
+                    if(role === 'principal') path = `Schools/${sID}/Principals/${mobile}`;
+                    if(role === 'parent') path = `Schools/${sID}/Parents/${mobile}`;
+                    if(role === 'driver') path = `Schools/${sID}/Buses/${mobile}`;
+                    if(role === 'accountant') path = `Schools/${sID}/Accountants/${mobile}`;
+
+                    db.ref(path).once('value', (userSnap) => {
+                        const user = userSnap.val();
+
+                        if (user && user.password === pass) {
+                            // ✅ लॉगिन सफल! अगले पेज के लिए डेटा सेव करें
+                            localStorage.setItem("activeOwnerID", oID);
+                            localStorage.setItem("activeSchoolID", sID);
+                            localStorage.setItem("userMobile", mobile);
+                            localStorage.setItem("userRole", role);
+
+                            alert(`Welcome! ${role} डैशबोर्ड खुल रहा है...`);
+                            
+                            // सही फाइल पर भेजें
+                            window.location.href = role + ".html"; 
+                        } else {
+                            alert("❌ गलत मोबाइल नंबर या पासवर्ड!");
+                        }
+                    });
+
                 } else {
-                    alert("गलत जानकारी! कृपया दोबारा चेक करें।");
+                    alert("❌ गलत Owner ID या School ID! डेटा नहीं मिला।");
                 }
             });
         }
