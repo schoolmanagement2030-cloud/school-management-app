@@ -16,8 +16,16 @@
 :root { --primary: #1a1c2c; --gold: #ffd700; --success: #2ecc71; --danger: #e74c3c; --bg: #f4f7f6; }
 body { margin:0; font-family: 'Segoe UI', sans-serif; background:var(--bg); padding-bottom: 30px; }
 
+/* 🏫 School Branding Header (New Plus) */
+.school-header { 
+    background: white; padding: 15px; text-align: center; 
+    border-bottom: 2px solid var(--gold); box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.school-header h1 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 700; }
+.school-header small { color: #888; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
 /* 🗺️ Map Section */
-#map { height: 200px; width: 100%; border-bottom: 4px solid var(--primary); }
+#map { height: 180px; width: 100%; border-bottom: 4px solid var(--primary); }
 
 /* 🔘 Trip Control */
 .trip-panel { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 0 0 30px 30px; }
@@ -40,6 +48,11 @@ body { margin:0; font-family: 'Segoe UI', sans-serif; background:var(--bg); padd
 </style>
 </head>
 <body>
+
+<div class="school-header">
+    <h1 id="displaySchoolName">Driver Terminal</h1>
+    <small>by SchoolSphere Pro</small>
+</div>
 
 <div class="status-bar" id="gps-status">GPS: Offline | Background: Off</div>
 
@@ -71,6 +84,14 @@ const sID = localStorage.getItem("activeSchoolID") || "demo01";
 const busID = localStorage.getItem("busID") || "BUS001";
 const today = new Date().toISOString().slice(0, 10);
 
+// 🏫 NEW: Fetch School Name for Header
+function updateBranding() {
+    db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
+        const name = snap.val() || "SchoolSphere";
+        document.getElementById("displaySchoolName").innerText = name;
+    });
+}
+
 // 🛠️ Background Tools
 let noSleep = new NoSleep();
 let isTripRunning = false;
@@ -91,24 +112,22 @@ function speak(text) {
     window.speechSynthesis.speak(msg);
 }
 
-// 🔴 1. TRIP CONTROL (Start/Stop Background)
+// 🔴 1. TRIP CONTROL
 async function toggleTrip() {
     const btn = document.getElementById("mainTripBtn");
     const label = document.getElementById("trip-label");
 
     if (!isTripRunning) {
-        // Start
         isTripRunning = true;
         btn.innerText = "STOP TRIP 🛑";
         btn.classList.replace("start", "stop");
         label.innerText = "Trip Status: Running (Background Active)";
         
-        noSleep.enable(); // फोन को सोने नहीं देगा
-        requestWakeLock(); // प्रोसेसर को जगाए रखेगा
+        noSleep.enable(); 
+        requestWakeLock(); 
         startTracking();
         speak("ट्रिप शुरू हो गई है, अब आप स्क्रीन बंद कर सकते हैं");
     } else {
-        // Stop
         isTripRunning = false;
         btn.innerText = "START TRIP 🚌";
         btn.classList.replace("stop", "start");
@@ -130,13 +149,10 @@ function startTracking() {
         let lng = pos.coords.longitude;
 
         document.getElementById("gps-status").innerText = `GPS: Live | Lat: ${lat.toFixed(4)} | Lng: ${lng.toFixed(4)}`;
-        
-        // UI Update
         busMarker.setLatLng([lat, lng]);
         map.panTo([lat, lng]);
         polyline.addLatLng([lat, lng]);
 
-        // Firebase Update
         let locData = { lat, lng, time: Date.now() };
         if(navigator.onLine) {
             db.ref(`Schools/${sID}/Buses/${busID}/liveLocation`).set(locData);
@@ -152,7 +168,6 @@ function stopTracking() {
     db.ref(`Schools/${sID}/Buses/${busID}/liveLocation`).remove();
 }
 
-// 🔐 WakeLock Helper
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
@@ -198,6 +213,9 @@ db.ref(`Schools/${sID}/Messages/${busID}`).limitToLast(1).on('child_added', snap
         speak("सावधान, प्रिंसिपल का संदेश: " + m.text);
     }
 });
+
+// Auto-run on load
+window.onload = updateBranding;
 
 </script>
 </body>
