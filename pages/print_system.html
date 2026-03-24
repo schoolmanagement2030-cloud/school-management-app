@@ -6,9 +6,11 @@
 <title>SchoolSphere Pro - Fin-Printer</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
 :root { --primary:#1a1c2c; --success:#27ae60; --gold:#ffd700; --bg:#f8fafc; }
@@ -19,53 +21,50 @@ h2 { color:var(--primary); text-align:center; margin-bottom:20px; }
 
 .input-box { margin-bottom:15px; }
 label { font-size:12px; font-weight:bold; color:#555; display:block; margin-bottom:5px; }
-input, select { width:100%; padding:14px; border-radius:12px; border:1.5px solid #eee; box-sizing:border-box; outline:none; font-size:16px; transition:0.3s; }
-input:focus { border-color:var(--primary); }
+input, select { width:100%; padding:14px; border-radius:12px; border:1.5px solid #eee; box-sizing:border-box; outline:none; font-size:16px; transition:0.3s; background: #fafafa; }
+input:focus, select:focus { border-color:var(--primary); background: #fff; }
 
 button { width:100%; padding:16px; margin-top:20px; background:var(--primary); color:var(--gold); border:none; border-radius:15px; font-size:18px; font-weight:bold; cursor:pointer; transition:0.3s; box-shadow:0 10px 20px rgba(26,28,44,0.2); }
 button:active { transform:scale(0.98); }
 button:disabled { background:#ccc; cursor:wait; }
 
-.loader { display:none; text-align:center; color:var(--success); margin-top:10px; font-weight:bold; }
+#masterLoader { position: fixed; inset: 0; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; color: var(--gold); flex-direction: column; }
+.loader-msg { margin-top: 15px; font-weight: bold; letter-spacing: 1px; }
 </style>
 </head>
 
 <body>
 
+<div id="masterLoader">
+    <i class="fas fa-print fa-spin" style="font-size:50px;"></i>
+    <p class="loader-msg">सुरक्षित प्रिंटर लोड हो रहा है...</p>
+</div>
+
 <div class="container">
-    <h2>सैलरी रसीद 🧾</h2>
+    <h2 id="schoolHeading">सैलरी रसीद 🧾</h2>
     
     <div class="input-box">
-        <label>स्टाफ का नाम</label>
-        <input type="text" id="staffName" placeholder="उदा: राम सिंह">
-    </div>
-
-    <div class="input-box">
         <label>पद (Role)</label>
-        <select id="staffRole">
-            <option value="Bus Driver">Bus Driver 🚌</option>
-            <option value="Teacher">Teacher 👨‍🏫</option>
-            <option value="Warden">Warden 🏫</option>
-            <option value="Sweeper">Sweeper 🧹</option>
+        <select id="staffRole" onchange="loadStaffNames()">
+            <option value="">पद चुनें...</option>
+            <option value="Teachers">Teacher 👨‍🏫</option>
+            <option value="Buses">Bus Driver 🚌</option>
+            <option value="Accountants">Accountant 💰</option>
+            <option value="Other">Sweeper/Guard 🧹</option>
         </select>
     </div>
 
     <div class="input-box">
-        <label>किस महीने की सैलरी (Month)</label>
-        <select id="salaryMonth">
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
+        <label>स्टाफ का नाम</label>
+        <select id="staffNameSelect">
+            <option value="">पहले पद चुनें...</option>
         </select>
+    </div>
+
+    <div class="input-box">
+        <label>किस महीने की सैलरी</label>
+        <select id="salaryMonth">
+            </select>
     </div>
 
     <div class="input-box">
@@ -73,12 +72,11 @@ button:disabled { background:#ccc; cursor:wait; }
         <input type="number" id="salaryAmount" placeholder="₹ 0.00">
     </div>
 
-    <button id="printBtn" onclick="processPayment()">PRINT & CLOUD SYNC ✅</button>
-    <div id="loader" class="loader"><i class="fas fa-sync fa-spin"></i> डेटा सुरक्षित किया जा रहा है...</div>
+    <button id="printBtn" onclick="processPayment()">PRINT & SYNC ✅</button>
 </div>
 
 <script>
-// 🔥 Firebase Configuration
+// 🔥 Firebase Init
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -86,15 +84,69 @@ const firebaseConfig = {
 };
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
-const sID = localStorage.getItem("activeSchoolID") || "GPS001";
-const schoolName = localStorage.getItem("schoolName") || "SchoolSphere Pro";
+let activeSID = "";
+let schoolFullTitle = "SchoolSphere Pro";
 
-// 🧠 Smart Number to Words Logic
+// 📡 Multi-Owner Session Check
+auth.onAuthStateChanged(user => {
+    if(user) {
+        db.ref("users/" + user.uid).once("value", snap => {
+            const uData = snap.val();
+            if(uData && uData.schoolID) {
+                activeSID = uData.schoolID;
+                fetchSchoolInfo();
+                document.getElementById("masterLoader").style.display = "none";
+            }
+        });
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+function fetchSchoolInfo() {
+    db.ref(`Schools/${activeSID}/schoolName`).on('value', snap => {
+        schoolFullTitle = snap.val() || "SchoolSphere Pro";
+        document.getElementById("schoolHeading").innerText = schoolFullTitle;
+    });
+}
+
+// 🧠 Smart Staff Loader (Point 2 Plus)
+function loadStaffNames() {
+    const role = document.getElementById("staffRole").value;
+    const select = document.getElementById("staffNameSelect");
+    select.innerHTML = "<option>लोड हो रहा है...</option>";
+
+    if(!role || role === "Other") {
+        select.innerHTML = "<option value='Custom'>Manual Entry (Other)</option>";
+        return;
+    }
+
+    db.ref(`Schools/${activeSID}/${role}`).once('value', snap => {
+        select.innerHTML = "<option value=''>स्टाफ चुनें...</option>";
+        snap.forEach(child => {
+            select.innerHTML += `<option value="${child.val().name}">${child.val().name}</option>`;
+        });
+    });
+}
+
+// 📅 Month Population
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const monthSelect = document.getElementById("salaryMonth");
+const currMonth = new Date().getMonth();
+months.forEach((m, i) => {
+    let opt = document.createElement("option");
+    opt.value = m; opt.text = m;
+    if(i === currMonth) opt.selected = true;
+    monthSelect.add(opt);
+});
+
+// 🧠 Number to Words
 function inWords(num) {
     let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
     let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
-    if ((num = num.toString()).length > 9) return 'overflow';
+    if ((num = num.toString()).length > 9) return 'Amount too high';
     let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
     if (!n) return; let str = '';
     str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
@@ -106,78 +158,71 @@ function inWords(num) {
 }
 
 async function processPayment(){
-    if(!navigator.onLine) { alert("📡 इंटरनेट बंद है!"); return; }
-
-    let name = document.getElementById("staffName").value.trim();
+    let name = document.getElementById("staffNameSelect").value;
     let role = document.getElementById("staffRole").value;
     let month = document.getElementById("salaryMonth").value;
     let amount = parseFloat(document.getElementById("salaryAmount").value);
 
-    if(!name || !amount || amount <= 0){ alert("पूरी जानकारी भरें!"); return; }
+    if(!name || !amount) { alert("कृपया नाम और राशि भरें!"); return; }
 
-    document.getElementById("loader").style.display="block";
-    document.getElementById("printBtn").disabled=true;
+    document.getElementById("printBtn").disabled = true;
+    if(navigator.vibrate) navigator.vibrate(100);
 
-    let slipID = "SS-" + Date.now().toString().slice(-6) + "-" + Math.floor(Math.random()*99);
+    let slipID = "PAY-" + Math.random().toString(36).substr(2, 6).toUpperCase();
     let date = new Date().toLocaleDateString('en-IN');
 
     try {
-        // 1. ☁️ Firebase Cloud Sync
-        await db.ref(`Schools/${sID}/SalaryLogs/${slipID}`).set({
-            name, role, month, amount,
-            date,
-            timestamp: Date.now()
+        // 1. Cloud Sync
+        await db.ref(`Schools/${activeSID}/Expenses`).push({
+            name, role, month, amt: amount, slipID, date, type: "Salary", timestamp: Date.now()
         });
 
-        // 2. 🖨️ PDF Generation (Pro Design)
+        // 2. Pro PDF Generation
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Header Background
         doc.setFillColor(26, 28, 44);
-        doc.rect(0, 0, 210, 40, 'F');
+        doc.rect(0, 0, 210, 45, 'F');
         doc.setTextColor(255, 215, 0);
-        doc.setFontSize(22);
-        doc.text(schoolName.toUpperCase(), 105, 18, {align:'center'});
+        doc.setFontSize(24);
+        doc.text(schoolFullTitle.toUpperCase(), 105, 20, {align:'center'});
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.text(`OFFICIAL SALARY DISBURSEMENT SLIP - ${month.toUpperCase()}`, 105, 28, {align:'center'});
+        doc.setFontSize(11);
+        doc.text(`CERTIFIED SALARY RECEIPT - ${month.toUpperCase()} ${new Date().getFullYear()}`, 105, 32, {align:'center'});
 
-        // Info Table
         doc.autoTable({
-            startY: 45,
-            theme: 'striped',
-            head: [['Description', 'Staff Information']],
+            startY: 55,
+            theme: 'grid',
+            head: [['Field', 'Details']],
             body: [
-                ['Slip ID', slipID],
-                ['Date', date],
-                ['Staff Name', name],
-                ['Position', role],
+                ['Transaction ID', slipID],
+                ['Date of Payment', date],
+                ['Employee Name', name],
+                ['Designation', role.slice(0,-1)],
                 ['Salary Month', month],
-                ['Net Amount Paid', 'Rs. ' + amount.toLocaleString('en-IN')],
-                ['Status', 'SUCCESSFULLY PAID ✅']
+                ['Net Paid', 'INR ' + amount.toLocaleString('en-IN') + '/-']
             ],
-            headStyles: { fillColor: [26, 28, 44] }
+            headStyles: { fillColor: [26, 28, 44], textColor: [255, 215, 0] }
         });
 
         let finalY = doc.lastAutoTable.finalY;
-        doc.setTextColor(0,0,0);
-        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.setFontSize(10);
         doc.text(`Amount in Words: ${inWords(amount)}`, 15, finalY + 15);
         
-        doc.setFontSize(10);
-        doc.text("Employee Signature", 30, finalY + 50);
-        doc.text("Authorized Accountant", 150, finalY + 50);
-        doc.line(145, finalY + 45, 195, finalY + 45);
+        doc.setFontSize(9);
+        doc.text("-----------------------", 30, finalY + 50);
+        doc.text("Employee Signature", 30, finalY + 55);
+        doc.text("-----------------------", 150, finalY + 50);
+        doc.text("Authorized Signature", 150, finalY + 55);
 
         window.open(doc.output('bloburl'), '_blank');
-        alert("सैलरी रिकॉर्ड सुरक्षित और रसीद तैयार! ✅");
+        alert("✅ रसीद तैयार! रीयल-टाइम डेटा सुरक्षित किया गया।");
 
-    } catch(err) {
-        alert("❌ Error: " + err.message);
+    } catch(e) {
+        alert("त्रुटि: " + e.message);
     } finally {
-        document.getElementById("loader").style.display="none";
-        document.getElementById("printBtn").disabled=false;
+        document.getElementById("printBtn").disabled = false;
     }
 }
 </script>
