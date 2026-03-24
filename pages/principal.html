@@ -11,10 +11,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-:root { --primary:#1a1c2c; --gold:#ffd700; --accent:#2ecc71; --danger:#e74c3c; }
+:root { --primary:#1a1c2c; --gold:#ffd700; --accent:#2ecc71; --danger:#e74c3c; --blue:#3498db; }
 body { font-family:sans-serif; background:#f4f7f6; margin:0; padding-bottom:50px; }
 
-/* 🏫 School Branding Header (New Plus) */
+/* 🏫 School Branding Header (Professional Look) */
 .top { 
     background:var(--primary); color:#fff; padding:20px; text-align:center; 
     position:sticky; top:0; z-index:1000; box-shadow:0 4px 10px rgba(0,0,0,0.2); 
@@ -27,6 +27,7 @@ body { font-family:sans-serif; background:#f4f7f6; margin:0; padding-bottom:50px
 .stats-bar { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:15px; }
 .stat-card { background:#fff; padding:15px; border-radius:12px; text-align:center; box-shadow:0 4px 8px rgba(0,0,0,0.05); }
 .stat-card h3 { margin:0; font-size:20px; color:var(--primary); }
+
 .box { padding:15px; }
 .row { background:#fff; padding:15px; margin:10px 0; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); position:relative; border-left:5px solid var(--primary); }
 input, select { padding:12px; margin:8px 0; width:100%; border-radius:10px; border:1px solid #ddd; outline:none; box-sizing:border-box; }
@@ -37,17 +38,32 @@ button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:po
 .btn-unblock { background:var(--accent); color:white; }
 .btn-net { background:#9b59b6; color:white; }
 .btn-del { background:#555; color:white; }
+.btn-wa { background:#25d366; color:white; } /* WhatsApp Share */
+
 #toast { position: fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--danger); color:white; padding:10px 20px; border-radius:30px; display:none; z-index:10001; }
+
+/* 📋 Success Modal */
+#successModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:11000; align-items:center; justify-content:center; padding:20px; }
+.modal-content { background:white; padding:25px; border-radius:20px; width:100%; max-width:350px; text-align:center; }
 </style>
 </head>
 
 <body>
 <div id="masterLoader">
     <i class="fas fa-crown fa-spin" style="font-size:40px; margin-bottom:15px;"></i>
-    <b>डेटा सुरक्षित लोड हो रहा है...</b>
+    <b>डेटा क्लाउड से सिंक हो रहा है...</b>
 </div>
 
 <div id="toast"></div>
+
+<div id="successModal">
+    <div class="modal-content">
+        <h3 style="color:var(--accent);">✅ यूजर जुड़ गया!</h3>
+        <div id="infoBox" style="background:#f9f9f9; padding:15px; border-radius:10px; text-align:left; font-family:monospace; margin-bottom:15px; border:1px dashed #ccc;"></div>
+        <button id="waBtn" class="btn-wa" style="width:100%; padding:12px;"><i class="fab fa-whatsapp"></i> WhatsApp पर भेजें</button>
+        <button onclick="document.getElementById('successModal').style.display='none'" style="background:#eee; border:none; padding:10px; width:100%; margin-top:10px; border-radius:10px;">बंद करें</button>
+    </div>
+</div>
 
 <div class="top">
     <h2 id="displaySchoolName">Principal Panel</h2>
@@ -71,7 +87,7 @@ button { padding:8px 12px; margin:4px; border:none; border-radius:8px; cursor:po
         <option value="Teachers">Teacher</option>
         <option value="Buses">Driver (Bus)</option>
     </select>
-    <button class="btn-main" onclick="createUser()">Create User ✅</button>
+    <button class="btn-main" onclick="createUser()">Create User & Generate Pass ✅</button>
 
     <hr style="margin:25px 0;">
 
@@ -94,71 +110,84 @@ if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// ===== User Info / Session =====
-const sID = localStorage.getItem("activeSchoolID") || "demoSchool";
-const pID = localStorage.getItem("principalID") || "admin";
+let activeSID = ""; 
 let masterData = {}, loaded=false;
-document.getElementById("displaySID").innerText = sID;
 
-// 🏫 NEW: Branding Update Function
+// 🔐 NEW: Secure Mixed Password Generator (Point 5 Plus)
+function generateSecurePass() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let pass = "";
+    for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    return pass;
+}
+
+// 📡 Session Check: No LocalStorage, Only Firebase Auth (Point 4 Plus)
+auth.onAuthStateChanged(user => {
+    if(user) {
+        db.ref("users/" + user.uid).once("value", snap => {
+            const uData = snap.val();
+            if(uData && uData.schoolID) {
+                activeSID = uData.schoolID;
+                document.getElementById("displaySID").innerText = activeSID;
+                updateBranding();
+                safeLoad();
+            }
+        });
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
 function updateBranding() {
-    db.ref(`Schools/${sID}/schoolName`).on('value', snap => {
-        const name = snap.val() || "Principal Panel";
-        document.getElementById("displaySchoolName").innerText = name;
+    db.ref(`Schools/${activeSID}/schoolName`).on('value', snap => {
+        document.getElementById("displaySchoolName").innerText = snap.val() || "Principal Panel";
     });
 }
 
-// ===== SHA-256 HASH =====
-async function hashPassword(pass){
-    const msgUint8 = new TextEncoder().encode(pass+"_School@123");
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-// ===== AUTH CHECK =====
-function checkPrincipalAuth(){
-    db.ref(`Schools/${sID}/Principals/${pID}`).once("value").then(snap=>{
-        if(!snap.exists()){
-            alert("Unauthorized Access ❌"); window.location.href="login.html";
-        }
-    });
-}
-
-// ===== CREATE USER =====
+// ===== CREATE USER (Point 1 & 2 Plus) =====
 async function createUser(){
     let name = document.getElementById("name").value.trim();
     let mobile = document.getElementById("mobile").value.trim();
     let role = document.getElementById("role").value;
-    if(!name || mobile.length !== 10){ alert("सही 10 digit मोबाइल डालें ❌"); return; }
+    if(!name || mobile.length !== 10){ alert("सही विवरण भरें ❌"); return; }
 
     let exists = masterData[role] && masterData[role][mobile];
     if(exists){ alert("यह ID पहले से मौजूद है ❌"); return; }
 
-    let rawPass = Math.random().toString(36).slice(-8);
-    let password = await hashPassword(rawPass);
+    let rawPass = generateSecurePass(); // New Strong Pass
 
-    let dataObj = { name, mobile, role, password, status:"active", createdAt:Date.now() };
+    let dataObj = { name, mobile, role, password: rawPass, status:"active", createdAt:Date.now() };
     if(role==="Buses") dataObj.liveLocation = {lat:0,lng:0};
 
-    db.ref(`Schools/${sID}/${role}/${mobile}`).set(dataObj).then(()=>{
-        alert(`User Created ✅\nID: ${mobile}\nPassword: ${rawPass}`);
+    db.ref(`Schools/${activeSID}/${role}/${mobile}`).set(dataObj).then(()=>{
+        showSuccessModal(name, mobile, role, rawPass);
         document.getElementById("name").value="";
         document.getElementById("mobile").value="";
     });
 }
 
-// ===== LOAD MASTER DATA =====
+// 📱 Success Modal & WhatsApp Share (Point 2 Plus)
+function showSuccessModal(name, id, role, pass) {
+    const modal = document.getElementById("successModal");
+    const info = document.getElementById("infoBox");
+    const wa = document.getElementById("waBtn");
+    const text = `📌 *School Login Details*\n👤 Name: ${name}\n🎭 Role: ${role}\n📱 ID: ${id}\n🔑 Pass: ${pass}`;
+    
+    info.innerHTML = `<b>Name:</b> ${name}<br><b>ID:</b> ${id}<br><b>Pass:</b> <span style="color:red">${pass}</span>`;
+    wa.onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    modal.style.display = "flex";
+}
+
+// ===== LOAD DATA =====
 function safeLoad(){
-    db.ref(`Schools/${sID}`).on("value", snap=>{
+    db.ref(`Schools/${activeSID}`).on("value", snap=>{
         masterData = snap.val() || {};
         calculateFees();
         renderAll();
         if(!loaded){ document.getElementById("masterLoader").style.display="none"; loaded=true; }
-    }, err=>{ showToast("Network Error ❌"); document.getElementById("masterLoader").style.display="none"; });
+    }, err=>{ showToast("Network Error ❌"); });
 }
 
-// ===== CALCULATE FEES =====
 function calculateFees(){
     let totalPaid=0;
     let students = masterData.Students || {};
@@ -166,7 +195,6 @@ function calculateFees(){
     document.getElementById("totalFees").innerText = totalPaid.toLocaleString('hi-IN');
 }
 
-// ===== RENDER USERS =====
 function renderAll(){
     let html="", count=0;
     ["Students","Parents","Teachers","Buses"].forEach(node=>{
@@ -176,14 +204,13 @@ function renderAll(){
             let blocked = u.status==="blocked";
             html+=`<div class="row" style="border-left-color:${blocked?'red':'#2ecc71'}">
                 <b>${u.name}</b> <small>(${node})</small><br>
-                <small>ID: ${id} | Pass: ********</small><br>
+                <small>ID: ${id} | Pass: <span style="color:blue">${u.password}</span></small><br>
                 <div style="margin-top:10px;">
+                    <button class="btn-wa" onclick="showSuccessModal('${u.name}','${id}','${node}','${u.password}')">Share</button>
                     <button class="btn-reset" onclick="resetLogin('${node}','${id}')">Reset</button>
                     <button class="btn-block" onclick="blockUser('${node}','${id}')">Block</button>
                     <button class="btn-unblock" onclick="unblockUser('${node}','${id}')">Unblock</button>
-                    <button class="btn-net" onclick="markNetworkIssue('${node}','${id}')">Net</button>
                     <button class="btn-del" onclick="delUser('${node}','${id}')">Delete</button>
-                    <button style="background:#f39c12;color:white" onclick="editEntry('${node}','${id}')">Edit</button>
                 </div>
             </div>`;
         });
@@ -192,60 +219,32 @@ function renderAll(){
     document.getElementById("userCount").innerText = count;
 }
 
-// ===== SEARCH =====
 function searchUser(){
     let val=document.getElementById("search").value.toLowerCase();
     document.querySelectorAll(".row").forEach(r=>{
-        let text=r.innerText.toLowerCase();
-        r.style.display = text.includes(val) ? "" : "none";
+        r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none";
     });
 }
 
-// ===== PASSWORD RESET =====
 async function resetLogin(node,id){
-    let rawPass=Math.random().toString(36).slice(-8);
-    let newPass = await hashPassword(rawPass);
-    db.ref(`Schools/${sID}/${node}/${id}`).update({ password:newPass });
+    let rawPass = generateSecurePass();
+    db.ref(`Schools/${activeSID}/${node}/${id}`).update({ password:rawPass });
     alert("New Password: "+rawPass);
 }
 
-// ===== BLOCK / UNBLOCK =====
 function blockUser(node,id){
     let reason=prompt("Block reason?");
-    if(reason) db.ref(`Schools/${sID}/${node}/${id}`).update({ status:"blocked", reason:reason });
+    if(reason) db.ref(`Schools/${activeSID}/${node}/${id}`).update({ status:"blocked", reason:reason });
 }
 function unblockUser(node,id){
-    db.ref(`Schools/${sID}/${node}/${id}`).update({ status:"active", reason:"" });
+    db.ref(`Schools/${activeSID}/${node}/${id}`).update({ status:"active", reason:"" });
 }
 
-// ===== NETWORK ISSUE =====
-function markNetworkIssue(node,id){
-    db.ref(`Schools/${sID}/${node}/${id}/issues`).push({ type:"network", time:new Date().toLocaleString() });
-    alert("Network issue saved ✅");
-}
-
-// ===== EDIT / DELETE =====
-function editEntry(node,id){
-    let newName=prompt("नया नाम दर्ज करें:", masterData[node][id].name);
-    if(newName) db.ref(`Schools/${sID}/${node}/${id}`).update({ name:newName });
-}
 function delUser(node,id){
-    if(confirm("सावधान! हमेशा के लिए डिलीट करें?")) db.ref(`Schools/${sID}/${node}/${id}`).remove();
+    if(confirm("हमेशा के लिए डिलीट करें?")) db.ref(`Schools/${activeSID}/${node}/${id}`).remove();
 }
 
-// ===== TOAST =====
 function showToast(msg){ let t=document.getElementById("toast"); t.innerText=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",3000); }
-
-// ===== SESSION PROTECTION =====
-window.onunload=function(){ localStorage.removeItem("principalID"); };
-
-// ===== ON LOAD =====
-window.onload=function(){ 
-    checkPrincipalAuth(); 
-    updateBranding(); // Branding call
-    safeLoad(); 
-};
 </script>
-
 </body>
 </html>
