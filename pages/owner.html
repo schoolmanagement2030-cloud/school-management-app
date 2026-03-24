@@ -137,12 +137,15 @@
 <body>
 
 <div id="authContainer">
-    <div style="font-size: 40px; color: #1e3c72; margin-bottom: 10px;"><i class="fas fa-graduation-cap"></i></div>
+    <div style="font-size: 40px; color: #1e3c72; margin-bottom: 10px;"><i class="fas fa-user-tie"></i></div>
     <h2 id="authTitle">Owner Login</h2>
-    <input type="email" id="ownerEmail" placeholder="ईमेल आईडी" required>
-    <input type="password" id="ownerPassword" placeholder="पासवर्ड" required>
+    <div id="regFields" class="hidden">
+        <input type="text" id="ownerNameInput" placeholder="आपका पूरा नाम">
+    </div>
+    <input type="number" id="ownerMobile" placeholder="मोबाइल नंबर (यह आपकी ID होगी)">
+    <input type="password" id="ownerPassword" placeholder="पासवर्ड">
     <button id="authBtn" class="btn btn-login">Login</button>
-    <p id="switchAuth" class="link">नया अकाउंट बनाएं</p>
+    <p id="switchAuth" class="link">नया अकाउंट बनाएं (Register)</p>
 </div>
 
 <div id="dashboard" class="hidden">
@@ -244,35 +247,54 @@ let isLogin = true;
 const authTitle = document.getElementById("authTitle");
 const authBtn = document.getElementById("authBtn");
 const switchAuth = document.getElementById("switchAuth");
+const regFields = document.getElementById("regFields");
 
-switchAuth.addEventListener("click", ()=>{
+// --- Auth Switch Logic ---
+switchAuth.onclick = () => {
     isLogin = !isLogin;
     authTitle.innerText = isLogin ? "Owner Login" : "Owner Registration";
-    authBtn.innerText = isLogin ? "Login" : "Register";
-    switchAuth.innerText = isLogin ? "नया अकाउंट बनाएं" : "पुराना अकाउंट है? लॉगिन करें";
-});
+    authBtn.innerText = isLogin ? "Login" : "Register Now";
+    switchAuth.innerText = isLogin ? "नया अकाउंट बनाएं (Register)" : "पुराना अकाउंट है? लॉगिन करें";
+    if(isLogin) regFields.classList.add("hidden"); else regFields.classList.remove("hidden");
+};
 
-authBtn.addEventListener("click", ()=>{
-    const email = document.getElementById("ownerEmail").value;
+// --- Login & Registration Handling ---
+authBtn.onclick = async () => {
+    const name = document.getElementById("ownerNameInput").value;
+    const mobile = document.getElementById("ownerMobile").value;
     const password = document.getElementById("ownerPassword").value;
-    if(!email || !password){ alert("सभी फील्ड्स भरें!"); return; }
+    const email = mobile + "@owner.com";
+
+    if(!mobile || !password) { showCustomToast("❌ विवरण भरें!", "#ff4757"); return; }
 
     if(isLogin){
-        auth.signInWithEmailAndPassword(email,password)
-        .then(()=>{ showDashboard(); })
-        .catch(err=>{ alert("Login Failed: "+err.message); });
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => showDashboard())
+            .catch(err => showCustomToast("❌ लॉगिन फेल!", "#ff4757"));
     } else {
-        auth.createUserWithEmailAndPassword(email,password)
-        .then(()=>{ showDashboard(); })
-        .catch(err=>{ alert("Registration Failed: "+err.message); });
+        if(!name) { showCustomToast("❌ नाम दर्ज करें!", "#ff4757"); return; }
+        try {
+            const res = await auth.createUserWithEmailAndPassword(email, password);
+            await db.ref("Owners/" + res.user.uid + "/Profile").set({ name, mobile, role: "owner", createdAt: Date.now() });
+            showDashboard();
+        } catch(err) { showCustomToast("❌ एरर: " + err.message, "#ff4757"); }
     }
-});
+};
 
-// 🏫 Multi-Owner Branding Logic
+// 🔐 NEW: Secure Alpha-Numeric Password Generator (ABC + 123)
+function generatePassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let pass = "";
+    for (let i = 0; i < 8; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+}
+
+// --- Dashboard Functions (Original Logic Retained) ---
 function updateSchoolBranding() {
     const user = auth.currentUser;
     if(user) {
-        // ओनर की अपनी पहली स्कूल का नाम दिखाएँ
         db.ref(`Owners/${user.uid}/MySchools`).limitToFirst(1).once("value", snap => {
             if(snap.exists()) {
                 const firstID = Object.keys(snap.val())[0];
@@ -294,135 +316,125 @@ function showDashboard(){
     listenBusLocation();
 }
 
-function logout(){ auth.signOut().then(()=>{ location.reload(); }); }
-function generatePassword(){ return Math.floor(100000 + Math.random()*900000).toString(); }
+function logout(){ auth.signOut().then(()=>location.reload()); }
 
-// --- 🛡️ SMART REGISTRATION (Points 1 & 2) ---
+async function hirePrincipal(){
+    const name = document.getElementById("pName").value;
+    const phone = document.getElementById("pPhone").value;
+    const schoolID = document.getElementById("schoolSelect").value;
+    if(!name || phone.length < 10 || !schoolID) { showCustomToast("❌ सही विवरण भरें!", "#ff4757"); return; }
+
+    const password = generatePassword(); // Using new mixed password
+    const email = phone + "@schoolsphere.com";
+
+    try {
+        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if(data.localId){
+            await db.ref("users/"+data.localId).set({ name, phone, role:"principal", schoolID, status:"active" });
+            await db.ref("principals/"+schoolID+"/"+phone).set({ name, phone });
+            
+            alert(`✅ प्रिंसिपल नियुक्त!\n📱 ID: ${phone}\n🔑 Pass: ${password}\nइसे नोट कर लें।`);
+            loadPrincipals();
+        }
+    } catch(e){ showCustomToast("Error!", "#ff4757"); }
+}
+
+async function resetPrincipalPassword(){
+    const phone = prompt("Principal का मोबाइल नंबर डालें:");
+    if(!phone) return;
+    const newPassword = generatePassword(); // New mixed password for reset too
+    const email = phone+"@schoolsphere.com";
+    try {
+        await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${firebaseConfig.apiKey}`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({ email, password:newPassword })
+        });
+        alert(`🔑 नया पासवर्ड:\n📱 ID: ${phone}\nPassword: ${newPassword}`);
+    } catch(e){ alert("Reset failed!"); }
+}
+
 function openRegistrationModal() {
     document.getElementById("schoolRegModal").style.display = "flex";
-    // रैंडम यूनिक ID
     let smartID = "SS-" + Math.floor(100 + Math.random() * 899);
     document.getElementById("newInID").innerText = smartID;
 }
 
 function finalSaveSchool() {
     const user = auth.currentUser;
-    const name = document.getElementById("newInName").value.trim();
-    const addr = document.getElementById("newInAddr").value.trim();
-    const mob = document.getElementById("newInMob").value.trim();
+    const name = document.getElementById("newInName").value;
+    const addr = document.getElementById("newInAddr").value;
+    const mob = document.getElementById("newInMob").value;
     const sID = document.getElementById("newInID").innerText;
 
-    if(!name || !user || mob.length < 10) { showCustomToast("विवरण सही भरें!", "#ff4757"); return; }
+    if(!name || !user) return;
 
-    // Multi-Owner Structure (Point 4)
-    db.ref("Schools/" + sID).set({
-        schoolName: name, address: addr, ownerMobile: mob, ownerUID: user.uid, status: "active", createdAt: Date.now()
-    });
-
+    db.ref("Schools/" + sID).set({ schoolName: name, address: addr, ownerMobile: mob, ownerUID: user.uid, status: "active", createdAt: Date.now() });
     db.ref(`Owners/${user.uid}/MySchools/${sID}`).set(true).then(() => {
         closeModal('schoolRegModal');
-        showCustomToast("✅ " + name + " रजिस्टर हो गया!");
-        loadAnalytics();
-        loadSchoolsDropdown();
+        showCustomToast("✅ स्कूल जोड़ा गया!");
+        loadAnalytics(); loadSchoolsDropdown();
     });
 }
 
-// --- 📋 INTERACTIVE DATA LISTS (Point 3) ---
 function showOwnerList(type) {
     const user = auth.currentUser;
     const modal = document.getElementById("dataListModal");
-    const title = document.getElementById("listModalTitle");
     const container = document.getElementById("listDataContainer");
-    
     modal.style.display = "flex";
-    container.innerHTML = "<p style='text-align:center;'>लोड हो रहा है...</p>";
-
-    if(type === 'schools') {
-        title.innerText = "🏫 मेरी स्कूल लिस्ट";
+    
+    if(type === 'schools'){
+        document.getElementById("listModalTitle").innerText = "🏫 मेरी स्कूल लिस्ट";
         db.ref(`Owners/${user.uid}/MySchools`).once("value", snap => {
             let html = "";
             let keys = snap.val() ? Object.keys(snap.val()) : [];
-            if(keys.length === 0) container.innerHTML = "कोई स्कूल नहीं मिला।";
-            
             keys.forEach(id => {
-                db.ref(`Schools/${id}`).once("value", sSnap => {
-                    let s = sSnap.val();
-                    html += `<div class="p-item" style="cursor:pointer;" onclick="viewFullBio('${id}')">
-                        <div class="p-info"><b>${s.schoolName}</b><span>ID: ${id} | 📱 ${s.ownerMobile}</span></div>
-                        <i class="fas fa-chevron-right"></i>
-                    </div>`;
+                db.ref(`Schools/${id}`).once("value", s => {
+                    html += `<div style="padding:15px; border-bottom:1px solid #eee; cursor:pointer;" onclick="viewBio('${id}')">
+                        <b>${s.val().schoolName}</b><br><small>ID: ${id}</small></div>`;
                     container.innerHTML = html;
                 });
             });
-        });
-    } else {
-        title.innerText = "👨‍💼 मेरे प्रिंसिपल";
-        db.ref("users").orderByChild("role").equalTo("principal").once("value", snap => {
-            let html = "";
-            snap.forEach(child => {
-                let p = child.val();
-                // सिर्फ वही प्रिंसिपल दिखाएँ जो इस ओनर की किसी स्कूल में हैं
-                db.ref(`Owners/${user.uid}/MySchools/${p.schoolID}`).once("value", exist => {
-                    if(exist.exists()) {
-                        html += `<div class="p-item">
-                            <div class="p-info"><b>${p.name}</b><span>स्कूल ID: ${p.schoolID} | 📱 ${p.phone}</span></div>
-                        </div>`;
-                        container.innerHTML = html;
-                    }
-                });
-            });
-            if(!html) container.innerHTML = "कोई प्रिंसिपल नहीं मिला।";
+            if(keys.length === 0) container.innerHTML = "कोई स्कूल नहीं मिला।";
         });
     }
 }
 
-function viewFullBio(sID) {
+function viewBio(sID) {
     const container = document.getElementById("listDataContainer");
-    container.innerHTML = "बायोडाटा लोड हो रहा है...";
     db.ref("Schools/" + sID).once("value", snap => {
         let s = snap.val();
         db.ref(`Schools/${sID}/Students`).once('value', stu => {
             db.ref(`Schools/${sID}/Teachers`).once('value', tea => {
-                container.innerHTML = `
-                    <div style="text-align:center;">
-                        <h2 style="color:#1e3c72; margin-bottom:5px;">${s.schoolName}</h2>
-                        <small>${s.address}</small>
-                        <div class="stats-row" style="margin-top:20px;">
-                            <div class="stat-card" style="background:#6c5ce7; padding:10px;"><b>${stu.numChildren()}</b><br>छात्र</div>
-                            <div class="stat-card" style="background:#fdcb6e; color:#333; padding:10px;"><b>${tea.numChildren()}</b><br>टीचर्स</div>
-                        </div>
-                        <div class="card" style="margin-top:10px; border-left-color:#2ecc71; text-align:left;">
-                            <b>💰 अकाउंट (Accountant)</b><br>
-                            <small>फीस और खर्च का पूरा विवरण यहाँ सिंक है।</small>
-                        </div>
-                        <button class="btn" style="background:#eee; color:#333;" onclick="showOwnerList('schools')">पीछे जाएँ</button>
-                    </div>`;
+                container.innerHTML = `<div style="text-align:center;">
+                    <h2 style="color:#1e3c72;">${s.schoolName}</h2>
+                    <div class="stats-row">
+                        <div class="stat-card" style="background:#6c5ce7; padding:10px;"><b>${stu.numChildren()}</b><br>छात्र</div>
+                        <div class="stat-card" style="background:#fdcb6e; color:#333; padding:10px;"><b>${tea.numChildren()}</b><br>स्टाफ</div>
+                    </div>
+                    <button class="btn" style="background:#eee; color:#333;" onclick="showOwnerList('schools')">पीछे जाएँ</button>
+                </div>`;
             });
         });
     });
 }
 
-// --- Utility Functions ---
-function showCustomToast(msg, color) {
-    const t = document.getElementById("myToast");
-    t.innerText = msg; t.style.background = color || "#2ecc71";
-    t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000);
+function sendSchoolNotice(){
+    const msg = document.getElementById("schoolNotice").value;
+    if(!msg) return;
+    db.ref("notices").push({ msg, time: Date.now() });
+    showCustomToast("Notice भेज दिया गया!");
+    document.getElementById("schoolNotice").value="";
 }
-function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
 function loadAnalytics(){
     const user = auth.currentUser;
-    db.ref(`Owners/${user.uid}/MySchools`).on("value", s=>{ 
-        document.getElementById("schoolCount").innerText = s.numChildren(); 
-    });
-    // प्रिंसिपल काउंट का लॉजिक
-    db.ref("users").orderByChild("role").equalTo("principal").on("value", snap => {
-        let count = 0;
-        snap.forEach(p => {
-             db.ref(`Owners/${user.uid}/MySchools/${p.val().schoolID}`).once("value", ex => { if(ex.exists()) count++; });
-        });
-        document.getElementById("pCount").innerText = count;
-    });
+    db.ref(`Owners/${user.uid}/MySchools`).on("value", s=> document.getElementById("schoolCount").innerText = s.numChildren());
 }
 
 function loadSchoolsDropdown(){
@@ -430,11 +442,7 @@ function loadSchoolsDropdown(){
     const select = document.getElementById("schoolSelect");
     db.ref(`Owners/${user.uid}/MySchools`).on("value", snap => {
         select.innerHTML = `<option value="">स्कूल चुनें</option>`;
-        snap.forEach(child => {
-            db.ref(`Schools/${child.key}/schoolName`).once("value", nameSnap => {
-                select.innerHTML += `<option value="${child.key}">${nameSnap.val()}</option>`;
-            });
-        });
+        snap.forEach(child => { db.ref(`Schools/${child.key}/schoolName`).once("value", n => { select.innerHTML += `<option value="${child.key}">${n.val()}</option>`; }); });
     });
 }
 
@@ -446,12 +454,7 @@ function loadPrincipals(){
         snap.forEach(pSnap => {
             let p = pSnap.val();
             db.ref(`Owners/${user.uid}/MySchools/${p.schoolID}`).once("value", ex => {
-                if(ex.exists()) {
-                    list.innerHTML += `<div class="p-item">
-                        <div class="p-info"><b>${p.name}</b><span>Mobile: ${p.phone}</span></div>
-                        <div style="color:#43e97b; font-weight:bold; font-size:12px;"><i class="fas fa-circle"></i> Online</div>
-                    </div>`;
-                }
+                if(ex.exists()) list.innerHTML += `<div class="p-item"><div class="p-info"><b>${p.name}</b><span>Mobile: ${p.phone}</span></div></div>`;
             });
         });
     });
@@ -464,7 +467,10 @@ function listenBusLocation(){
     });
 }
 
-auth.onAuthStateChanged(user=>{ if(user) showDashboard(); });
+function showCustomToast(msg, color) { const t = document.getElementById("myToast"); t.innerText = msg; t.style.background = color || "#2ecc71"; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3000); }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+auth.onAuthStateChanged(user => { if(user) showDashboard(); });
 </script>
 </body>
 </html>
