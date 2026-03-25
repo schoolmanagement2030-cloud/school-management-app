@@ -2,77 +2,77 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SchoolSphere - Owner Panel</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-body { margin:0; font-family:'Segoe UI', sans-serif; background:#f4f6f9; }
+:root { --primary:#1a1c2c; --gold:#ffd700; --success:#2ecc71; --blue:#3498db; }
 
-.header {
-    background: linear-gradient(135deg,#2c5364,#203a43,#0f2027);
-    padding:40px 20px; text-align:center; color:white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    border-bottom: 4px solid #ffd700;
+body { 
+    margin:0; font-family:'Segoe UI', sans-serif; 
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    min-height: 100vh; display: flex; flex-direction: column;
 }
 
-.app-name { font-size:38px; font-weight:bold; color:#ffd700; text-transform: uppercase; letter-spacing: 2px; }
-.tagline { font-size:12px; opacity: 0.8; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
+.header {
+    background: rgba(26, 28, 44, 0.9);
+    padding:40px 20px; text-align:center; color:white;
+    border-bottom: 4px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.app-name { font-size:38px; font-weight:bold; color:var(--gold); text-transform: uppercase; letter-spacing: 2px; }
+.tagline { font-size:12px; opacity: 0.8; margin-top: 5px; font-weight: bold; }
 
 .container {
     width:90%; max-width:400px;
     margin: -30px auto 40px; background:white;
-    padding:30px 25px; border-radius:20px;
-    text-align:center;
-    box-shadow:0 15px 35px rgba(0,0,0,0.1);
+    padding:30px 25px; border-radius:25px;
+    text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.2);
     position: relative; z-index: 10;
 }
 
-h2 { color: #2c3e50; margin-bottom: 25px; font-size: 22px; }
+h2 { color: #2c3e50; margin-bottom: 25px; font-size: 22px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; }
 
 .input-box { position: relative; margin-bottom: 15px; }
 .input-box i { position: absolute; left: 15px; top: 15px; color: #888; }
 
 input {
     width:100%; padding:14px 15px 14px 45px;
-    margin:0; border-radius:12px;
+    margin:0; border-radius:15px;
     border:1.5px solid #eee; box-sizing: border-box;
-    font-size: 15px; outline: none; transition: 0.3s;
+    font-size: 16px; outline: none; transition: 0.3s;
     background: #fafafa;
 }
-input:focus { border-color: #3498db; background: #fff; }
+input:focus { border-color: var(--blue); background: #fff; box-shadow: 0 0 8px rgba(52, 152, 219, 0.2); }
 
 button {
     width:100%; padding:16px;
     border:none; border-radius:50px;
-    font-size:17px; cursor:pointer; font-weight: bold;
+    font-size:18px; cursor:pointer; font-weight: bold;
     transition: 0.3s; margin-top: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.login-btn { background: #3498db; color:white; }
-.register-btn { background: #27ae60; color:white; }
+.login-btn { background: var(--blue); color:white; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
+.register-btn { background: var(--success); color:white; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); }
 button:active { transform: scale(0.96); }
 
-.toggle-link { cursor:pointer; margin-top:20px; display:block; color:#3498db; font-weight: bold; font-size: 14px; }
+.toggle-link { cursor:pointer; margin-top:25px; display:block; color:var(--blue); font-weight: bold; font-size: 15px; }
 
 .hidden { display:none; }
 
 .loader {
-    display:none;
-    color:#27ae60;
-    font-weight:bold;
-    margin-bottom:15px;
-    font-size: 14px;
+    display:none; color:var(--success); font-weight:bold; margin-bottom:15px;
 }
 
-/* Plus Section Animations */
-@keyframes slideDown { from { top: -60px; opacity: 0; } to { top: 20px; opacity: 1; } }
+/* Modal Styling (Copy Box) */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
+.modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 4px solid var(--success); }
 </style>
 </head>
 
@@ -80,49 +80,42 @@ button:active { transform: scale(0.96); }
 
 <div class="header">
     <div class="app-name">SchoolSphere</div>
-    <div class="tagline">SMART OWNER TERMINAL • v2.7</div>
+    <div class="tagline">SMART OWNER TERMINAL • v3.1</div>
 </div>
 
 <div class="container" id="loginSection">
-    <div class="loader" id="loginLoader"><i class="fas fa-sync fa-spin"></i> सुरक्षित लॉगिन हो रहा है...</div>
-    <h2>ओनर लॉगिन (Owner Login)</h2>
+    <div class="loader" id="loginLoader"><i class="fas fa-sync fa-spin"></i> लॉगिन हो रहा है...</div>
+    <h2>ओनर लॉगिन (Owner)</h2>
+    
     <div class="input-box">
-        <i class="fas fa-school"></i>
-        <input id="loginID" placeholder="स्कूल ID (उदा: GPS001)" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+        <i class="fas fa-phone-alt"></i>
+        <input id="loginMobile" type="number" placeholder="पंजीकृत मोबाइल नंबर">
     </div>
+    
     <div class="input-box">
         <i class="fas fa-lock"></i>
         <input id="loginPassword" type="password" placeholder="पासवर्ड">
     </div>
+    
     <button class="login-btn" onclick="login()">Dashboard खोलें ✅</button>
-    <div class="toggle-link" onclick="showRegister()">नई स्कूल रजिस्टर करें? (New Register)</div>
+    <div class="toggle-link" onclick="showRegister()">नया स्कूल रजिस्टर करें (New Register)</div>
 </div>
 
 <div class="container hidden" id="registerSection">
-    <div class="loader" id="regLoader"><i class="fas fa-shield-alt fa-spin"></i> डेटा सुरक्षित किया जा रहा है...</div>
-    <h2>नया स्कूल पंजीकरण</h2>
-    <div class="input-box">
-        <i class="fas fa-university"></i>
-        <input id="schoolName" placeholder="स्कूल का पूरा नाम">
-    </div>
-    <div class="input-box">
-        <i class="fas fa-id-card"></i>
-        <input id="schoolID" placeholder="यूनिक स्कूल ID (उदा: SS-101)" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
-    </div>
-    <div class="input-box">
-        <i class="fas fa-phone-alt"></i>
-        <input id="mobile" placeholder="ओनर मोबाइल नंबर" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-    </div>
-    <div class="input-box">
-        <i class="fas fa-key"></i>
-        <input id="password" type="password" placeholder="मजबूत पासवर्ड चुनें">
-    </div>
+    <div class="loader" id="regLoader">⏳ रजिस्टर हो रहा है...</div>
+    <h2>ओनर रजिस्ट्रेशन</h2>
+    
+    <div class="input-box"><i class="fas fa-university"></i><input id="schoolName" placeholder="स्कूल का नाम"></div>
+    <div class="input-box"><i class="fas fa-id-card"></i><input id="schoolID" placeholder="School ID (जैसे SS01)" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="input-box"><i class="fas fa-phone-alt"></i><input id="mobile" type="number" placeholder="ओनर मोबाइल नंबर"></div>
+    <div class="input-box"><i class="fas fa-key"></i><input id="password" type="password" placeholder="नया पासवर्ड चुनें"></div>
+    
     <button class="register-btn" onclick="register()">Register School 🚀</button>
-    <div class="toggle-link" onclick="showLogin()">पुराना अकाउंट है? लॉगिन करें</div>
+    <div class="toggle-link" onclick="showLogin()">Account है? लॉगिन करें</div>
 </div>
 
 <script>
-// 🔥 Firebase Config
+// 🔥 Firebase Config (आपका असली डेटाबेस)
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -131,19 +124,12 @@ const firebaseConfig = {
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 🔐 Security Logic
+// 🔐 Security
 const SALT = "SS_2026_SECURE";
 function hash(p){ return CryptoJS.SHA256(p+SALT).toString(); }
 
-// 🔄 Toggle Logic
-function showRegister(){
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("registerSection").classList.remove("hidden");
-}
-function showLogin(){
-    document.getElementById("registerSection").classList.add("hidden");
-    document.getElementById("loginSection").classList.remove("hidden");
-}
+function showRegister(){ document.getElementById("loginSection").classList.add("hidden"); document.getElementById("registerSection").classList.remove("hidden"); }
+function showLogin(){ document.getElementById("registerSection").classList.add("hidden"); document.getElementById("loginSection").classList.remove("hidden"); }
 
 // ================= REGISTER LOGIC =================
 async function register(){
@@ -152,125 +138,92 @@ async function register(){
     let mob = document.getElementById("mobile").value.trim();
     let pass = document.getElementById("password").value.trim();
 
-    if(!name || !id || !mob || !pass){ alert("❌ कृपया सभी बॉक्स भरें!"); return; }
-    if(mob.length !== 10){ alert("❌ सही 10 अंकों का मोबाइल डालें!"); return; }
+    if(!name || !id || !mob || !pass){ alert("❌ कृपया पूरी जानकारी भरें!"); return; }
 
     document.getElementById("regLoader").style.display="block";
 
     try{
         let snap = await db.ref("Schools/"+id).once("value");
-
-        if(snap.exists()){
-            alert("❌ यह School ID पहले से ली जा चुकी है!");
+        if(snap.exists()){ 
+            alert("❌ यह School ID पहले से बुक है! कुछ और चुनें।"); 
         } else {
+            // 1. Schools डेटाबेस में एंट्री
             await db.ref("Schools/"+id).set({
-                schoolName: name,
-                ownerMobile: mob,
+                schoolName: name, ownerMobile: mob, password: hash(pass),
+                status: "active", createdAt: Date.now()
+            });
+            
+            // 2. Owners मैपिंग (ताकि सिर्फ मोबाइल से लॉगिन हो सके)
+            await db.ref("Owners/" + mob).set({
                 password: hash(pass),
-                status: "active",
-                loginAttempts: 0,
-                createdAt: Date.now()
-            });
-            await db.ref("Owners/" + mob + "/MySchools/" + id).set(true);
-
-            // PLUS SECTION TRIGGER: रजिस्ट्रेशन के बाद डिटेल्स दिखाएं
-            showRegistrationDetails({
-                ownerID: mob,
-                schoolID: id,
-                password: pass
+                activeSchool: id,
+                ownerMobile: mob
             });
 
-            showLogin();
+            // 🎁 FULL DATA COMBO (व्हाट्सएप पर भेजने के लिए)
+            const fullDetails = `🏫 *SchoolSphere Pro - सफलता!* \n\n✅ *School:* ${name}\n🆔 *Owner ID (Mobile):* ${mob}\n🆔 *School ID:* ${id}\n🔑 *Password:* ${pass}\n\n🌐 *Login Link:* https://30-cloud.github.io/register.html`;
+            
+            showFullCopyModal(fullDetails);
         }
-    }catch(e){
-        alert("त्रुटि: " + e.message);
-    }
+    } catch(e){ alert("Error: " + e.message); }
     document.getElementById("regLoader").style.display="none";
 }
 
-// ================= LOGIN LOGIC =================
+// ================= LOGIN LOGIC (Mobile Only) =================
 async function login(){
-    let id = document.getElementById("loginID").value.trim();
+    let mob = document.getElementById("loginMobile").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
 
-    if(!id || !pass){ alert("❌ ID और पासवर्ड डालें!"); return; }
+    if(!mob || !pass){ alert("❌ मोबाइल और पासवर्ड भरें!"); return; }
     document.getElementById("loginLoader").style.display="block";
 
-    try{
-        let snap = await db.ref("Schools/"+id).once("value");
+    try {
+        // सीधा ओनर के मोबाइल फोल्डर में चेक करें
+        let snap = await db.ref("Owners/" + mob).once("value");
+        
         if(!snap.exists()){
-            alert("❌ स्कूल आईडी नहीं मिली!");
+            alert("❌ यह मोबाइल नंबर रजिस्टर नहीं है!");
         } else {
-            let user = snap.val();
-            if(user.status === "blocked"){ alert("🚫 आईडी ब्लॉक है!"); return; }
-
-            if(user.password === hash(pass)){
-                // PLUS SECTION TRIGGER: लॉगिन सक्सेस टोस्ट
-                showSuccess("Login");
+            let ownerData = snap.val();
+            if(ownerData.password === hash(pass)){
+                // लॉगिन सफल, स्कूल आईडी को ब्राउज़र में सेव करें
+                localStorage.setItem("activeSchoolID", ownerData.activeSchool);
+                localStorage.setItem("activeOwnerID", mob);
                 
-                localStorage.setItem("activeSchoolID", id);
-                localStorage.setItem("schoolName", user.schoolName);
-                localStorage.setItem("activeOwnerID", user.ownerMobile);
-
-                setTimeout(() => { window.location.href = "owner.html"; }, 1000);
+                alert("✅ लॉगिन सफल! डैशबोर्ड खुल रहा है...");
+                window.location.href = "owner.html"; 
             } else {
                 alert("❌ गलत पासवर्ड!");
             }
         }
-    }catch(e){ alert("Error: " + e.message); }
+    } catch(e) { alert("Error: " + e.message); }
     document.getElementById("loginLoader").style.display="none";
 }
 
-// ==========================================
-// ✨ [PLUS SECTION] - विकाश भाई, ये रहा आपका एक्स्ट्रा लॉजिक
-// ==========================================
-
-window.showSuccess = function(message) {
-    const toast = document.createElement("div");
-    toast.style = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2ecc71; color: white; padding: 12px 25px; border-radius: 50px; font-weight: bold; z-index: 10001; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid white; animation: slideDown 0.4s ease;";
-    toast.innerHTML = `✅ ${message} Successful!`;
-    document.body.appendChild(toast);
-    setTimeout(() => { 
-        toast.style.opacity = "0"; 
-        toast.style.transition = "0.5s";
-        setTimeout(() => toast.remove(), 500); 
-    }, 2500);
-};
-
-window.copyData = function(text, label) {
-    const el = document.createElement('textarea');
-    el.value = text;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    showSuccess(label + " Copy");
-};
-
-window.showRegistrationDetails = function(data) {
+// ================= ALL-IN-ONE COPY MODAL =================
+function showFullCopyModal(fullText) {
     const modal = document.createElement("div");
-    modal.style = "position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;";
+    modal.className = "modal-overlay";
     modal.innerHTML = `
-        <div style="background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 360px; text-align: center; border: 3px solid #2ecc71; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <h2 style="color: #2ecc71; margin: 0 0 15px 0;">🎉 Registration Done!</h2>
-            <div style="text-align: left; background: #f9f9f9; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 14px; color: #333; line-height: 1.6;">
-                <p style="margin: 8px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <b>Owner ID:</b> <span>${data.ownerID}</span> 
-                    <button onclick="copyData('${data.ownerID}', 'Owner ID')" style="border:none; background:none; cursor:pointer; font-size:18px;">📋</button>
-                </p>
-                <p style="margin: 8px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <b>School ID:</b> <span>${data.schoolID}</span> 
-                    <button onclick="copyData('${data.schoolID}', 'School ID')" style="border:none; background:none; cursor:pointer; font-size:18px;">📋</button>
-                </p>
-                <p style="margin: 8px 0; display: flex; justify-content: space-between;">
-                    <b>Password:</b> <span>${data.password}</span> 
-                    <button onclick="copyData('${data.password}', 'Password')" style="border:none; background:none; cursor:pointer; font-size:18px;">📋</button>
-                </p>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" style="margin-top:20px; width:100%; padding:14px; background:#2ecc71; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:16px;">Go to Login</button>
+        <div class="modal-content">
+            <h2 style="color: var(--success); border:none; margin:0 0 10px 0;">🎉 पंजीकरण सफल!</h2>
+            <p style="font-size:12px; color:#666; margin-bottom:15px;">नीचे दिए बटन से पूरी जानकारी एक साथ कॉपी करें</p>
+            <div style="text-align: left; background: #f8f8f8; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; white-space: pre-wrap; margin-bottom: 20px; border: 1px solid #ddd; color:#333;">${fullText}</div>
+            <button onclick="copyEverything('${fullText.replace(/'/g, "\\'")}')" style="background:var(--success); color:white; border:none; padding:15px; width:100%; border-radius:15px; font-weight:bold; margin-bottom:12px; cursor:pointer;">📋 पूरी डिटेल्स एक साथ कॉपी करें</button>
+            <button onclick="window.location.reload()" style="background:#eee; border:none; padding:12px; width:100%; border-radius:15px; cursor:pointer; font-weight:bold; color:#555;">बंद करें (Close)</button>
         </div>
     `;
     document.body.appendChild(modal);
+}
+
+window.copyEverything = function(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el); 
+    el.select();
+    document.execCommand('copy'); 
+    document.body.removeChild(el);
+    alert("✅ पूरी जानकारी कॉपी हो गई! अब व्हाट्सएप पर पेस्ट करें।");
 };
 </script>
 
