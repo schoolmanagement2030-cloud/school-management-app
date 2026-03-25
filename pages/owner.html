@@ -70,7 +70,7 @@ button:active { transform: scale(0.96); }
     display:none; color:var(--success); font-weight:bold; margin-bottom:15px;
 }
 
-/* Modal Styling (Copy Box) */
+/* Modal Styling */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
 .modal-content { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 4px solid var(--success); }
 </style>
@@ -80,7 +80,7 @@ button:active { transform: scale(0.96); }
 
 <div class="header">
     <div class="app-name">SchoolSphere</div>
-    <div class="tagline">SMART OWNER TERMINAL • v3.1</div>
+    <div class="tagline">SMART OWNER TERMINAL • v3.2</div>
 </div>
 
 <div class="container" id="loginSection">
@@ -97,25 +97,23 @@ button:active { transform: scale(0.96); }
         <input id="loginPassword" type="password" placeholder="पासवर्ड">
     </div>
     
-    <button class="login-btn" onclick="login()">Dashboard खोलें ✅</button>
+    <button class="login-btn" id="loginBtn" onclick="login()">Dashboard खोलें ✅</button>
     <div class="toggle-link" onclick="showRegister()">नया स्कूल रजिस्टर करें (New Register)</div>
 </div>
 
 <div class="container hidden" id="registerSection">
     <div class="loader" id="regLoader">⏳ रजिस्टर हो रहा है...</div>
     <h2>ओनर रजिस्ट्रेशन</h2>
-    
     <div class="input-box"><i class="fas fa-university"></i><input id="schoolName" placeholder="स्कूल का नाम"></div>
-    <div class="input-box"><i class="fas fa-id-card"></i><input id="schoolID" placeholder="School ID (जैसे SS01)" oninput="this.value=this.value.toUpperCase()"></div>
-    <div class="input-box"><i class="fas fa-phone-alt"></i><input id="mobile" type="number" placeholder="ओनर मोबाइल नंबर"></div>
-    <div class="input-box"><i class="fas fa-key"></i><input id="password" type="password" placeholder="नया पासवर्ड चुनें"></div>
-    
+    <div class="input-box"><i class="fas fa-id-card"></i><input id="schoolID" placeholder="School ID" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="input-box"><i class="fas fa-phone-alt"></i><input id="mobile" type="number" placeholder="मोबाइल नंबर"></div>
+    <div class="input-box"><i class="fas fa-key"></i><input id="password" type="password" placeholder="पासवर्ड"></div>
     <button class="register-btn" onclick="register()">Register School 🚀</button>
-    <div class="toggle-link" onclick="showLogin()">Account है? लॉगिन करें</div>
+    <div class="toggle-link" onclick="showLogin()">लॉगिन करें</div>
 </div>
 
 <script>
-// 🔥 Firebase Config (आपका असली डेटाबेस)
+// 🔥 Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
     databaseURL: "https://schoolsphere-824ca-default-rtdb.firebaseio.com/",
@@ -124,7 +122,6 @@ const firebaseConfig = {
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 🔐 Security
 const SALT = "SS_2026_SECURE";
 function hash(p){ return CryptoJS.SHA256(p+SALT).toString(); }
 
@@ -137,93 +134,71 @@ async function register(){
     let id = document.getElementById("schoolID").value.trim();
     let mob = document.getElementById("mobile").value.trim();
     let pass = document.getElementById("password").value.trim();
-
-    if(!name || !id || !mob || !pass){ alert("❌ कृपया पूरी जानकारी भरें!"); return; }
+    if(!name || !id || !mob || !pass){ alert("❌ जानकारी भरें!"); return; }
 
     document.getElementById("regLoader").style.display="block";
-
     try{
         let snap = await db.ref("Schools/"+id).once("value");
-        if(snap.exists()){ 
-            alert("❌ यह School ID पहले से बुक है! कुछ और चुनें।"); 
-        } else {
-            // 1. Schools डेटाबेस में एंट्री
-            await db.ref("Schools/"+id).set({
-                schoolName: name, ownerMobile: mob, password: hash(pass),
-                status: "active", createdAt: Date.now()
-            });
-            
-            // 2. Owners मैपिंग (ताकि सिर्फ मोबाइल से लॉगिन हो सके)
-            await db.ref("Owners/" + mob).set({
-                password: hash(pass),
-                activeSchool: id,
-                ownerMobile: mob
-            });
-
-            // 🎁 FULL DATA COMBO (व्हाट्सएप पर भेजने के लिए)
-            const fullDetails = `🏫 *SchoolSphere Pro - सफलता!* \n\n✅ *School:* ${name}\n🆔 *Owner ID (Mobile):* ${mob}\n🆔 *School ID:* ${id}\n🔑 *Password:* ${pass}\n\n🌐 *Login Link:* https://30-cloud.github.io/register.html`;
-            
-            showFullCopyModal(fullDetails);
+        if(snap.exists()){ alert("❌ ID मौजूद है!"); } 
+        else {
+            await db.ref("Schools/"+id).set({ schoolName: name, ownerMobile: mob, password: hash(pass), status: "active", createdAt: Date.now() });
+            await db.ref("Owners/" + mob).set({ password: hash(pass), activeSchool: id, ownerMobile: mob });
+            const details = `🏫 *SchoolSphere Pro*\n🆔 *Owner ID:* ${mob}\n🆔 *School ID:* ${id}\n🔑 *Password:* ${pass}\n🌐 *Login:* https://30-cloud.github.io/register.html`;
+            showFullCopyModal(details);
         }
-    } catch(e){ alert("Error: " + e.message); }
+    } catch(e){ alert(e.message); }
     document.getElementById("regLoader").style.display="none";
 }
 
-// ================= LOGIN LOGIC (Mobile Only) =================
+// ================= LOGIN (DASHBOARD FIX) =================
 async function login(){
     let mob = document.getElementById("loginMobile").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
+    const loader = document.getElementById("loginLoader");
+    const btn = document.getElementById("loginBtn");
 
-    if(!mob || !pass){ alert("❌ मोबाइल और पासवर्ड भरें!"); return; }
-    document.getElementById("loginLoader").style.display="block";
+    if(!mob || !pass){ alert("❌ मोबाइल और पासवर्ड डालें!"); return; }
+    
+    loader.style.display="block";
+    btn.disabled = true;
+    btn.innerText = "लोड हो रहा है...";
 
     try {
-        // सीधा ओनर के मोबाइल फोल्डर में चेक करें
         let snap = await db.ref("Owners/" + mob).once("value");
-        
         if(!snap.exists()){
-            alert("❌ यह मोबाइल नंबर रजिस्टर नहीं है!");
+            alert("❌ नंबर रजिस्टर नहीं है!");
+            loader.style.display="none";
+            btn.disabled = false;
+            btn.innerText = "Dashboard खोलें ✅";
         } else {
-            let ownerData = snap.val();
-            if(ownerData.password === hash(pass)){
-                // लॉगिन सफल, स्कूल आईडी को ब्राउज़र में सेव करें
-                localStorage.setItem("activeSchoolID", ownerData.activeSchool);
+            let data = snap.val();
+            if(data.password === hash(pass)){
+                // ✅ No Alert! सीधे डेटा सेव और जंप
+                localStorage.setItem("activeSchoolID", data.activeSchool);
                 localStorage.setItem("activeOwnerID", mob);
                 
-                alert("✅ लॉगिन सफल! डैशबोर्ड खुल रहा है...");
-                window.location.href = "owner.html"; 
+                // 🚀 डायरेक्ट जंप (Dashboard तक पहुँचने का पक्का रास्ता)
+                window.location.replace("owner.html"); 
             } else {
                 alert("❌ गलत पासवर्ड!");
+                loader.style.display="none";
+                btn.disabled = false;
+                btn.innerText = "Dashboard खोलें ✅";
             }
         }
-    } catch(e) { alert("Error: " + e.message); }
-    document.getElementById("loginLoader").style.display="none";
+    } catch(e) { alert(e.message); loader.style.display="none"; btn.disabled = false; }
 }
 
-// ================= ALL-IN-ONE COPY MODAL =================
+// ================= COPY MODAL =================
 function showFullCopyModal(fullText) {
     const modal = document.createElement("div");
     modal.className = "modal-overlay";
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h2 style="color: var(--success); border:none; margin:0 0 10px 0;">🎉 पंजीकरण सफल!</h2>
-            <p style="font-size:12px; color:#666; margin-bottom:15px;">नीचे दिए बटन से पूरी जानकारी एक साथ कॉपी करें</p>
-            <div style="text-align: left; background: #f8f8f8; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; white-space: pre-wrap; margin-bottom: 20px; border: 1px solid #ddd; color:#333;">${fullText}</div>
-            <button onclick="copyEverything('${fullText.replace(/'/g, "\\'")}')" style="background:var(--success); color:white; border:none; padding:15px; width:100%; border-radius:15px; font-weight:bold; margin-bottom:12px; cursor:pointer;">📋 पूरी डिटेल्स एक साथ कॉपी करें</button>
-            <button onclick="window.location.reload()" style="background:#eee; border:none; padding:12px; width:100%; border-radius:15px; cursor:pointer; font-weight:bold; color:#555;">बंद करें (Close)</button>
-        </div>
-    `;
+    modal.innerHTML = `<div class="modal-content"><h2 style="color:var(--success); border:none;">🎉 सफल रजिस्ट्रेशन!</h2><div style="text-align:left; background:#f8f8f8; padding:15px; border-radius:12px; font-size:13px; white-space:pre-wrap; margin-bottom:20px; border:1px solid #ddd;">${fullText}</div><button onclick="copyEverything('${fullText.replace(/'/g, "\\'")}')" style="background:var(--success); color:white; border:none; padding:15px; width:100%; border-radius:15px; font-weight:bold; cursor:pointer;">📋 डिटेल्स कॉपी करें</button></div>`;
     document.body.appendChild(modal);
 }
-
 window.copyEverything = function(text) {
-    const el = document.createElement('textarea');
-    el.value = text;
-    document.body.appendChild(el); 
-    el.select();
-    document.execCommand('copy'); 
-    document.body.removeChild(el);
-    alert("✅ पूरी जानकारी कॉपी हो गई! अब व्हाट्सएप पर पेस्ट करें।");
+    const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    alert("✅ डिटेल्स कॉपी! अब रिफ्रेश करें।"); window.location.reload();
 };
 </script>
 
