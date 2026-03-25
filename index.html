@@ -1,180 +1,168 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SchoolSphere Pro - Digital Hub</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchoolSphere Pro - Digital Hub</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f2027">
+    <link rel="manifest" href='data:application/json,{"name":"SchoolSphere","short_name":"Sphere","start_url":".","display":"standalone","background_color":"#0f2027","theme_color":"#2563eb","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2940/2940651.png","sizes":"512x512","type":"image/png"}]}'>
+    <meta name="theme-color" content="#0f2027">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 
-<style>
-:root { 
-    --gold: #FFD54F; 
-    --bg-dark: #0f2027;
-}
+    <script src="https://cdn.tailwindcss.com"></script>
 
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: radial-gradient(circle at center, #2c5364, #203a43, #0f2027);
-    color: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 50px;
-}
+    <style>
+        :root { 
+            --gold: #FFD54F; 
+            --bg-dark: #0f2027;
+        }
 
-/* --- Top Branding Section --- */
-.branding {
-    text-align: center;
-    margin-bottom: 40px;
-}
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #2c5364, #203a43, #0f2027);
+            color: white;
+            min-height: 100vh;
+        }
 
-.app-name {
-    font-size: 52px; /* बड़ा और बोल्ड नाम */
-    font-weight: 900;
-    color: var(--gold);
-    margin: 0;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    letter-spacing: -1px;
-}
+        /* --- Role Selection Styles --- */
+        .branding { text-align: center; margin-bottom: 40px; padding-top: 50px; }
+        .app-name { font-size: 52px; font-weight: 900; color: var(--gold); margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .tagline { font-size: 14px; letter-spacing: 3px; color: #BDC3C7; text-transform: uppercase; }
 
-.tagline {
-    font-size: 16px;
-    letter-spacing: 3px;
-    color: #BDC3C7;
-    margin-top: -5px;
-    font-weight: 500;
-    text-transform: uppercase;
-}
+        .role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 92%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
 
-/* --- Role Grid - Screen जैसा डिज़ाइन --- */
-.role-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    width: 92%;
-    max-width: 450px;
-}
+        .role {
+            padding: 35px 15px;
+            border-radius: 25px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            border: none;
+        }
 
-.role {
-    position: relative;
-    padding: 35px 15px; /* बटन बड़े और साफ़ */
-    border-radius: 25px;
-    border: none;
-    color: white;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-}
+        .role:active { transform: scale(0.95); }
+        .role i { font-size: 32px; }
 
-.role:active { transform: scale(0.95); }
+        /* Gradients */
+        .owner { background: linear-gradient(135deg, #a445ed, #6225e6); grid-column: span 2; }
+        .principal { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+        .accountant { background: linear-gradient(135deg, #f7971e, #ffd200); }
+        .teacher { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .driver { background: linear-gradient(135deg, #ee0979, #ff6a00); }
+        .parent { background: linear-gradient(135deg, #ff9966, #ff5e62); grid-column: span 2; }
 
-.role i { font-size: 32px; } /* बड़े आइकन */
-
-/* Gradients as per your Screenshot */
-.owner { 
-    background: linear-gradient(135deg, #a445ed, #6225e6); 
-    grid-column: span 2; 
-}
-.principal { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
-.accountant { background: linear-gradient(135deg, #f7971e, #ffd200); }
-.teacher { background: linear-gradient(135deg, #11998e, #38ef7d); }
-.driver { background: linear-gradient(135deg, #ee0979, #ff6a00); }
-.parent { 
-    background: linear-gradient(135deg, #ff9966, #ff5e62); 
-    grid-column: span 2; 
-}
-
-/* Status Message */
-#status-msg {
-    margin-top: 30px;
-    font-size: 18px;
-    color: var(--gold);
-    font-weight: 500;
-    min-height: 25px;
-}
-</style>
+        #status-msg { text-align: center; margin-top: 25px; color: var(--gold); font-weight: 500; }
+    </style>
 </head>
-
 <body>
 
-<div class="branding">
-    <h1 class="app-name">SchoolSphere</h1>
-    <p class="tagline">THE DIGITAL SCHOOL HUB</p>
-</div>
+    <div id="root"></div>
 
-<div class="role-grid">
+    <script type="module">
+        import React, { useState, useEffect } from 'https://esm.sh/react@19.0.0';
+        import { createRoot } from 'https://esm.sh/react-dom@19.0.0/client';
+        import htm from 'https://esm.sh/htm';
+        const html = htm.bind(React.createElement);
 
-    <button class="role owner" onclick="go('owner')">
-        <i class="fas fa-crown"></i>
-        Owner
-    </button>
+        import { initializeApp } from 'https://esm.sh/firebase@10.12.2/app';
+        import { getAuth, onAuthStateChanged } from 'https://esm.sh/firebase@10.12.2/auth';
 
-    <button class="role principal" onclick="go('principal')">
-        <i class="fas fa-university"></i>
-        Principal
-    </button>
+        // --- Firebase Config (Updated with your real credentials) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSgfU5OhUmLGwc6OBxgrudtZpqMCzgQpw",
+            authDomain: "schoolsphere-824ca.firebaseapp.com",
+            projectId: "schoolsphere-824ca",
+            storageBucket: "schoolsphere-824ca.firebasestorage.app",
+            messagingSenderId: "698409232180",
+            appId: "1:698409232180:web:schoolsphere"
+        };
 
-    <button class="role accountant" onclick="go('accountant')">
-        <i class="fas fa-sack-dollar"></i>
-        Accountant
-    </button>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    <button class="role teacher" onclick="go('teacher')">
-        <i class="fas fa-chalkboard-user"></i>
-        Teacher
-    </button>
+        function App() {
+            const [currentPage, setCurrentPage] = useState('selection');
+            const [status, setStatus] = useState('');
 
-    <button class="role driver" onclick="go('driver')">
-        <i class="fas fa-bus"></i>
-        Driver
-    </button>
+            // Navigation function for Roles
+            const handleRoleClick = (role) => {
+                const roleNames = {
+                    'owner': 'OWNER लॉगिन पेज पर जा रहे हैं...',
+                    'principal': 'PRINCIPAL पोर्टल खुल रहा है...',
+                    'accountant': 'ACCOUNTANT लॉगिन...',
+                    'teacher': 'TEACHER सेक्शन लोड हो रहा है...',
+                    'driver': 'DRIVER मोड ऑन हो रहा है...',
+                    'parent': 'STUDENT/PARENT पेज खुल रहा है...'
+                };
+                setStatus(roleNames[role]);
+                
+                setTimeout(() => {
+                    // यहाँ आप अपनी पेजों का रास्ता (Path) बदल सकते हैं
+                    window.location.href = "pages/" + role + ".html";
+                }, 800);
+            };
 
-    <button class="role parent" onclick="go('parent')">
-        <i class="fas fa-user-graduate"></i>
-        Parent / Student
-    </button>
+            // Selection Page UI
+            const SelectionPage = () => html`
+                <div>
+                    <div className="branding">
+                        <h1 className="app-name">SchoolSphere</h1>
+                        <p className="tagline">THE DIGITAL SCHOOL HUB</p>
+                    </div>
 
-</div>
+                    <div className="role-grid">
+                        <button className="role owner" onClick=${() => handleRoleClick('owner')}>
+                            <i className="fas fa-crown"></i> Owner
+                        </button>
+                        <button className="role principal" onClick=${() => handleRoleClick('principal')}>
+                            <i className="fas fa-university"></i> Principal
+                        </button>
+                        <button className="role accountant" onClick=${() => handleRoleClick('accountant')}>
+                            <i className="fas fa-sack-dollar"></i> Accountant
+                        </button>
+                        <button className="role teacher" onClick=${() => handleRoleClick('teacher')}>
+                            <i className="fas fa-chalkboard-user"></i> Teacher
+                        </button>
+                        <button className="role driver" onClick=${() => handleRoleClick('driver')}>
+                            <i className="fas fa-bus"></i> Driver
+                        </button>
+                        <button className="role parent" onClick=${() => handleRoleClick('parent')}>
+                            <i className="fas fa-user-graduate"></i> Parent / Student
+                        </button>
+                    </div>
+                    <div id="status-msg">${status}</div>
+                </div>
+            `;
 
-<div id="status-msg"></div>
+            return html`<${SelectionPage} />`;
+        }
 
-<script>
-// Navigation function
-function go(role){
-    const msg = document.getElementById("status-msg");
-    const roleNames = {
-        'owner': 'OWNER लॉगिन पेज पर जा रहे हैं...',
-        'principal': 'PRINCIPAL पोर्टल खुल रहा है...',
-        'accountant': 'ACCOUNTANT लॉगिन...',
-        'teacher': 'TEACHER सेक्शन लोड हो रहा है...',
-        'driver': 'DRIVER मोड ऑन हो रहा है...',
-        'parent': 'STUDENT/PARENT पेज खुल रहा है...'
-    };
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
 
-    msg.innerText = roleNames[role] || "लोड हो रहा है...";
-
-    setTimeout(()=>{
-        window.location.href = "pages/" + role + ".html";
-    }, 800);
-}
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-}
-</script>
-
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').catch(err => console.log(err));
+            });
+        }
+    </script>
 </body>
 </html>
